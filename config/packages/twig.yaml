@@ -3,6 +3,7 @@ twig:
     form_themes:
         - '@SonataForm/Form/datepicker.html.twig'
         - '@FOSCKEditor/Form/ckeditor_widget.html.twig'
+        - 'bootstrap_5_layout.html.twig'
 
 when@test:
     twig:

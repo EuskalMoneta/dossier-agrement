@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau dossier{% endblock %}
+
+{% block bgColor %} bg-soft-grey {% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-10">
+            <h1 class="H1-header-40"> Création d'un nouveau dossier </h1>
+        </div>
+    </div>
+
+    <form method="post">
+    <div class="row">
+        <div class="mt-5 col-6">
+            <h3 class="h3-20bold">Sélectionner le type de dossier</h3>
+
+            <select class="form-select" name="type-dossier" required>
+                <option selected value="">Choisir une option</option>
+                <option value="professionnel">Professionnel</option>
+                <option value="association">Association</option>
+            </select>
+
+            <div class="mb-3 mt-5">
+                <label for="exampleFormControlInput1" class="h3-20bold form-label">Nom du dossier</label>
+                <input type="text" class="form-control" name="nom-dossier" id="exampleFormControlInput1" required>
+            </div>
+
+            <div class="mt-5">
+                <input type="submit" class="btn btn-primary" value="Suivant" />
+            </div>
+
+        </div>
+    </div>
+    </form>
+</div>
+
+{% endblock %}
