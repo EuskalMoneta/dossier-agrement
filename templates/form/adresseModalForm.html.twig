@@ -1,0 +1,116 @@
+
+<div class="modal fade " id="adresseModal" aria-labelledby="adresseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title h2-30 green-color-eusko" id="adresseModalLabel">Ajouter une adresse d'activité</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+
+                    <input type="hidden" class="form-adresse" id="adresse-id" value="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adresse-nom" class="form-label">Nom du lieu</label>
+                                <input type="text" name="adresse-nom" id="adresse-nom" class="form-control form-adresse">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adresse-adresse" class="form-label">Adresse</label>
+                                <br />
+                                <select name="adresse-adresse" id="adresse-adresse" class="form-control js-city-ajax form-adresse" style="width: 550px;">
+                                </select>
+                                <input type="hidden" name="adresse-adresse-hidden" id="adresse-adresse-hidden" value="">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adresse-telephone" class="form-label">Téléphone</label>
+                                <input type="text" name="adresse-telephone" id="adresse-telephone" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adresse-email" class="form-label">Email</label>
+                                <input type="text" name="adresse-email" id="adresse-email" class="form-control form-adresse">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="col-md-12 mt-5">
+                            <h3 class="h3-25bold green-color-eusko mb-2">
+                                L’activité
+                            </h3>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="adresse-descriptif" class="form-label">Descriptif de l'activité</label>
+                                <input type="text" name="adresse-descriptif" id="adresse-descriptif" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="adresse-horaires" class="form-label">Horaires</label>
+                                <input type="text" name="adresse-horaires" id="adresse-horaires" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="adresse-autresLieux" class="form-label">Autres lieux et jours de pratique de l’activité (marchés, AMAP, autres) :..</label>
+                                <input type="text" name="adresse-autresLieux" id="adresse-autresLieux" class="form-control form-adresse">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mt-5">
+                            <h3 class="h3-25bold green-color-eusko mb-2">
+                                L’entreprise dans le réseau eusko
+                            </h3>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="adresse-horaires" class="form-label">Catégories de l’activité dans l’annuaire de zone</label>
+                                <input type="text" name="adresse-horaires" id="adresse-horaires" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="adresse-horaires" class="form-label">Catégories de l’activité dans Eskuz Esku</label>
+                                <input type="text" name="adresse-horaires" id="adresse-horaires" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="adresse-guide" value="" id="adresse-guide">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        Guide vacances en eusko
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+            <div class="modal-footer" id="adresseModalFooter">
+                <button type="button" class="btn btn-outline-dark" id="adresse-close">Fermer</button>
+                <button type="button" class="btn btn-primary" id="adresse-submit">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>

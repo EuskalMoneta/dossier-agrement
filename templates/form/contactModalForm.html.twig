@@ -1,0 +1,71 @@
+
+<div class="modal fade " id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactModalLabel">Ajouter un contact</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+
+                    <input type="hidden" class="form-contact" id="contact-id" value="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact-nom" class="form-label">Nom</label>
+                                <input type="text" name="contact-nom" id="contact-nom" class="form-control form-contact">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact-prenom" class="form-label">Prénom</label>
+                                <input type="text" name="contact-prenom" id="contact-prenom" class="form-control form-contact">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact-email" class="form-label">Email</label>
+                                <input type="text" name="contact-email" id="contact-email" class="form-control form-contact">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact-telephone" class="form-label">Téléphone</label>
+                                <input type="text" name="contact-telephone" id="contact-telephone" class="form-control form-contact">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="contact-fonction" class="form-label">Fonction</label>
+                                <input type="text" name="contact-fonction" id="contact-fonction" class="form-control form-contact">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="contact-interlocuteur" value="" id="contact-interlocuteur">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        Est un interlocuteur d’euskal moneta
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+            <div class="modal-footer" id="contactModalFooter">
+                <button type="button" class="btn btn-outline-dark" id="contact-close">Fermer</button>
+                <button type="button" class="btn btn-primary" id="contact-submit">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
