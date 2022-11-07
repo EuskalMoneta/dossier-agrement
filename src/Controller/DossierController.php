@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\AdresseActivite;
+use App\Entity\CategorieAnnuaire;
 use App\Entity\Contact;
+use App\Entity\Defi;
 use App\Entity\DossierAgrement;
+use App\Entity\Fournisseur;
 use App\Form\CoordonneesFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -41,6 +44,8 @@ class DossierController extends AbstractController
     {
         $form = $this->createForm(CoordonneesFormType::class, $dossierAgrement);
 
+        $categoriesAnnuaire = $em->getRepository(CategorieAnnuaire::class)->findBy(['type' => 'eusko']);
+
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
 
@@ -59,7 +64,7 @@ class DossierController extends AbstractController
                 foreach ($request->get('dataContacts') as $contactJson){
                     $contactObjet = json_decode($contactJson);
 
-                    if( substr($contactObjet->id, 0, 4) != 'TEMP'){
+                    if(!str_starts_with($contactObjet->id,'TEMP')){
                         //on récupère le contact existant et on le retire du tableau
                         $contact = $em->getRepository(Contact::class)->find($contactObjet->id);
                         if (($key = array_search($contact, $tabContacts)) !== false) {
@@ -87,13 +92,13 @@ class DossierController extends AbstractController
             //on sauvegarde l'ancienne liste des adresses pour les suppressions
             $tabAdressesToDelete = $dossierAgrement->getAdresseActivites()->toArray();
 
-            if($request->get('dataContacts')) {
+            if($request->get('dataAdresses')) {
 
                 foreach ($request->get('dataAdresses') as $adresseJson) {
                     //on decode le json entier
                     $adresseObjet = json_decode($adresseJson);
 
-                    if( substr($adresseObjet->id, 0, 4) != 'TEMP'){
+                    if( !str_starts_with($adresseObjet->id, 'TEMP')){
                         //on récupère le contact existant et on le retire du tableau
                         $adresse = $em->getRepository(AdresseActivite::class)->find($adresseObjet->id);
                         if (($key = array_search($adresse, $tabAdressesToDelete)) !== false) {
@@ -104,6 +109,16 @@ class DossierController extends AbstractController
                         $adresse = new AdresseActivite();
                     }
 
+                    //gestion des categories de l'annuaire
+                    $adresse->cleanCategoriesAnnuaire();
+                    foreach ($adresseObjet->categoriesAnnuaire as $categorieId){
+                        $categorie = $em->getRepository(CategorieAnnuaire::class)->find($categorieId);
+                        if($categorie){
+                            $adresse->addCategoriesAnnuaire($categorie);
+                        }
+                    }
+
+                    //enregistrement
                     $adresse->updateFormJsonObject($adresseObjet);
                     $adresse->setDossier($dossierAgrement);
                     $em->persist($adresse);
@@ -122,12 +137,166 @@ class DossierController extends AbstractController
             $em->persist($dossierAgrement);
             $em->flush();
 
+            return $this->redirectToRoute('app_dossier_defis', ['id' => $dossierAgrement->getId()]);
         }
 
         return $this->renderForm('dossier/coordonnees.html.twig', [
             'form' => $form,
+            'dossierAgrement' => $dossierAgrement,
+            'categoriesAnnuaire' => $categoriesAnnuaire
+        ]);
+
+    }
+
+
+    #[Route('/dossier/defis/{id}', name: 'app_dossier_defis')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function defis(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em): Response
+    {
+
+        if ($request->isMethod('post')) {
+
+            //Enregistrer les défis produits
+            if($request->get('professionnels')) {
+                foreach ($request->get('professionnels') as $key => $produit) {
+                    $this->enregistrerDefi($key, $produit, 'professionnel', $request->get('professionnels-etat'.$key),  $dossierAgrement, $em);
+                }
+            }
+
+            //Enregistrer les défis professionnels
+            if($request->get('produits')) {
+                foreach ($request->get('produits') as $key => $produit) {
+                    $this->enregistrerDefi($key, $produit, 'produit', $request->get('produits-etat'.$key),  $dossierAgrement, $em);
+                }
+            }
+
+            //Enregistrer le défi reutiliser
+            foreach ($request->get('reutiliser') as $key => $produit) {
+                $this->enregistrerDefi($key, $produit, 'reutiliser', $request->get('reutiliser-etat'.$key),  $dossierAgrement, $em);
+            }
+
+
+            //Enregistrer le défi promotion euskara
+            foreach ($request->get('promotionEuskara') as $key => $produit) {
+                $this->enregistrerDefi($key, $produit, 'promotionEuskara', $request->get('promotionEuskara-etat'.$key),  $dossierAgrement, $em);
+            }
+
+
+            //Enregistrer le défi accueil euskara
+            foreach ($request->get('accueilEuskara') as $key => $produit) {
+                $this->enregistrerDefi($key, $produit, 'accueilEuskara', $request->get('accueilEuskara-etat'.$key),  $dossierAgrement, $em);
+            }
+
+
+            /**************    ENREGISTREMENT   *******************/
+            $em->persist($dossierAgrement);
+            $em->flush();
+
+        }
+
+        return $this->renderForm('dossier/defis.html.twig', [
             'dossierAgrement' => $dossierAgrement
         ]);
 
+    }
+
+    #[Route('/dossier/vieDuReseau/{id}', name: 'app_dossier_vieDuReseau')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function vieDuReseau(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em, APITollboxController $APITollboxController): Response
+    {
+        $response = $APITollboxController->curlRequestDolibarr('GET', 'thirdparties');
+        dump($response);
+        $data =["skype"=> "bretele"];
+        $responseBis = $APITollboxController->curlRequestDolibarr('PUT', 'thirdparties/622', $data);
+        dump($responseBis);
+
+        if ($request->isMethod('post')) {
+
+            /******************************************************/
+            /***************    FOURNISSEURS   ********************/
+            //on sauvegarde l'ancienne liste des adresses pour les suppressions
+            $tabFournisseursToDelete = $dossierAgrement->getFournisseurs()->toArray();
+
+            if($request->get('dataFournisseurs')) {
+
+                foreach ($request->get('dataFournisseurs') as $adresseJson) {
+                    //on decode le json entier
+                    $fournisseurObjet = json_decode($adresseJson);
+
+                    if( !str_starts_with($fournisseurObjet->id, 'TEMP')){
+                        //on récupère le fournisseur existant et on le retire du tableau
+                        $fournisseur = $em->getRepository(Fournisseur::class)->find($fournisseurObjet->id);
+                        if (($key = array_search($fournisseur, $tabFournisseursToDelete)) !== false) {
+                            unset($tabFournisseursToDelete[$key]);
+                        }
+                    } else {
+                        //création d'un nouveau fournisseur
+                        $fournisseur = new Fournisseur();
+                    }
+
+                    //enregistrement
+                    $fournisseur->updateFormJsonObject($fournisseurObjet);
+                    $fournisseur->setDossierAgrement($dossierAgrement);
+                    $em->persist($fournisseur);
+                }
+            }
+
+            //On supprime les contacts qui ont été supprimés en front
+            foreach ($tabFournisseursToDelete as $fournisseur){
+                $dossierAgrement->removeFournisseur($fournisseur);
+                $em->remove($fournisseur);
+            }
+
+            /******************************************************/
+            /*****************  ECO-SYSTEME  **********************/
+
+            foreach ($request->get('enargia') as $key => $produit) {
+                $this->enregistrerDefi($key, $request->get('defi'.$key), 'enargia', 1,  $dossierAgrement, $em);
+            }
+
+            foreach ($request->get('paysBasqueAuCoeur') as $key => $produit) {
+                $this->enregistrerDefi($key, $request->get('defi'.$key), 'paysBasqueAuCoeur', 1,  $dossierAgrement, $em);
+            }
+
+            foreach ($request->get('lantegiak') as $key => $produit) {
+                $this->enregistrerDefi($key, $request->get('defi'.$key), 'lantegiak', 1,  $dossierAgrement, $em);
+            }
+
+            /**************    ENREGISTREMENT   *******************/
+            $em->persist($dossierAgrement);
+            $em->flush();
+
+        }
+
+        return $this->renderForm('dossier/vieReseau.html.twig', [
+            'dossierAgrement' => $dossierAgrement
+        ]);
+
+    }
+
+
+    public function enregistrerDefi($key,$produit, $type, $etat, DossierAgrement &$dossierAgrement, EntityManagerInterface $em){
+        $defi = $em->getRepository(Defi::class)->find($key);
+        if(!$defi){
+            $defi = new Defi();
+        }
+        if($type == 'produit' or $type == 'professionnel'){
+            if($produit != ''){
+                $defi->setType($type);
+                $defi->setValeur($produit);
+                $defi->setEtat($etat);
+                $dossierAgrement->addDefi($defi);
+            } else {
+                $dossierAgrement->removeDefi($defi);
+            }
+
+        } else {
+            $defi->setType($type);
+            $defi->setValeur($produit);
+            $defi->setEtat($etat);
+            $dossierAgrement->addDefi($defi);
+        }
+
+        return true;
     }
 }

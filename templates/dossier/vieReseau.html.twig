@@ -1,0 +1,363 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Participation à la vie du réseau{% endblock %}
+
+{% block bgColor %} bg-soft-grey {% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <form method="post">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="h3-25bold mb-0">
+                        Dossier d'agrément - {{ dossierAgrement.libelle }}
+                    </h3>
+                    <h4 class="h4-sousTitre">{{ dossierAgrement.type }}</h4>
+
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <div class="sm-card-recap">
+                                <div class="d-flex align-items-top">
+                                    <div class="ico-card-recap">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path class="blk" fill-rule="evenodd" clip-rule="evenodd" d="M10 0C4.47727 0 0 4.47727 0 10C0 15.5227 4.47727 20 10 20C15.5227 20 20 15.5227 20 10C20 4.47727 15.5227 0 10 0ZM14.3345 8.30909C14.4144 8.21786 14.4751 8.11158 14.5133 7.99652C14.5514 7.88145 14.5661 7.75992 14.5566 7.63908C14.5471 7.51823 14.5135 7.40051 14.4578 7.29284C14.4021 7.18518 14.3254 7.08973 14.2323 7.01213C14.1392 6.93453 14.0315 6.87633 13.9155 6.84097C13.7996 6.8056 13.6777 6.79378 13.5572 6.80621C13.4366 6.81863 13.3197 6.85504 13.2134 6.9133C13.1071 6.97156 13.0135 7.0505 12.9382 7.14545L9.02909 11.8355L7.00636 9.81182C6.83491 9.64622 6.60527 9.55459 6.36691 9.55666C6.12855 9.55873 5.90054 9.65434 5.73198 9.82289C5.56343 9.99145 5.46782 10.2195 5.46575 10.4578C5.46368 10.6962 5.55531 10.9258 5.72091 11.0973L8.44818 13.8245C8.53751 13.9138 8.64445 13.9835 8.7622 14.0291C8.87994 14.0748 9.00591 14.0954 9.13206 14.0897C9.25822 14.084 9.3818 14.052 9.49492 13.9959C9.60804 13.9397 9.70823 13.8606 9.78909 13.7636L14.3345 8.30909Z" fill="#699BF7"/>
+                                        </svg>
+
+                                    </div>
+                                    <div class="ms-3">
+                                        <h3 class="intro-18bold mb-0 "><a href="{{ path('app_dossier_coordonnees', {'id': dossierAgrement.id}) }}" class="linkText"> Coordonnées</a></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="sm-card-recap">
+                                <div class="d-flex align-items-top">
+                                    <div class="ico-card-recap">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <g clip-path="url(#clip0_29_30)">
+                                                <path d="M6.66669 10.4165L9.16669 12.9165L13.3334 7.9165" stroke="#8D8D8D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 18.3332C14.6024 18.3332 18.3334 14.6022 18.3334 9.99984C18.3334 5.39746 14.6024 1.6665 10 1.6665C5.39765 1.6665 1.66669 5.39746 1.66669 9.99984C1.66669 14.6022 5.39765 18.3332 10 18.3332Z" stroke="#8D8D8D" stroke-width="2"/>
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_29_30">
+                                                    <rect width="20" height="20" fill="white"/>
+                                                </clipPath>
+                                            </defs>
+                                        </svg>
+
+                                    </div>
+                                    <div class="ms-3">
+                                        <h3 class="intro-18bold mb-0 "><a href="{{ path('app_dossier_defis', {'id': dossierAgrement.id}) }}" class="linkText"> Défis</a></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6 mt-3">
+                            <div class="sm-card-recap">
+                                <div class="d-flex align-items-top">
+                                    <div class="ico-card-recap">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <g clip-path="url(#clip0_29_30)">
+                                                <path d="M6.66669 10.4165L9.16669 12.9165L13.3334 7.9165" stroke="#8D8D8D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 18.3332C14.6024 18.3332 18.3334 14.6022 18.3334 9.99984C18.3334 5.39746 14.6024 1.6665 10 1.6665C5.39765 1.6665 1.66669 5.39746 1.66669 9.99984C1.66669 14.6022 5.39765 18.3332 10 18.3332Z" stroke="#8D8D8D" stroke-width="2"/>
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_29_30">
+                                                    <rect width="20" height="20" fill="white"/>
+                                                </clipPath>
+                                            </defs>
+                                        </svg>
+
+                                    </div>
+                                    <div class="ms-3">
+                                        <h3 class="intro-18bold mb-0 grey-color">Charte/réseau</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row spacer-vertical-column">
+                <div class="col-12 mb-3">
+                    <h1 class="h2-30 green-color-eusko mb-2">
+                        Participation à la vie du réseau eusko
+                    </h1>
+                    <p class="intro-18reg">
+                        Afin d’étoffer le réseau et faciliter la circulation des eusko, lister les fournisseurs locaux
+                    </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <div class="flex-grow-1 me-3">
+                            <select name="fournisseur-select" id="fournisseur-select" class="form-control js-city-ajax form-fournisseur" >
+                            </select>
+
+                        </div>
+                        <div class="" style="width: 200px;">
+
+                        </div>
+                        <div>
+                            <a href="#" class="btn btn-outline-primary contact-btn" data-bs-toggle="modal" data-bs-target="#fournisseurModal"> Créer un fournisseur </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+
+                        {# Affiche les contacts #}
+                        <div id="fournisseurContainer">
+                            {% for fournisseur in dossierAgrement.fournisseurs %}
+                                <div class="mb-2 card-relation fournisseurCard{{ fournisseur.id }}">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <div class="d-flex">
+                                                <h3 class="h4-20bold mb-0">{{ fournisseur.nomEntreprise }}</h3>
+                                            </div>
+                                            <div class="sousTitre-18bold">
+                                                {{ fournisseur.activite }}
+                                            </div>
+                                            <div class="paragraph-16reg mt-1">
+                                                {{ fournisseur.prenom }} {{ fournisseur.nom }}
+                                            </div>
+                                            <div class="paragraph-16reg">
+                                                {{ fournisseur.email }}
+                                            </div>
+                                            <div class="paragraph-16reg">
+                                                {{ fournisseur.telephone }}
+                                            </div>
+
+
+                                        </div>
+
+                                        <div>
+                                            <a  id="{{ fournisseur.id }}" class="fournisseur-edit linkText">
+                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M9.16663 1.66675H7.49996C3.33329 1.66675 1.66663 3.33341 1.66663 7.50008V12.5001C1.66663 16.6667 3.33329 18.3334 7.49996 18.3334H12.5C16.6666 18.3334 18.3333 16.6667 18.3333 12.5001V10.8334" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M13.3667 2.51663L6.80002 9.0833C6.55002 9.3333 6.30002 9.82497 6.25002 10.1833L5.89169 12.6916C5.75835 13.6 6.40002 14.2333 7.30835 14.1083L9.81669 13.75C10.1667 13.7 10.6584 13.45 10.9167 13.2L17.4834 6.6333C18.6167 5.49997 19.15 4.1833 17.4834 2.51663C15.8167 0.849966 14.5 1.3833 13.3667 2.51663Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M12.425 3.45825C12.9834 5.44992 14.5417 7.00825 16.5417 7.57492" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {# Stocke les inputs #}
+                        <div id="fournisseurInputsHidden">
+                            {% for fournisseur in dossierAgrement.fournisseurs %}
+                                <input type="hidden" name="dataFournisseurs[fournisseur-{{ fournisseur.id }}]" id="fournisseur-{{ fournisseur.id }}" value="{{ fournisseur.getJsonFormat() }}">
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row spacer-vertical-column">
+                <div class="col-12 mb-3">
+                    <h1 class="h2-30 green-color-eusko mb-2">
+                        Participation à l'écosystème du réseau eusko
+                    </h1>
+                    <p class="intro-18reg">
+                        L’eusko soutient des initiatives locales qui œuvrent autour des mêmes valeurs que celles défendues par l’eusko.
+                        Voici quelques unes d’entre-elles qui pourraient vous intéresser                    </p>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12">
+                    {% for defi in dossierAgrement.defis %}
+                        {% if defi.type == 'enargia' %}
+                            <div class="d-flex mt-3 align-items-center justify-content-between">
+                                <div class="">
+                                    <input type="hidden" name="enargia[{{ defi.id }}]" value="" />
+                                    <p class="sousTitre-18bold">
+                                        Enargia, le fournisseur d’électricité verte du Pays Basque.
+                                    </p>
+                                </div>
+                                <div>
+                                    <div style="width: 300px;">
+                                        <div class="form-check ms-4 me-2">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Déjà adhérent" {% if defi.valeur == 'Déjà adhérent' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Déjà adhérent
+                                            </label>
+                                        </div>
+                                        <div class="form-check ms-4 me-2" style="">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Souhaite être mise en relation" {% if defi.valeur == 'Souhaite être mise en relation' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Souhaite être mise en relation
+                                            </label>
+                                        </div>
+                                        <div class="form-check ms-4 me-2" style="">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Pas intéressé" {% if defi.valeur == 'Pas intéressé' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Pas intéressé
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+
+                <div class="col-12 mt-3">
+                    {% for defi in dossierAgrement.defis %}
+                        {% if defi.type == 'paysBasqueAuCoeur' %}
+                            <div class="d-flex mt-3 align-items-center">
+                                <div class="">
+                                    <input type="hidden" name="paysBasqueAuCoeur[{{ defi.id }}]" value="" />
+                                    <p class="sousTitre-18bold">
+                                        Pays Basque au Cœur, association de préservation et dynamisation de l’économie
+                                        locale en Pays Basque intérieur (chèque cadeaux et chèque culture)
+                                    </p>
+                                </div>
+                                <div>
+                                    <div style="width: 300px;">
+                                        <div class="form-check ms-4 me-2">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Déjà adhérent" {% if defi.valeur == 'Déjà adhérent' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Déjà adhérent
+                                            </label>
+                                        </div>
+                                        <div class="form-check ms-4 me-2" style="">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Souhaite être mise en relation" {% if defi.valeur == 'Souhaite être mise en relation' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Souhaite être mise en relation
+                                            </label>
+                                        </div>
+                                        <div class="form-check ms-4 me-2" style="">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Pas intéressé" {% if defi.valeur == 'Pas intéressé' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Pas intéressé
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+
+                <div class="col-12 mt-3">
+                    {% for defi in dossierAgrement.defis %}
+                        {% if defi.type == 'lantegiak' %}
+                            <div class="d-flex mt-3 align-items-center">
+                                <div class="">
+                                    <input type="hidden" name="lantegiak[{{ defi.id }}]" value="" />
+                                    <p class="sousTitre-18bold">
+                                        Lantegiak, association, collectif et organisation professionnel de promotion
+                                        et de défense des entreprises du Pays Basque (charte RSE)
+                                    </p>
+                                </div>
+                                <div>
+                                    <div style="width: 300px;">
+                                        <div class="form-check ms-4 me-2">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Déjà adhérent" {% if defi.valeur == 'Déjà adhérent' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Déjà adhérent
+                                            </label>
+                                        </div>
+                                        <div class="form-check ms-4 me-2" style="">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Souhaite être mise en relation" {% if defi.valeur == 'Souhaite être mise en relation' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Souhaite être mise en relation
+                                            </label>
+                                        </div>
+                                        <div class="form-check ms-4 me-2" style="">
+                                            <input class="form-check-input" type="radio" name="defi{{ defi.id }}" value="Pas intéressé" {% if defi.valeur == 'Pas intéressé' %} checked {% endif %}>
+                                            <label class="form-check-label">
+                                                Pas intéressé
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            <div class="row mt-5">
+            </div>
+
+            <input type="submit" class="btn btn-primary" value="Enregistrer">
+            <div class="spacer-end-of-block"></div>
+        </form>
+
+    </div>
+
+    <!-- Modal Contact -->
+    {% include 'form/fournisseurModalForm.html.twig' %}
+
+
+
+
+
+{% endblock %}
+
+    {% block javascriptImport %}
+        <script src="{{ asset('js/fournisseurModalScript.js') }}" type="text/javascript"></script>
+
+    {% endblock %}
+
+    {% block javascript %}
+
+
+    $('.js-city-ajax').on('select2:select', function (e) {
+        var data = e.params.data;
+        $(this).next().next().val(JSON.stringify(data));
+    });
+
+    $('#fournisseur-select').select2({
+        ajax: {
+            url: "https://api-adresse.data.gouv.fr/search/",
+            delay: 250,
+            dataType: 'json',
+            data: function (term) {
+                var query = {
+                    q: term.term
+                }
+                return query;
+            },
+            processResults: function (data) {
+                return {
+                    results: $.map(data.features, function (item) {
+                        return {
+                            text: item.properties.label,
+                            /*text: item.properties.housenumber + ' ' + item.properties.street + ', ' + item.properties.city + ' (' + item.properties.postcode + ')',*/
+                            id: item.properties.city,
+                            lng: item.geometry.coordinates[0],
+                            lat: item.geometry.coordinates[1],
+                            address: item.properties.housenumber + ' ' + item.properties.street,
+                            postcode: item.properties.postcode
+                        }
+                    })
+                };
+            }
+        },
+        minimumInputLength: 1,
+        placeholder: 'Chercher un fournisseur existant',
+    });
+
+
+    {% endblock javascript %}

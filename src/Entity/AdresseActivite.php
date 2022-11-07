@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AdresseActiviteRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -50,6 +52,14 @@ class AdresseActivite
     #[ORM\ManyToOne(inversedBy: 'adresseActivites')]
     private ?DossierAgrement $dossier = null;
 
+    #[ORM\ManyToMany(targetEntity: CategorieAnnuaire::class, inversedBy: 'adresseActivites')]
+    private Collection $categoriesAnnuaire;
+
+    public function __construct()
+    {
+        $this->categoriesAnnuaire = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -57,6 +67,11 @@ class AdresseActivite
 
     public function getJsonFormat(): ?string
     {
+        $catAnnuaire = [];
+        foreach ($this->categoriesAnnuaire as $cat){
+            $catAnnuaire[]= $cat->getId();
+        }
+
         return json_encode([
                 'nom' => $this->nom,
                 'adresse' => $this->adresse,
@@ -64,6 +79,7 @@ class AdresseActivite
                 'telephone' => $this->telephone,
                 'descriptif' => $this->descriptifActivite,
                 'horaires' => $this->horaires,
+                'categoriesAnnuaire' => $catAnnuaire,
                 'autresLieux' => $this->autresLieux,
                 'guide' => $this->guideVEE,
                 'id' => $this->id,
@@ -226,6 +242,37 @@ class AdresseActivite
     public function setDossier(?DossierAgrement $dossier): self
     {
         $this->dossier = $dossier;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CategorieAnnuaire>
+     */
+    public function getCategoriesAnnuaire(): Collection
+    {
+        return $this->categoriesAnnuaire;
+    }
+
+    public function addCategoriesAnnuaire(CategorieAnnuaire $categoriesAnnuaire): self
+    {
+        if (!$this->categoriesAnnuaire->contains($categoriesAnnuaire)) {
+            $this->categoriesAnnuaire->add($categoriesAnnuaire);
+        }
+
+        return $this;
+    }
+
+    public function removeCategoriesAnnuaire(CategorieAnnuaire $categoriesAnnuaire): self
+    {
+        $this->categoriesAnnuaire->removeElement($categoriesAnnuaire);
+
+        return $this;
+    }
+
+    public function cleanCategoriesAnnuaire(): self
+    {
+        $this->categoriesAnnuaire->clear();
 
         return $this;
     }

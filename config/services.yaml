@@ -22,3 +22,18 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    admin.categorie_annuaire:
+        class: App\Admin\CategorieAnnuaireAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\CategorieAnnuaire, controller: ~, manager_type: orm, group: admin, label: CategorieAnnuaire }
+
+    admin.dossier_agrement:
+        class: App\Admin\DossierAgrementAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\DossierAgrement, controller: ~, manager_type: orm, group: admin, label: DossierAgrement }
+
+    admin.adresse_activite:
+        class: App\Admin\AdresseActiviteAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\AdresseActivite, controller: ~, manager_type: orm, group: admin, label: AdresseActivite }

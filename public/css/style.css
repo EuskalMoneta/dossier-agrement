@@ -53,6 +53,11 @@ body {
     font-size: 40px;
     font-weight: 700;
 }
+.H1-header-50{
+    font-family: 'Sen', sans-serif;
+    font-size: 50px;
+    font-weight: 700;
+}
 .h2-30{
     font-family: 'Sen', sans-serif;
     font-weight: 700;
@@ -85,12 +90,18 @@ body {
     color: #595B61;
 }
 
-
+.sousTitre-18bold{
+    font-size: 18px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    color: #6A6C74;
+}
 .intro-18bold{
     font-size: 18px;
     font-family: 'Sen', sans-serif;
     font-weight: 700;
 }
+
 .intro-18reg{
     font-size: 18px;
     font-family: 'Sen', sans-serif;

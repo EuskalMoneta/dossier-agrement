@@ -1,0 +1,96 @@
+
+<div class="modal fade " id="fournisseurModal" aria-labelledby="fournisseurModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title h2-30 green-color-eusko" id="fournisseurModalLabel">Créer/modifier un fournisseur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+
+                    <input type="hidden" class="form-fournisseur" id="fournisseur-id" value="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-entreprise" class="form-label">Nom de l'entreprise</label>
+                                <input type="text" name="fournisseur-entreprise" id="fournisseur-entreprise" class="form-control form-fournisseur">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-activite" class="form-label">Activite</label>
+                                <input type="text" name="fournisseur-activite" id="fournisseur-activite" class="form-control form-fournisseur">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-nom" class="form-label">Nom</label>
+                                <input type="text" name="fournisseur-nom" id="fournisseur-nom" class="form-control form-fournisseur">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-prenom" class="form-label">Prénom</label>
+                                <input type="text" name="fournisseur-prenom" id="fournisseur-prenom" class="form-control form-fournisseur">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-telephone" class="form-label">Téléphone</label>
+                                <input type="text" name="fournisseur-telephone" id="fournisseur-telephone" class="form-control form-fournisseur">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-email" class="form-label">Email</label>
+                                <input type="text" name="fournisseur-email" id="fournisseur-email" class="form-control form-fournisseur">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="fournisseur-adresse" class="form-label">Adresse/Ville</label>
+                                <br />
+                                <select name="fournisseur-adresse" id="fournisseur-adresse" class="form-control js-city-ajax form-fournisseur" style="width: 550px;">
+                                </select>
+                                <input type="hidden" name="fournisseur-adresse-hidden" id="fournisseur-adresse-hidden" value="">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+
+
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="fournisseur-commentaires" class="form-label">Commentaires</label>
+                                <textarea rows="5" name="fournisseur-commentaires" id="fournisseur-commentaires" class="form-control form-fournisseur"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </form>
+
+            </div>
+            <div class="modal-footer" id="fournisseurModalFooter">
+                <button type="button" class="btn btn-outline-dark" id="fournisseur-close">Fermer</button>
+                <button type="button" class="btn btn-primary" id="fournisseur-submit">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>

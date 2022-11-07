@@ -31,9 +31,6 @@ class DossierAgrement
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $adressePrincipale = null;
 
-    #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Contact::class)]
-    private Collection $contacts;
-
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $emailPrincipal = null;
 
@@ -55,13 +52,55 @@ class DossierAgrement
     #[ORM\Column(nullable: true)]
     private ?bool $interlocuteurDirigeant = null;
 
+    #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Contact::class)]
+    private Collection $contacts;
+
     #[ORM\OneToMany(mappedBy: 'dossier', targetEntity: AdresseActivite::class)]
     private Collection $adresseActivites;
+
+    #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Defi::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $defis;
+
+    #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Fournisseur::class)]
+    private Collection $fournisseurs;
+
+    public function __toString(): string
+    {
+        return $this->libelle;
+    }
+
 
     public function __construct()
     {
         $this->contacts = new ArrayCollection();
         $this->adresseActivites = new ArrayCollection();
+        $this->defis = new ArrayCollection();
+        $this->fournisseurs = new ArrayCollection();
+
+        $defi = new Defi();
+        $defi->setType('reutiliser');
+        $this->addDefi($defi);
+
+        $defi = new Defi();
+        $defi->setType('promotionEuskara');
+        $this->addDefi($defi);
+
+        $defi = new Defi();
+        $defi->setType('accueilEuskara');
+        $this->addDefi($defi);
+
+        $defi = new Defi();
+        $defi->setType('enargia');
+        $this->addDefi($defi);
+
+        $defi = new Defi();
+        $defi->setType('paysBasqueAuCoeur');
+        $this->addDefi($defi);
+
+        $defi = new Defi();
+        $defi->setType('lantegiak');
+        $this->addDefi($defi);
+
     }
 
     public function getId(): ?int
@@ -267,6 +306,90 @@ class DossierAgrement
             // set the owning side to null (unless already changed)
             if ($adresseActivite->getDossier() === $this) {
                 $adresseActivite->setDossier(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CategorieAnnuaire>
+     */
+    public function getCategoriesAnnuaire(): Collection
+    {
+        return $this->categoriesAnnuaire;
+    }
+
+    public function addCategoriesAnnuaire(CategorieAnnuaire $categoriesAnnuaire): self
+    {
+        if (!$this->categoriesAnnuaire->contains($categoriesAnnuaire)) {
+            $this->categoriesAnnuaire->add($categoriesAnnuaire);
+        }
+
+        return $this;
+    }
+
+    public function removeCategoriesAnnuaire(CategorieAnnuaire $categoriesAnnuaire): self
+    {
+        $this->categoriesAnnuaire->removeElement($categoriesAnnuaire);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Defi>
+     */
+    public function getDefis(): Collection
+    {
+        return $this->defis;
+    }
+
+    public function addDefi(Defi $defi): self
+    {
+        if (!$this->defis->contains($defi)) {
+            $this->defis->add($defi);
+            $defi->setDossierAgrement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDefi(Defi $defi): self
+    {
+        if ($this->defis->removeElement($defi)) {
+            // set the owning side to null (unless already changed)
+            if ($defi->getDossierAgrement() === $this) {
+                $defi->setDossierAgrement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Fournisseur>
+     */
+    public function getFournisseurs(): Collection
+    {
+        return $this->fournisseurs;
+    }
+
+    public function addFournisseur(Fournisseur $fournisseur): self
+    {
+        if (!$this->fournisseurs->contains($fournisseur)) {
+            $this->fournisseurs->add($fournisseur);
+            $fournisseur->setDossierAgrement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFournisseur(Fournisseur $fournisseur): self
+    {
+        if ($this->fournisseurs->removeElement($fournisseur)) {
+            // set the owning side to null (unless already changed)
+            if ($fournisseur->getDossierAgrement() === $this) {
+                $fournisseur->setDossierAgrement(null);
             }
         }
 

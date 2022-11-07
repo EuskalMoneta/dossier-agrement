@@ -82,8 +82,13 @@
                         </div>
                         <div class="col-md-12">
                             <div class="mb-3">
-                                <label for="adresse-horaires" class="form-label">Catégories de l’activité dans l’annuaire de zone</label>
-                                <input type="text" name="adresse-horaires" id="adresse-horaires" class="form-control form-adresse">
+                                <label for="adresse-categories" class="form-label">Catégories de l’activité dans l’annuaire de zone</label>
+                                <br>
+                                <select name="adresse-categories" id="adresse-categories" class="form-control form-adresse" multiple style="width: 800px;">
+                                    {% for categorie in categoriesAnnuaire %}
+                                        <option value="{{ categorie.id }}"> {{ categorie }} </option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-12">

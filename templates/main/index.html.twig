@@ -35,9 +35,9 @@
 
                     <div class="intro-18reg">
                         <ul>
-                            <li class="hp-list-dossier"><a href="#" class="linkText"> Monsieur Txokola </a></li>
-                            <li class="hp-list-dossier"><a href="#" class="linkText">La txalupa</a></li>
-                            <li class="hp-list-dossier"><a href="#" class="linkText">Moulin de bassilour</a></li>
+                            {% for dossier in dossiers %}
+                            <li class="hp-list-dossier"><a href="{{ path('app_dossier_coordonnees', {'id': dossier.id}) }}" class="linkText"> {{ dossier }} </a></li>
+                            {% endfor %}
                         </ul>
                     </div>
 
