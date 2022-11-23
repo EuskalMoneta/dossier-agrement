@@ -52,6 +52,63 @@ class DossierAgrement
     #[ORM\Column(nullable: true)]
     private ?bool $interlocuteurDirigeant = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $telephone = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nbSalarie = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $montant = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeCotisation = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fraisDeDossier = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $compteNumeriqueBool = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $compteNumerique = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $terminalPaiementBool = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $terminalPaiement = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $euskopayBool = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $euskopay = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $paiementViaEuskopay = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $siren = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $iban = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $bic = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nomSignature = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $prenomSignature = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $telephoneSignature = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fraisDeDossierRecu = null;
+
     #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Contact::class)]
     private Collection $contacts;
 
@@ -63,6 +120,25 @@ class DossierAgrement
 
     #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Fournisseur::class)]
     private Collection $fournisseurs;
+
+    #[ORM\ManyToMany(targetEntity: ReductionAdhesion::class, inversedBy: 'dossierAgrements')]
+    private Collection $reductionsAdhesion;
+
+    #[ORM\OneToMany(mappedBy: 'dossierAgrement', targetEntity: Document::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $documents;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $sepaBase64 = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $etat = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateAgrement = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $created = null;
+
 
     public function __toString(): string
     {
@@ -100,6 +176,8 @@ class DossierAgrement
         $defi = new Defi();
         $defi->setType('lantegiak');
         $this->addDefi($defi);
+        $this->reductionsAdhesion = new ArrayCollection();
+        $this->documents = new ArrayCollection();
 
     }
 
@@ -395,4 +473,343 @@ class DossierAgrement
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, ReductionAdhesion>
+     */
+    public function getReductionsAdhesion(): Collection
+    {
+        return $this->reductionsAdhesion;
+    }
+
+    public function addReductionsAdhesion(ReductionAdhesion $reductionsAdhesion): self
+    {
+        if (!$this->reductionsAdhesion->contains($reductionsAdhesion)) {
+            $this->reductionsAdhesion->add($reductionsAdhesion);
+        }
+
+        return $this;
+    }
+
+    public function removeReductionsAdhesion(ReductionAdhesion $reductionsAdhesion): self
+    {
+        $this->reductionsAdhesion->removeElement($reductionsAdhesion);
+
+        return $this;
+    }
+
+    public function cleanReductionsAdhesion(): self
+    {
+        $this->reductionsAdhesion->clear();
+
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): self
+    {
+        $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getNbSalarie(): ?int
+    {
+        return $this->nbSalarie;
+    }
+
+    public function setNbSalarie(?int $nbSalarie): self
+    {
+        $this->nbSalarie = $nbSalarie;
+
+        return $this;
+    }
+
+    public function getMontant(): ?string
+    {
+        return $this->montant;
+    }
+
+    public function setMontant(?string $montant): self
+    {
+        $this->montant = $montant;
+
+        return $this;
+    }
+
+    public function getTypeCotisation(): ?string
+    {
+        return $this->typeCotisation;
+    }
+
+    public function setTypeCotisation(?string $typeCotisation): self
+    {
+        $this->typeCotisation = $typeCotisation;
+
+        return $this;
+    }
+
+    public function getFraisDeDossier(): ?string
+    {
+        return $this->fraisDeDossier;
+    }
+
+    public function setFraisDeDossier(?string $fraisDeDossier): self
+    {
+        $this->fraisDeDossier = $fraisDeDossier;
+
+        return $this;
+    }
+
+    public function isCompteNumeriqueBool(): ?bool
+    {
+        return $this->compteNumeriqueBool;
+    }
+
+    public function setCompteNumeriqueBool(?bool $compteNumeriqueBool): self
+    {
+        $this->compteNumeriqueBool = $compteNumeriqueBool;
+
+        return $this;
+    }
+
+    public function getCompteNumerique(): ?string
+    {
+        return $this->compteNumerique;
+    }
+
+    public function setCompteNumerique(?string $compteNumerique): self
+    {
+        $this->compteNumerique = $compteNumerique;
+
+        return $this;
+    }
+
+    public function isTerminalPaiementBool(): ?bool
+    {
+        return $this->terminalPaiementBool;
+    }
+
+    public function setTerminalPaiementBool(?bool $terminalPaiementBool): self
+    {
+        $this->terminalPaiementBool = $terminalPaiementBool;
+
+        return $this;
+    }
+
+    public function getTerminalPaiement(): ?string
+    {
+        return $this->terminalPaiement;
+    }
+
+    public function setTerminalPaiement(?string $terminalPaiement): self
+    {
+        $this->terminalPaiement = $terminalPaiement;
+
+        return $this;
+    }
+
+    public function isEuskopayBool(): ?bool
+    {
+        return $this->euskopayBool;
+    }
+
+    public function setEuskopayBool(?bool $euskopayBool): self
+    {
+        $this->euskopayBool = $euskopayBool;
+
+        return $this;
+    }
+
+    public function getEuskopay(): ?string
+    {
+        return $this->euskopay;
+    }
+
+    public function setEuskopay(?string $euskopay): self
+    {
+        $this->euskopay = $euskopay;
+
+        return $this;
+    }
+
+    public function isPaiementViaEuskopay(): ?bool
+    {
+        return $this->paiementViaEuskopay;
+    }
+
+    public function setPaiementViaEuskopay(?bool $paiementViaEuskopay): self
+    {
+        $this->paiementViaEuskopay = $paiementViaEuskopay;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): self
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setDossierAgrement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(Document $document): self
+    {
+        if ($this->documents->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getDossierAgrement() === $this) {
+                $document->setDossierAgrement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getSiren(): ?string
+    {
+        return $this->siren;
+    }
+
+    public function setSiren(?string $siren): self
+    {
+        $this->siren = $siren;
+
+        return $this;
+    }
+
+    public function getIban(): ?string
+    {
+        return $this->iban;
+    }
+
+    public function setIban(?string $iban): self
+    {
+        $this->iban = $iban;
+
+        return $this;
+    }
+
+    public function getBic(): ?string
+    {
+        return $this->bic;
+    }
+
+    public function setBic(?string $bic): self
+    {
+        $this->bic = $bic;
+
+        return $this;
+    }
+
+    public function getNomSignature(): ?string
+    {
+        return $this->nomSignature;
+    }
+
+    public function setNomSignature(?string $nomSignature): self
+    {
+        $this->nomSignature = $nomSignature;
+
+        return $this;
+    }
+
+    public function getPrenomSignature(): ?string
+    {
+        return $this->prenomSignature;
+    }
+
+    public function setPrenomSignature(?string $prenomSignature): self
+    {
+        $this->prenomSignature = $prenomSignature;
+
+        return $this;
+    }
+
+    public function getTelephoneSignature(): ?string
+    {
+        return $this->telephoneSignature;
+    }
+
+    public function setTelephoneSignature(?string $telephoneSignature): self
+    {
+        $this->telephoneSignature = $telephoneSignature;
+
+        return $this;
+    }
+
+    public function getFraisDeDossierRecu(): ?string
+    {
+        return $this->fraisDeDossierRecu;
+    }
+
+    public function setFraisDeDossierRecu(?string $fraisDeDossierRecu): self
+    {
+        $this->fraisDeDossierRecu = $fraisDeDossierRecu;
+
+        return $this;
+    }
+
+    public function getSepaBase64(): ?string
+    {
+        return $this->sepaBase64;
+    }
+
+    public function setSepaBase64(?string $sepaBase64): self
+    {
+        $this->sepaBase64 = $sepaBase64;
+
+        return $this;
+    }
+
+    public function getEtat(): ?string
+    {
+        return $this->etat;
+    }
+
+    public function setEtat(?string $etat): self
+    {
+        $this->etat = $etat;
+
+        return $this;
+    }
+
+    public function getDateAgrement(): ?\DateTimeInterface
+    {
+        return $this->dateAgrement;
+    }
+
+    public function setDateAgrement(?\DateTimeInterface $dateAgrement): self
+    {
+        $this->dateAgrement = $dateAgrement;
+
+        return $this;
+    }
+
+    public function getCreated(): ?\DateTimeInterface
+    {
+        return $this->created;
+    }
+
+    public function setCreated(?\DateTimeInterface $created): self
+    {
+        $this->created = $created;
+
+        return $this;
+    }
+
+
 }

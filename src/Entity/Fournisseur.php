@@ -41,6 +41,12 @@ class Fournisseur
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $activite = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $idExterne = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $status = null;
+
     public function getJsonFormat(): ?string
     {
         return json_encode([
@@ -52,6 +58,7 @@ class Fournisseur
                 'email' => $this->email,
                 'telephone' => $this->telephone,
                 'commentaires' => $this->commentaires,
+                'status' => $this->status,
                 'id' => $this->id,
             ]
         );
@@ -67,6 +74,7 @@ class Fournisseur
         $this->setEmail($fournisseurObjet->email);
         $this->setTelephone($fournisseurObjet->telephone);
         $this->setCommentaires($fournisseurObjet->commentaires);
+        $this->setStatus($fournisseurObjet->status);
 
         return $this;
     }
@@ -180,6 +188,30 @@ class Fournisseur
     public function setActivite(?string $activite): self
     {
         $this->activite = $activite;
+
+        return $this;
+    }
+
+    public function getIdExterne(): ?int
+    {
+        return $this->idExterne;
+    }
+
+    public function setIdExterne(?int $idExterne): self
+    {
+        $this->idExterne = $idExterne;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }

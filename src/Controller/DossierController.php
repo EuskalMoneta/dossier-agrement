@@ -6,15 +6,25 @@ use App\Entity\AdresseActivite;
 use App\Entity\CategorieAnnuaire;
 use App\Entity\Contact;
 use App\Entity\Defi;
+use App\Entity\Document;
 use App\Entity\DossierAgrement;
 use App\Entity\Fournisseur;
+use App\Entity\ReductionAdhesion;
+use App\Entity\WebHookEvent;
 use App\Form\CoordonneesFormType;
+use App\Form\OptionsTechniqueProFormType;
+use App\Form\SignatureElectroniqueFormType;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Snappy\Pdf;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use WiziYousignClient\WiziSignClient;
 
 class DossierController extends AbstractController
 {
@@ -25,6 +35,7 @@ class DossierController extends AbstractController
         if($request->isMethod('post')){
             $dossierAgrement = new DossierAgrement();
 
+            $dossierAgrement->setCreated(new \DateTime());
             $dossierAgrement->setLibelle($request->get('nom-dossier'));
             $dossierAgrement->setType($request->get('type-dossier'));
 
@@ -45,6 +56,7 @@ class DossierController extends AbstractController
         $form = $this->createForm(CoordonneesFormType::class, $dossierAgrement);
 
         $categoriesAnnuaire = $em->getRepository(CategorieAnnuaire::class)->findBy(['type' => 'eusko']);
+        $categoriesAnnuaireEskuz = $em->getRepository(CategorieAnnuaire::class)->findBy(['type' => 'eskuz']);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -118,6 +130,15 @@ class DossierController extends AbstractController
                         }
                     }
 
+                    //gestion des categories de l'annuaire
+                    $adresse->cleanCategoriesAnnuaireEskuz();
+                    foreach ($adresseObjet->categoriesAnnuaireEskuz as $categorieId){
+                        $categorie = $em->getRepository(CategorieAnnuaire::class)->find($categorieId);
+                        if($categorie){
+                            $adresse->addCategoriesAnnuaireEskuz($categorie);
+                        }
+                    }
+
                     //enregistrement
                     $adresse->updateFormJsonObject($adresseObjet);
                     $adresse->setDossier($dossierAgrement);
@@ -140,10 +161,12 @@ class DossierController extends AbstractController
             return $this->redirectToRoute('app_dossier_defis', ['id' => $dossierAgrement->getId()]);
         }
 
+
         return $this->renderForm('dossier/coordonnees.html.twig', [
             'form' => $form,
             'dossierAgrement' => $dossierAgrement,
-            'categoriesAnnuaire' => $categoriesAnnuaire
+            'categoriesAnnuaire' => $categoriesAnnuaire,
+            'categoriesAnnuaireEskuz' => $categoriesAnnuaireEskuz
         ]);
 
     }
@@ -202,13 +225,13 @@ class DossierController extends AbstractController
 
     #[Route('/dossier/vieDuReseau/{id}', name: 'app_dossier_vieDuReseau')]
     #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function vieDuReseau(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em, APITollboxController $APITollboxController): Response
+    public function vieDuReseau(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em): Response
     {
-        $response = $APITollboxController->curlRequestDolibarr('GET', 'thirdparties');
+        /*$response = $APITollboxController->curlRequestDolibarr('GET', 'thirdparties');
         dump($response);
         $data =["skype"=> "bretele"];
         $responseBis = $APITollboxController->curlRequestDolibarr('PUT', 'thirdparties/622', $data);
-        dump($responseBis);
+        dump($responseBis);*/
 
         if ($request->isMethod('post')) {
 
@@ -223,15 +246,19 @@ class DossierController extends AbstractController
                     //on decode le json entier
                     $fournisseurObjet = json_decode($adresseJson);
 
-                    if( !str_starts_with($fournisseurObjet->id, 'TEMP')){
+                    if( str_starts_with($fournisseurObjet->id, 'TEMP')){
+                        //création d'un nouveau fournisseur
+                        $fournisseur = new Fournisseur();
+                    } elseif( str_starts_with($fournisseurObjet->id, 'CRM')){
+                        $fournisseur = new Fournisseur();
+                        $fournisseur->setIdExterne(substr($fournisseurObjet->id, -3 ));
+
+                    } else {
                         //on récupère le fournisseur existant et on le retire du tableau
                         $fournisseur = $em->getRepository(Fournisseur::class)->find($fournisseurObjet->id);
                         if (($key = array_search($fournisseur, $tabFournisseursToDelete)) !== false) {
                             unset($tabFournisseursToDelete[$key]);
                         }
-                    } else {
-                        //création d'un nouveau fournisseur
-                        $fournisseur = new Fournisseur();
                     }
 
                     //enregistrement
@@ -274,7 +301,201 @@ class DossierController extends AbstractController
 
     }
 
+    #[Route('/dossier/adhesion/{id}', name: 'app_dossier_adhesion')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function adhesion(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em): Response
+    {
+        $form = $this->createForm(OptionsTechniqueProFormType::class, $dossierAgrement);
 
+        $reductionsAdhesion = $em->getRepository(ReductionAdhesion::class)->findBy(['visible' => true]);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            //Ajout des réductions qui ont été cochées
+            $dossierAgrement->cleanReductionsAdhesion();
+            foreach ($request->get('reductions') as $idReduction){
+                $reduction = $em->getRepository(ReductionAdhesion::class)->find($idReduction);
+                $dossierAgrement->addReductionsAdhesion($reduction);
+            }
+
+            //suppression des documents
+            if($request->get('docToDelete')){
+                foreach ($request->get('docToDelete') as $documentId){
+                    $em->remove($em->getRepository(Document::class)->find($documentId));
+                }
+            }
+
+            /**************    ENREGISTREMENT   *******************/
+            $em->persist($dossierAgrement);
+            $em->flush();
+        }
+
+        return $this->renderForm('dossier/adhesion.html.twig', [
+            'form' => $form,
+            'dossierAgrement' => $dossierAgrement,
+            'reductionsAdhesion' => $reductionsAdhesion
+        ]);
+
+    }
+
+
+    #[Route('/dossier/signature/{id}', name: 'app_dossier_signature_electronique')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function signatureElectronique(DossierAgrement $dossierAgrement, SessionInterface $session, Pdf $pdf, Request $request, EntityManagerInterface $em): Response
+    {
+        $form = $this->createForm(SignatureElectroniqueFormType::class, $dossierAgrement);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            /**************    ENREGISTREMENT   *******************/
+            $em->persist($dossierAgrement);
+            $em->flush();
+
+            //on démarre le client YouSign
+            $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
+
+            //Création d'un identifiant unique qui permet de récupérer le webHook yousign dans la vue
+            $identifiantWebHook = time();
+
+            //Création du webHook
+            $webHook = new WebHookEvent();
+            $webHook->setIdentifiant($identifiantWebHook);
+
+            //etape 1 init
+            //pour tester, besoin d'un ngrok, remplacer generateURL
+            $responseProcedure = $youSignClient->AdvancedProcedureCreate(
+                [
+                    'start'=> false,
+                    'name' => 'Signature prélèvement SEPA',
+                    'description'=> 'SEPA'
+                ],
+                true,
+                'GET',
+                'http://8629-2a01-e0a-5fa-c480-126c-e925-48a1-8f61.ngrok.io/eusko/dossier-agrement/public/index.php/webhook',
+                //$this->generateUrl('yousign_web_hook', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                $identifiantWebHook
+            );
+
+            //etape 2 fichier à signer
+            $pdf->generateFromHtml($this->renderView('sepa/modeleSepa.html.twig', ['dossierAgrement' => $dossierAgrement]), '/tmp/sepa-'.$identifiantWebHook.'.pdf' );
+            $responseFile = $youSignClient->AdvancedProcedureAddFile('/tmp/sepa-'.$identifiantWebHook.'.pdf', 'sepa.pdf');
+
+            //etape 3 ajout signataire
+            $response = $youSignClient->AdvancedProcedureAddMember(
+                $dossierAgrement->getPrenomSignature(),
+                $dossierAgrement->getNomSignature(),
+                $dossierAgrement->getEmailPrincipal(),
+                $dossierAgrement->getTelephoneSignature()
+            );
+            $member = json_decode($response);
+
+            //etape 4 position et contenu de la signature
+            $response = $youSignClient->AdvancedProcedureFileObject(
+                "150,235,460,335",
+                1,
+                "Lu et approuvé",
+                "Signé par ".$dossierAgrement->getPrenomSignature()." ".$dossierAgrement->getNomSignature(),
+                "Signé par ".$dossierAgrement->getPrenomSignature()." ".$dossierAgrement->getNomSignature());
+
+            //etape 5 lancement de la procédure
+            $response = $youSignClient->AdvancedProcedurePut();
+            $status = json_decode($response)->status;
+            if($status == 'active'){
+                //on enregistre l'id du fichier pour le récuperer signé plus tard
+                $webHook->setFile(json_decode($responseFile)->id);
+                $em->persist($webHook);
+                $em->flush();
+
+                //On sauvegarde en session l'ID du webHook
+                $session->set('idWebHookEvent', $webHook->getId());
+            } else {
+                $this->addFlash('warning', 'Erreur lors de la création de la signature électronique');
+                $identifiantWebHook = 0;
+            }
+
+            return $this->render('dossier/signatureYousign.html.twig', [
+                'memberToken' => $member->id,
+                'webHook' => $identifiantWebHook,
+                'dossierAgrement' => $dossierAgrement
+            ]);
+
+        }
+
+        return $this->renderForm('dossier/signatureCoordonnes.html.twig', [
+            'form' => $form,
+            'dossierAgrement' => $dossierAgrement
+        ]);
+
+    }
+
+    #[Route('/dossier/fin/{id}', name: 'app_dossier_fin')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function fin(DossierAgrement $dossierAgrement, SessionInterface $session, Request $request, EntityManagerInterface $em): Response
+    {
+
+        $webHook = $em->getRepository(WebHookEvent::class)->find($session->get('idWebHookEvent'));
+        $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
+        $file = $youSignClient->downloadSignedFile($webHook->getFile(), 'base64');
+        $dossierAgrement->setSepaBase64($file);
+
+        $em->persist($dossierAgrement);
+        $em->flush();
+
+        return $this->render('dossier/fin.html.twig', [ 'dossierAgrement' => $dossierAgrement ]);
+    }
+
+
+    #[Route('/webhook', name: 'yousign_web_hook')]
+    public function webHook(EntityManagerInterface $em, Request $request)
+    {
+        //On récupère les headers de yousign pour associer le webhook à la bonne procédure
+        $identifiantHook = $request->headers->get('x-custom-header');
+        $evtName = $request->headers->get('x-yousign-event-name');
+
+        $webHook = $em->getRepository(WebHookEvent::class)->findOneBy(['identifiant'=> $identifiantHook]);
+
+        //si c'est l'evt de fin on change le statut du webHook interne
+        if($evtName == 'member.finished'){
+            $webHook->setStatut('finished');
+        } else {
+            $webHook->setStatut('started');
+        }
+
+        //enregistrement
+        $em->persist($webHook);
+        $em->flush();
+
+        return new Response();
+    }
+
+    #[Route('/webhook/ajax', name: 'ajax_yousign_webhook')]
+    public function ajaxResponse(EntityManagerInterface $em, Request $request)
+    {
+        //Toutes les 5 secondes on vérifie si le webhook a changé de statut, si oui on envoi le signal ok à la vue.
+        $webHook = $em->getRepository(WebHookEvent::class)->findOneBy(['identifiant'=> $request->get('name')]);
+
+        if($webHook->getStatut() =='finished'){
+            return new JsonResponse('ok');
+        } else {
+            return new JsonResponse('en attente');
+        }
+    }
+
+    /**
+     *
+     * Enregistre les défis en base de données
+     *
+     * @param $key integer identifiant du défi s'il existe déjà en base
+     * @param $produit
+     * @param $type
+     * @param $etat
+     * @param DossierAgrement $dossierAgrement
+     * @param EntityManagerInterface $em
+     *
+     * @return bool
+     */
     public function enregistrerDefi($key,$produit, $type, $etat, DossierAgrement &$dossierAgrement, EntityManagerInterface $em){
         $defi = $em->getRepository(Defi::class)->find($key);
         if(!$defi){

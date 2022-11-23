@@ -1,0 +1,79 @@
+{% extends "@SonataAdmin/standard_layout.html.twig" %}
+
+{% block sonata_page_content_header %}
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+        <span class="navbar-brand">
+            Check dossier
+        </span>
+        </div>
+        <div class="container-fluid">
+            <div class="navbar-left">
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+    </nav>
+{% endblock sonata_page_content_header %}
+
+{% block notice %}
+    {% include 'SonataCoreBundle:FlashMessage:render.html.twig' %}
+{% endblock notice %}
+
+{% block sonata_admin_content %}
+
+    {% for message in app.session.flashbag.get('info') %}
+        <div class="alert alert-success alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            {{ message|raw }}
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Dossier : {{ dossier }}</h2>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ path('app_dossier_coordonnees', {'id': dossier.id}) }}" class="btn btn-default" target="_blank"> Consulter le dossier complet</a>
+        </div>
+    </div>
+
+    <h3>Rechercher si un tier existe</h3>
+    <form method="post">
+        <input type="text" name="term">
+        <input type="submit" value="OK">
+    </form>
+
+
+    {% if method %}
+        {% if pros | length > 0 %}
+            <h3>Résultats :</h3>
+
+            {% for pro in pros %}
+                <div class="box box-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h4>{{ pro.text }}</h4>
+                            <p>{{ pro.email }}</p>
+                            <p>{{ pro.telephone }}</p>
+                            <p>{{ pro.status }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div style="text-align: right">
+                                <a href="{{ path('app_admin_dossier_envoi', {'id':dossier.id, 'idExterne': pro.id}) }}" class="btn btn-info">Sélectionner</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="margin-bottom: 20px;" >Aucun résultat</div>
+        {% endif %}
+
+        <div style="margin-bottom: 20px;" >ou si aucun résultat ne correspond  </div>
+        <a href="{{ path('app_admin_dossier_envoi', {'id':dossier.id}) }}" class="btn btn-primary">Créer un dossier avec un nouveau tier</a>
+    {% endif %}
+
+
+{% endblock %}
+

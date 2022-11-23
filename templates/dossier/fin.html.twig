@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dossier complet{% endblock %}
+
+{% block bgColor %} bg-soft-grey {% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-10">
+            <h1 class="H1-header-40"> Dossier enregistré ! </h1>
+        </div>
+    </div>
+
+    <form method="post">
+    <div class="row">
+        <div class="mt-2">
+            <p class="intro-18reg">La signature électronique a bien été enregistrée.</p>
+        </div>
+        <div class="mt-5 col-6">
+            <a href="{{ path('app_dossier_coordonnees', {'id': dossierAgrement.id }) }}" class="btn btn-outline-primary"> Retour au dossier </a>
+            <a href="{{ path('app_home') }}" class="btn btn-primary"> Retour à l'accueil </a>
+            </div>
+
+        </div>
+    </div>
+    </form>
+</div>
+
+{% endblock %}

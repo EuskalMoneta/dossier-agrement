@@ -1,0 +1,47 @@
+{% extends "@SonataAdmin/standard_layout.html.twig" %}
+
+{% block sonata_page_content_header %}
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+        <span class="navbar-brand">
+            Check dossier
+        </span>
+        </div>
+        <div class="container-fluid">
+            <div class="navbar-left">
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+    </nav>
+{% endblock sonata_page_content_header %}
+
+{% block notice %}
+    {% include 'SonataCoreBundle:FlashMessage:render.html.twig' %}
+{% endblock notice %}
+
+{% block sonata_admin_content %}
+
+    {% for type, messages in app.session.flashbag.all() %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type }} alert-dismissable">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                {{ message |raw }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Dossier : {{ dossier }}</h2>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ path('app_dossier_coordonnees', {'id': dossier.id}) }}" class="btn btn-default" target="_blank"> Consulter le dossier complet</a>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+

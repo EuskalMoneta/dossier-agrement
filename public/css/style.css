@@ -89,6 +89,12 @@ body {
     font-weight: 400;
     color: #595B61;
 }
+.paragraph-18reg{
+    font-size: 18px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 400;
+    color: #595B61;
+}
 
 .sousTitre-18bold{
     font-size: 18px;
@@ -177,6 +183,13 @@ li.hp-list-dossier:not(:last-child) {
 
 /* FORM **********/
 .form-label{
+    font-family: Poppins, sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: #595B61;
+    margin-bottom: 0.1rem;
+}
+.form-check-label{
     font-family: Poppins, sans-serif;
     font-weight: 600;
     font-size: 15px;

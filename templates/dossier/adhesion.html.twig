@@ -1,0 +1,461 @@
+{% extends 'base.html.twig' %}
+
+
+{% block javascriptHeader %}
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+{% endblock %}
+{% block title %}Adhésion{% endblock %}
+
+{% block bgColor %} bg-soft-grey {% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        {{ form_start(form) }}
+        <div class="row">
+            <div class="col-12">
+                <h3 class="h3-25bold mb-0">
+                    Dossier d'agrément - {{ dossierAgrement.libelle }}
+                </h3>
+                <h4 class="h4-sousTitre">{{ dossierAgrement.type }}</h4>
+
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <div class="sm-card-recap">
+                            <div class="d-flex align-items-top">
+                                <div class="ico-card-recap">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path class="blk" fill-rule="evenodd" clip-rule="evenodd" d="M10 0C4.47727 0 0 4.47727 0 10C0 15.5227 4.47727 20 10 20C15.5227 20 20 15.5227 20 10C20 4.47727 15.5227 0 10 0ZM14.3345 8.30909C14.4144 8.21786 14.4751 8.11158 14.5133 7.99652C14.5514 7.88145 14.5661 7.75992 14.5566 7.63908C14.5471 7.51823 14.5135 7.40051 14.4578 7.29284C14.4021 7.18518 14.3254 7.08973 14.2323 7.01213C14.1392 6.93453 14.0315 6.87633 13.9155 6.84097C13.7996 6.8056 13.6777 6.79378 13.5572 6.80621C13.4366 6.81863 13.3197 6.85504 13.2134 6.9133C13.1071 6.97156 13.0135 7.0505 12.9382 7.14545L9.02909 11.8355L7.00636 9.81182C6.83491 9.64622 6.60527 9.55459 6.36691 9.55666C6.12855 9.55873 5.90054 9.65434 5.73198 9.82289C5.56343 9.99145 5.46782 10.2195 5.46575 10.4578C5.46368 10.6962 5.55531 10.9258 5.72091 11.0973L8.44818 13.8245C8.53751 13.9138 8.64445 13.9835 8.7622 14.0291C8.87994 14.0748 9.00591 14.0954 9.13206 14.0897C9.25822 14.084 9.3818 14.052 9.49492 13.9959C9.60804 13.9397 9.70823 13.8606 9.78909 13.7636L14.3345 8.30909Z" fill="#699BF7"/>
+                                    </svg>
+
+                                </div>
+                                <div class="ms-3">
+                                    <h3 class="intro-18bold mb-0 "><a href="{{ path('app_dossier_coordonnees', {'id': dossierAgrement.id}) }}" class="linkText"> Coordonnées</a></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="sm-card-recap">
+                            <div class="d-flex align-items-top">
+                                <div class="ico-card-recap">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <g clip-path="url(#clip0_29_30)">
+                                            <path d="M6.66669 10.4165L9.16669 12.9165L13.3334 7.9165" stroke="#8D8D8D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M10 18.3332C14.6024 18.3332 18.3334 14.6022 18.3334 9.99984C18.3334 5.39746 14.6024 1.6665 10 1.6665C5.39765 1.6665 1.66669 5.39746 1.66669 9.99984C1.66669 14.6022 5.39765 18.3332 10 18.3332Z" stroke="#8D8D8D" stroke-width="2"/>
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_29_30">
+                                                <rect width="20" height="20" fill="white"/>
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
+
+                                </div>
+                                <div class="ms-3">
+                                    <h3 class="intro-18bold mb-0 "><a href="{{ path('app_dossier_defis', {'id': dossierAgrement.id}) }}" class="linkText"> Défis</a></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 mt-3">
+                        <div class="sm-card-recap">
+                            <div class="d-flex align-items-top">
+                                <div class="ico-card-recap">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <g clip-path="url(#clip0_29_30)">
+                                            <path d="M6.66669 10.4165L9.16669 12.9165L13.3334 7.9165" stroke="#8D8D8D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M10 18.3332C14.6024 18.3332 18.3334 14.6022 18.3334 9.99984C18.3334 5.39746 14.6024 1.6665 10 1.6665C5.39765 1.6665 1.66669 5.39746 1.66669 9.99984C1.66669 14.6022 5.39765 18.3332 10 18.3332Z" stroke="#8D8D8D" stroke-width="2"/>
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_29_30">
+                                                <rect width="20" height="20" fill="white"/>
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
+
+                                </div>
+                                <div class="ms-3">
+                                    <h3 class="intro-18bold mb-0 grey-color">Charte/réseau</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row spacer-vertical-column">
+            <div class="col-12 mb-3">
+                <h1 class="H1-header-40 green-color-eusko mb-2">
+                    Ahésion
+                </h1>
+
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-8">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-4">
+                            {{ form_row(form.nbSalarie) }}
+
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.montant) }}
+                        </div>
+
+                        <div class="">
+                            <a class="btn btn-outline-success" id="calculAdhesion">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+
+                        <div class="mb-4">
+                            {{ form_row(form.typeCotisation) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.fraisDeDossier) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.fraisDeDossierRecu) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="ms-2">
+
+                    <div class="form-label"> Membre de : </div>
+
+                    {% for reduction in reductionsAdhesion %}
+                        <div class="form-check ms-4 me-2">
+                            <input class="form-check-input" type="checkbox" name="reductions[]" value="{{ reduction.id }}" data-value="{{ (1 - (reduction.pourcentageReduction /100)) }}" {% if reduction in dossierAgrement.reductionsAdhesion %} checked{% endif %}>
+                            <label class="form-check-label">
+                                {{ reduction.nom }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <h4 class="sousTitre-18bold">Mode de paiement de l’adhésion</h4>
+                <p class="paragraph-18reg">
+                    Un prélèvement automatique va être mis en place. Dans un 2nd temps, l’entreprise adhérente sera directement prélevée
+                    automatiquement sur son compte eusko.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="row spacer-vertical-column">
+            <div class="col-12 mb-3">
+                <h1 class="H1-header-40 green-color-eusko mb-2">
+                    Options techniques
+                </h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+
+                <div class="d-none">
+                    {{ form_label(form.compteNumerique) }}
+                    {{ form_label(form.euskopay) }}
+                    {{ form_label(form.terminalPaiement) }}
+                </div>
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="flex-grow-2">
+                        {{ form_row(form.compteNumeriqueBool) }}
+                    </div>
+                    <div class="flex-grow-1 ms-4">
+                        {{ form_widget(form.compteNumerique) }}
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="flex-grow-2">
+                        {{ form_row(form.terminalPaiementBool) }}
+                    </div>
+                    <div class="flex-grow-1 ms-4">
+                        {{ form_widget(form.terminalPaiement) }}
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="flex-grow-2">
+                        {{ form_row(form.euskopayBool) }}
+                    </div>
+                    <div class="flex-grow-1 ms-4">
+                        {{ form_widget(form.euskopay) }}
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="flex-grow-2">
+                        {{ form_row(form.paiementViaEuskopay) }}
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+
+
+        <div class="spacer-end-of-block"></div>
+        <div class="row">
+            <div class="col-12">
+                <h1 class="H1-header-40 green-color-eusko mb-2">Pièces à joindre au dossier</h1>
+                {# <form action="/file-upload"
+                      class="dropzone"
+                      id="my-awesome-dropzone">
+
+                </form>
+                #}
+                <h3 class="sousTitre-18bold mt-4">Pièce identité de la structure (K-BIS, INSEE, Chambre des métiers)</h3>
+                <div class="d-flex">
+                    <div class="dropzone my-dropzone flex-grow-1" style="min-width: 300px;" id="dropzone_kbis" action="{{path('app_send_ajax_file', {'type': 'kbis', 'id': dossierAgrement.id})}}" style="">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap">
+                            {% for document in dossierAgrement.documents %}
+                                {% if document.type == "kbis" %}
+                                    <div class="ms-2">
+                                        <div class="" style="position: relative;">
+                                            <embed src="{{ asset('uploads/'~ document.type ~ '/'~ document.path) }}" width="250" height="200">
+                                            <a class="btn btn-danger docToDelete" data-action="{{ document.id }}" style="position: absolute; top: 10px; right: 20px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-3 ">
+                    <div class="col-6">
+                        {{ form_label(form.siren) }}
+                        {{ form_widget(form.siren) }}
+                    </div>
+                </div>
+
+
+                <h3 class="sousTitre-18bold mt-4">Copie recto/verso de la pièce d’identité du dirigeant/e (Carte Nationale d’identité ou Passeport)</h3>
+                <div class="d-flex">
+                    <div class="dropzone my-dropzone flex-grow-1" style="min-width: 300px;" id="dropzone_identite" action="{{path('app_send_ajax_file', {'type': 'identite', 'id': dossierAgrement.id})}}" style="">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap">
+                            {% for document in dossierAgrement.documents %}
+                                {% if document.type == "identite" %}
+                                    <div class="ms-2">
+                                        <div class="" style="position: relative;">
+                                            <embed src="{{ asset('uploads/'~ document.type ~ '/'~ document.path) }}" width="250" height="200">
+                                            <a class="btn btn-danger docToDelete" data-action="{{ document.id }}" style="position: absolute; top: 10px; right: 20px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+
+                <h3 class="sousTitre-18bold mt-4">Relevé d'Identité Bancaire - RIB</h3>
+                <div class="d-flex">
+                    <div class="dropzone my-dropzone flex-grow-1" style="min-width: 300px;" id="dropzone_rib" action="{{path('app_send_ajax_file', {'type': 'rib', 'id': dossierAgrement.id})}}" style="">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap">
+                            {% for document in dossierAgrement.documents %}
+                                {% if document.type == "rib" %}
+                                    <div class="ms-2">
+                                        <div class="" style="position: relative;">
+                                            <embed src="{{ asset('uploads/'~ document.type ~ '/'~ document.path) }}" width="250" height="200">
+                                            <a class="btn btn-danger docToDelete" data-action="{{ document.id }}" style="position: absolute; top: 10px; right: 20px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="deleteDocContainer"></div>
+            </div>
+        </div>
+        <div class="spacer-end-of-block"></div>
+
+
+        <input type="submit" class="btn btn-primary" value="Enregistrer">
+
+        {{ form_rest(form) }}
+        {{ form_end(form) }}
+
+
+
+        <div class="spacer-end-of-block"></div>
+        <div class="spacer-end-of-block"></div>
+
+    </div>
+
+{% endblock %}
+
+{% block javascriptImport %}
+
+{% endblock %}
+    {% block javascript %}
+
+    $('.docToDelete').on('click', function (){
+        console.log(idDocument);
+        var idDocument = $(this).attr('data-action');
+        console.log(idDocument);
+        $('#deleteDocContainer').append('<input type="hidden" name="docToDelete[]" value="'+idDocument+'">');
+        $(this).parent().parent().remove();
+    });
+
+    Dropzone.autoDiscover = false;
+    var actionKbis = $('#dropzone_kbis').attr('action');
+    var myDropzone = new Dropzone("#dropzone_kbis", { url: actionKbis, maxFilesize: 5 });
+    /*myDropzone.on("addedfile", function(file) {
+    });*/
+
+    var actionIdentite = $('#dropzone_identite').attr('action');
+    var myDropzone = new Dropzone("#dropzone_identite", { url: actionIdentite, maxFilesize: 5 });
+
+    var actionRib = $('#dropzone_rib').attr('action');
+    var ribDropzone = new Dropzone("#dropzone_rib", { url: actionRib, maxFilesize: 5 });
+
+
+
+    $('#calculAdhesion').on('click', function (){
+        var montant = 0;
+        var solidaire = 0;
+        var minimale = 0;
+        //Frais de dossier = fdd
+        var fdd = 0;
+        var nbSalarie = $('.nbSalarie').val();
+        var typeCotisation = $('.typeCotisation').val();
+
+
+    {% if dossierAgrement.type == 'association' %}
+
+        if(nbSalarie < 1){
+            solidaire = 45;
+            minimale = 30;
+            fdd = 0;
+        } else if(nbSalarie < 3){
+            solidaire = 90;
+            minimale = 60;
+            fdd = 0;
+        }else if(nbSalarie < 6){
+            solidaire = 150;
+            minimale = 100;
+            fdd = 0;
+        }else if(nbSalarie < 10){
+            solidaire = 225;
+            minimale = 150;
+            fdd = 0;
+        } else {
+            solidaire = 345;
+            minimale = 230;
+            fdd = 0;
+        }
+    {% else %}
+        if(nbSalarie < 1){
+            solidaire = 126;
+            minimale = 84;
+            fdd = 75;
+        } else if(nbSalarie < 3){
+            solidaire = 180;
+            minimale = 120;
+            fdd = 75;
+        }else if(nbSalarie < 6){
+            solidaire = 252;
+            minimale = 168;
+            fdd = 120;
+        }else if(nbSalarie < 10){
+            solidaire = 360;
+            minimale = 240;
+            fdd = 180;
+        }else if(nbSalarie < 20){
+            solidaire = 504;
+            minimale = 336;
+            fdd = 240;
+        }else if(nbSalarie < 50){
+            solidaire = 720;
+            minimale = 480;
+            fdd = 240;
+        }else if(nbSalarie < 100){
+            solidaire = 1152;
+            minimale = 768;
+            fdd = 240;
+        }else if(nbSalarie < 200){
+            solidaire = 1830;
+            minimale = 1220;
+            fdd = 240;
+        }else {
+            solidaire = 2970;
+            minimale = 1980;
+            fdd = 240;
+        }
+    {% endif %}
+
+    if(typeCotisation === 'solidaire'){
+        montant = solidaire;
+    } else{
+        montant = minimale;
+    }
+
+    var reductionmax = 1;
+    var checkboxes = $('input[name="reductions[]"]');
+    var $checked = checkboxes.filter(":checked"),
+        checkedValues = $checked.map(function () {
+            var value = $(this).attr('data-value');
+            if(reductionmax > value){
+                reductionmax = value;
+            }
+            return this.value;
+        }).get()
+
+    montant = montant * reductionmax;
+
+    $('.montant').val(montant);
+    $('.fdd').val(fdd);
+});
+
+{% endblock javascript %}

@@ -55,9 +55,14 @@ class AdresseActivite
     #[ORM\ManyToMany(targetEntity: CategorieAnnuaire::class, inversedBy: 'adresseActivites')]
     private Collection $categoriesAnnuaire;
 
+    #[ORM\ManyToMany(targetEntity: CategorieAnnuaire::class, inversedBy: 'adresseActiviteEskuz')]
+    #[ORM\JoinTable(name: 'adresse_activite_categorie_annuaire_eskuz')]
+    private Collection $categoriesAnnuaireEskuz;
+
     public function __construct()
     {
         $this->categoriesAnnuaire = new ArrayCollection();
+        $this->categoriesAnnuaireEskuz = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -72,14 +77,22 @@ class AdresseActivite
             $catAnnuaire[]= $cat->getId();
         }
 
+        $catAnnuaireEskuz = [];
+        foreach ($this->categoriesAnnuaireEskuz as $cat){
+            $catAnnuaireEskuz[]= $cat->getId();
+        }
+
         return json_encode([
                 'nom' => $this->nom,
                 'adresse' => $this->adresse,
                 'email' => $this->email,
+                'facebook' => $this->facebook,
+                'instagram' => $this->instagram,
                 'telephone' => $this->telephone,
                 'descriptif' => $this->descriptifActivite,
                 'horaires' => $this->horaires,
                 'categoriesAnnuaire' => $catAnnuaire,
+                'categoriesAnnuaireEskuz' => $catAnnuaireEskuz,
                 'autresLieux' => $this->autresLieux,
                 'guide' => $this->guideVEE,
                 'id' => $this->id,
@@ -92,6 +105,8 @@ class AdresseActivite
         $this->setNom($contactObjet->nom);
         $this->setAdresse($contactObjet->adresse);
         $this->setEmail($contactObjet->email);
+        $this->setInstagram($contactObjet->instagram);
+        $this->setFacebook($contactObjet->facebook);
         $this->setTelephone($contactObjet->telephone);
         $this->setDescriptifActivite($contactObjet->descriptif);
         $this->setHoraires($contactObjet->horaires);
@@ -276,4 +291,36 @@ class AdresseActivite
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, CategorieAnnuaire>
+     */
+    public function getCategoriesAnnuaireEskuz(): Collection
+    {
+        return $this->categoriesAnnuaireEskuz;
+    }
+
+    public function addCategoriesAnnuaireEskuz(CategorieAnnuaire $categoriesAnnuaireEskuz): self
+    {
+        if (!$this->categoriesAnnuaireEskuz->contains($categoriesAnnuaireEskuz)) {
+            $this->categoriesAnnuaireEskuz->add($categoriesAnnuaireEskuz);
+        }
+
+        return $this;
+    }
+
+    public function removeCategoriesAnnuaireEskuz(CategorieAnnuaire $categoriesAnnuaireEskuz): self
+    {
+        $this->categoriesAnnuaireEskuz->removeElement($categoriesAnnuaireEskuz);
+
+        return $this;
+    }
+
+    public function cleanCategoriesAnnuaireEskuz(): self
+    {
+        $this->categoriesAnnuaireEskuz->clear();
+
+        return $this;
+    }
+
 }

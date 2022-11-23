@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+
+{% block javascriptHeader %}
+
+{% endblock %}
+{% block title %}Signature{% endblock %}
+
+{% block bgColor %} bg-soft-grey {% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        {% if webHook != 0 %}
+            <iframe src="{{ yousign_url }}/procedure/sign?members={{ memberToken }}" width="100%" height="700px"> </iframe>
+        {% else %}
+            <br />
+            <br />
+            <br />
+            <br />
+            <div class="text-center">
+                <a class="btn btn-outline-primary" href="{{ path('app_dossier_signature_electronique') }}"> Recharger la page </a>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+    {% block javascript %}
+    $( document ).ready(function() {
+        var tid = setInterval(ajaxCall, 5000);
+        function ajaxCall() {
+            $.ajax({
+                method: "POST",
+                url: "{{ path('ajax_yousign_webhook') }}",
+                        data: { name: {{ webHook }} }
+                    })
+                    .done(function( msg ) {
+                        if(msg === 'ok'){
+                            abortTimer();
+                            window.location.href='{{ path('app_dossier_fin', {'id': dossierAgrement.id}) }}';
+                        } else {
+                            console.log('pas bon');
+                        }
+                    });
+            }
+            function abortTimer() {
+                clearInterval(tid);
+            }
+        });
+
+{% endblock javascript %}

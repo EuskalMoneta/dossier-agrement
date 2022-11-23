@@ -16,7 +16,7 @@ class CoordonneesFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('denominationCommerciale')
+            ->add('denominationCommerciale', null, ['label' => "Raison sociale"])
             ->add('formeJuridique', ChoiceType::class, [
                 'choices'  => [
                     'Micro' => 'Micro',
@@ -31,6 +31,7 @@ class CoordonneesFormType extends AbstractType
             ])
             ->add('emailPrincipal', EmailType::class, ['label' => 'Email'])
             ->add('nomDirigeant', null, ['label' => 'Nom'])
+            ->add('telephone', null, ['label' => 'Téléphone'])
             ->add('prenomDirigeant', null, ['label' => 'Prénom'])
             ->add('telephoneDirigeant', null, ['label' => 'Téléphone'])
             ->add('emailDirigeant', null, ['label' => 'Email'])

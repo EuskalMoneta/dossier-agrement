@@ -9,6 +9,7 @@ function hideAdresseModal(){
     $('#adresse-guide').prop('checked', false);
     $('.adresse-delete').remove();
     $('#adresse-categories').val("").trigger("change");
+    $('#adresse-categories-eskuz').val("").trigger("change");
 }
 
 //bouton fermer modale
@@ -36,6 +37,7 @@ $('#adresseContainer').on('click', '.adresse-edit', function (){
     //Peupler la modal avec les informations
     $('#adresse-nom').val(adresseObject.nom);
 
+    //si une adresse a été rentrée, on peuple le select avec une option par défaut
     if(adresseObject.adresse != ''){
         var adresseObj = JSON.parse(adresseObject.adresse);
         var newOption = new Option(adresseObj.text, adresseObj.id, true, true);
@@ -44,6 +46,8 @@ $('#adresseContainer').on('click', '.adresse-edit', function (){
 
     $('#adresse-adresse-hidden').val(adresseObject.adresse);
     $('#adresse-email').val(adresseObject.email);
+    $('#adresse-instagram').val(adresseObject.instagram);
+    $('#adresse-facebook').val(adresseObject.facebook);
     $('#adresse-telephone').val(adresseObject.telephone);
     $('#adresse-descriptif').val(adresseObject.descriptif);
     $('#adresse-horaires').val(adresseObject.horaires);
@@ -53,6 +57,7 @@ $('#adresseContainer').on('click', '.adresse-edit', function (){
 
     //select multiple categories
     $('#adresse-categories').val(adresseObject.categoriesAnnuaire).trigger("change");
+    $('#adresse-categories-eskuz').val(adresseObject.categoriesAnnuaireEskuz).trigger("change");
 
     //checkbox
     if(adresseObject.guide){
@@ -83,24 +88,33 @@ $('#adresse-submit').click(function (){
         categoriesAnnuaireSelect.push(value.id);
     });
 
+    //on récupère les catégories de l'annuaire Eskuz
+    let categoriesAnnuaireEskuzSelect = [];
+    $.each($('#adresse-categories-eskuz').select2('data'), function( index, value ) {
+        categoriesAnnuaireEskuzSelect.push(value.id);
+    });
+
     //sauvegarde des informations dans un objet
     var adresseObject = {
         nom: $('#adresse-nom').val(),
         adresse: $('#adresse-adresse-hidden').val(),
         email: $('#adresse-email').val(),
+        facebook: $('#adresse-facebook').val(),
+        instagram: $('#adresse-instagram').val(),
         telephone: $('#adresse-telephone').val(),
         descriptif: $('#adresse-descriptif').val(),
         horaires: $('#adresse-horaires').val(),
         autresLieux: $('#adresse-autresLieux').val(),
         categoriesAnnuaire: categoriesAnnuaireSelect,
+        categoriesAnnuaireEskuz: categoriesAnnuaireEskuzSelect,
         guide: $('#adresse-guide').prop('checked'),
         id: idAdresse
     };
 
     //Template de la card à remplir
-    const AdresseTemplate = ({ nom, adresse, email, telephone, id }) => {
+    const AdresseTemplate = ({nom, adresse, email, telephone, id}) => {
         var adresseText = '';
-        if(adresse != ''){
+        if (adresse != '') {
             var adresseObj = JSON.parse(adresse);
             adresseText = adresseObj.text;
         }
@@ -139,7 +153,8 @@ $('#adresse-submit').click(function (){
             </div>
         </div>
     </div>
-    `};
+    `
+    };
 
     // Peupler le template et l'insérer dans la page
     var templating =
@@ -152,6 +167,7 @@ $('#adresse-submit').click(function (){
                 id: adresseObject.id
             },
         ].map(AdresseTemplate).join('');
+
 
     if(edition){
         //on cherche l'ancienne div et on la remplace par la nouvelle
@@ -169,10 +185,16 @@ $('#adresse-submit').click(function (){
 
     hideAdresseModal();
 
+
 });
 
 //select 2 pour les categories
 $('#adresse-categories').select2({
+    dropdownParent: $('#adresseModal'),
+});
+
+//select 2 pour les categories Eskuz
+$('#adresse-categories-eskuz').select2({
     dropdownParent: $('#adresseModal'),
 });
 

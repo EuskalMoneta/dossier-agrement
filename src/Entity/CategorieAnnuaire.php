@@ -27,9 +27,13 @@ class CategorieAnnuaire
     #[ORM\ManyToMany(targetEntity: AdresseActivite::class, mappedBy: 'categoriesAnnuaire')]
     private Collection $adresseActivites;
 
+    #[ORM\ManyToMany(targetEntity: AdresseActivite::class, mappedBy: 'categoriesAnnuaireEskuz')]
+    private Collection $adresseActiviteEskuz;
+
     public function __construct()
     {
         $this->adresseActivites = new ArrayCollection();
+        $this->adresseActiviteEskuz = new ArrayCollection();
     }
 
     public function __toString()
@@ -100,6 +104,33 @@ class CategorieAnnuaire
     {
         if ($this->adresseActivites->removeElement($adresseActivite)) {
             $adresseActivite->removeCategoriesAnnuaire($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdresseActivite>
+     */
+    public function getAdresseActiviteEskuz(): Collection
+    {
+        return $this->adresseActiviteEskuz;
+    }
+
+    public function addAdresseActiviteEskuz(AdresseActivite $adresseActiviteEskuz): self
+    {
+        if (!$this->adresseActiviteEskuz->contains($adresseActiviteEskuz)) {
+            $this->adresseActiviteEskuz->add($adresseActiviteEskuz);
+            $adresseActiviteEskuz->addCategoriesAnnuaireEskuz($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdresseActiviteEskuz(AdresseActivite $adresseActiviteEskuz): self
+    {
+        if ($this->adresseActiviteEskuz->removeElement($adresseActiviteEskuz)) {
+            $adresseActiviteEskuz->removeCategoriesAnnuaireEskuz($this);
         }
 
         return $this;

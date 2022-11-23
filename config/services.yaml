@@ -26,14 +26,21 @@ services:
     admin.categorie_annuaire:
         class: App\Admin\CategorieAnnuaireAdmin
         tags:
-            - { name: sonata.admin, model_class: App\Entity\CategorieAnnuaire, controller: ~, manager_type: orm, group: admin, label: CategorieAnnuaire }
+            - { name: sonata.admin, model_class: App\Entity\CategorieAnnuaire, controller: ~, manager_type: orm, group: admin, label: CategorieAnnuaire, show_in_dashboard: false }
 
     admin.dossier_agrement:
         class: App\Admin\DossierAgrementAdmin
+        calls:
+            - [ setTemplate, [ 'edit', 'admin/dossierAgrement_edit.html.twig' ] ]
         tags:
             - { name: sonata.admin, model_class: App\Entity\DossierAgrement, controller: ~, manager_type: orm, group: admin, label: DossierAgrement }
 
     admin.adresse_activite:
         class: App\Admin\AdresseActiviteAdmin
         tags:
-            - { name: sonata.admin, model_class: App\Entity\AdresseActivite, controller: ~, manager_type: orm, group: admin, label: AdresseActivite }
+            - { name: sonata.admin, model_class: App\Entity\AdresseActivite, controller: ~, manager_type: orm, group: admin, label: AdresseActivite, show_in_dashboard: false }
+
+    admin.reduction_adhesion:
+        class: App\Admin\ReductionAdhesionAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\ReductionAdhesion, controller: ~, manager_type: orm, group: admin, label: ReductionAdhesion }

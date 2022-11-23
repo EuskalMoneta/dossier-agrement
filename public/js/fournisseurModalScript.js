@@ -35,6 +35,7 @@ $('#fournisseurContainer').on('click', '.fournisseur-edit', function (){
     $('#fournisseur-nom').val(fournisseurObject.nom);
     $('#fournisseur-prenom').val(fournisseurObject.prenom);
     $('#fournisseur-activite').val(fournisseurObject.activite);
+    $('#fournisseur-status').val(fournisseurObject.status);
 
     if(fournisseurObject.adresse != ''){
         var fournisseurObj = JSON.parse(fournisseurObject.adresse);
@@ -63,6 +64,7 @@ $('#fournisseur-submit').click(function (){
     } else {
         idFournisseur = 'TEMP'+cptFournisseur;
         cptFournisseur++;
+        $('#fournisseur-status').val('nouveau')
     }
 
     //sauvegarde des informations dans un objet
@@ -75,15 +77,20 @@ $('#fournisseur-submit').click(function (){
         email: $('#fournisseur-email').val(),
         adresse: $('#fournisseur-adresse-hidden').val(),
         commentaires: $('#fournisseur-commentaires').val(),
+        status: $('#fournisseur-status').val(),
         id: idFournisseur
     };
 
     //Template de la card à remplir
-    const FournisseurTemplate = ({ entreprise, nom, prenom, activite, adresse, email, telephone, id }) => {
+    const FournisseurTemplate = ({ entreprise, nom, prenom, activite, adresse, email, telephone, status, id }) => {
         var adresseText = '';
         if(adresse != ''){
             var adresseObj = JSON.parse(adresse);
             adresseText = adresseObj.text;
+        }
+        var classBadge = 'bg-success';
+        if(status == 'nouveau'){
+            classBadge = 'bg-dark';
         }
         return `
     <div class="card-relation fournisseurCard${id}">
@@ -91,6 +98,10 @@ $('#fournisseur-submit').click(function (){
             <div>
                 <div class="d-flex">
                     <h3 class="h4-20bold mb-0">${entreprise}</h3>
+                    
+                    <div>
+                    <span class="ms-3 badge ${classBadge}">${status}</span>
+                    </div>
                 </div>
                 <div class="sousTitre-18bold">
                     ${activite}
@@ -132,6 +143,7 @@ $('#fournisseur-submit').click(function (){
                 adresse: fournisseurObject.adresse,
                 email: fournisseurObject.email,
                 telephone: fournisseurObject.telephone,
+                status: fournisseurObject.status,
                 id: fournisseurObject.id
             },
         ].map(FournisseurTemplate).join('');

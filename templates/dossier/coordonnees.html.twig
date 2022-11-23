@@ -123,6 +123,11 @@
                 {{ form_row(form.emailPrincipal) }}
 
             </div>
+
+            <div class="col-6">
+                {{ form_row(form.telephone) }}
+
+            </div>
         </div>
 
         <div class="row spacer-vertical-column">
@@ -263,7 +268,7 @@
                                         <div class="paragraph-16reg">
                                             {% set adresseObj = adresse.adresse | json_decode  %}
                                             {% if adresseObj.text is defined %}
-                                            {{ adresseObj.text }}
+                                                {{ adresseObj.text }}
                                             {% endif %}
                                         </div>
                                         <div class="paragraph-16reg">
@@ -291,7 +296,7 @@
                     {# Stocke les inputs #}
                     <div id="adresseInputsHidden">
                         {% for adresse in dossierAgrement.adresseActivites %}
-                             <input type="hidden" name="dataAdresses[adresse-{{ adresse.id }}]" id="adresse-{{ adresse.id }}" value="{{ adresse.getJsonFormat() }}">
+                            <input type="hidden" name="dataAdresses[adresse-{{ adresse.id }}]" id="adresse-{{ adresse.id }}" value="{{ adresse.getJsonFormat() }}">
                         {% endfor %}
                     </div>
 
@@ -309,7 +314,7 @@
     {% include 'form/contactModalForm.html.twig' %}
 
     <!-- Modal Adresse -->
-    {% include 'form/adresseModalForm.html.twig' with {'categoriesAnnuaire' : categoriesAnnuaire} %}
+    {% include 'form/adresseModalForm.html.twig' with {'categoriesAnnuaire' : categoriesAnnuaire, 'categoriesAnnuaireEskuz': categoriesAnnuaireEskuz} %}
 
 
 
@@ -324,6 +329,7 @@
     {% block javascript %}
 
 
+    //remplir l'input hidden avec le json de l'adresse postale
     $('.js-city-ajax').on('select2:select', function (e) {
         var data = e.params.data;
         $(this).next().next().val(JSON.stringify(data));

@@ -80,6 +80,30 @@
                             </div>
                         </div>
 
+                        <div class="col-6 mt-3">
+                            <div class="sm-card-recap">
+                                <div class="d-flex align-items-top">
+                                    <div class="ico-card-recap">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <g clip-path="url(#clip0_29_30)">
+                                                <path d="M6.66669 10.4165L9.16669 12.9165L13.3334 7.9165" stroke="#8D8D8D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 18.3332C14.6024 18.3332 18.3334 14.6022 18.3334 9.99984C18.3334 5.39746 14.6024 1.6665 10 1.6665C5.39765 1.6665 1.66669 5.39746 1.66669 9.99984C1.66669 14.6022 5.39765 18.3332 10 18.3332Z" stroke="#8D8D8D" stroke-width="2"/>
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_29_30">
+                                                    <rect width="20" height="20" fill="white"/>
+                                                </clipPath>
+                                            </defs>
+                                        </svg>
+
+                                    </div>
+                                    <div class="ms-3">
+                                        <h3 class="intro-18bold mb-0 grey-color"><a href="{{ path('app_dossier_adhesion', {'id': dossierAgrement.id}) }}" class="linkText">Adhésion</a></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -124,6 +148,9 @@
                                         <div>
                                             <div class="d-flex">
                                                 <h3 class="h4-20bold mb-0">{{ fournisseur.nomEntreprise }}</h3>
+                                                <div>
+                                                    <span class="ms-3 badge {% if fournisseur.status=='nouveau' %} bg-dark{% else %}bg-success{% endif %}">{{ fournisseur.status }}</span>
+                                                </div>
                                             </div>
                                             <div class="sousTitre-18bold">
                                                 {{ fournisseur.activite }}
@@ -323,41 +350,112 @@
     {% block javascript %}
 
 
+    //Lorsque l'on choisit un fournisseur dans le select, on rajoute une nouvelle card fournisseur
     $('.js-city-ajax').on('select2:select', function (e) {
         var data = e.params.data;
+        afficheCard(JSON.parse(data.id));
         $(this).next().next().val(JSON.stringify(data));
     });
 
+    function afficheCard(fournisseurObject){
+
+        var idFournisseur = fournisseurObject.id;
+        const FournisseurTemplate = ({ entreprise, nom, prenom, activite, adresse, email, telephone, status, id }) => {
+            var adresseText = '';
+            if(typeof adresse === 'string' && adresse !== ''){
+                var adresseObj = JSON.parse(adresse);
+                adresseText = adresseObj.text;
+            }
+            return `
+    <div class="card-relation fournisseurCard${id}">
+        <div class="d-flex justify-content-between">
+            <div>
+                <div class="d-flex">
+                    <h3 class="h4-20bold mb-0">${entreprise}</h3>
+                    <div>
+                    <span class="ms-3 badge bg-success">${status}</span>
+                    </div>
+                </div>
+                <div class="sousTitre-18bold">
+                    ${activite}
+                </div>
+                <div class="paragraph-16reg mt-1">
+                    ${prenom} ${nom}
+                </div>
+                <div class="paragraph-16reg">
+                    ${email}
+                </div>
+                <div class="paragraph-16reg">
+                    ${telephone}
+                </div>
+
+
+            </div>
+
+            <div>
+                <a  id="${id}" class="fournisseur-edit linkText">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.16663 1.66675H7.49996C3.33329 1.66675 1.66663 3.33341 1.66663 7.50008V12.5001C1.66663 16.6667 3.33329 18.3334 7.49996 18.3334H12.5C16.6666 18.3334 18.3333 16.6667 18.3333 12.5001V10.8334" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M13.3667 2.51663L6.80002 9.0833C6.55002 9.3333 6.30002 9.82497 6.25002 10.1833L5.89169 12.6916C5.75835 13.6 6.40002 14.2333 7.30835 14.1083L9.81669 13.75C10.1667 13.7 10.6584 13.45 10.9167 13.2L17.4834 6.6333C18.6167 5.49997 19.15 4.1833 17.4834 2.51663C15.8167 0.849966 14.5 1.3833 13.3667 2.51663Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12.425 3.45825C12.9834 5.44992 14.5417 7.00825 16.5417 7.57492" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    `};
+
+        // Peupler le template et l'insérer dans la page
+        var templating =
+            [
+                {
+                    entreprise: fournisseurObject.entreprise,
+                    nom: fournisseurObject.nom?fournisseurObject.nom:'',
+                    prenom: fournisseurObject.prenom?fournisseurObject.prenom:'',
+                    activite: fournisseurObject.activite,
+                    adresse: fournisseurObject.adresse,
+                    email: fournisseurObject.email?fournisseurObject.email:'',
+                    telephone: fournisseurObject.telephone?fournisseurObject.telephone:'',
+                    status: fournisseurObject.status?fournisseurObject.status:'',
+                    id: fournisseurObject.id
+                },
+            ].map(FournisseurTemplate).join('');
+
+        $('#fournisseurContainer').append(templating);
+        var inputHidden = '<input type="hidden" name="dataFournisseurs[fournisseur-'+idFournisseur+']" id="fournisseur-'+idFournisseur+'" value="">';
+        $('#fournisseurInputsHidden').append(inputHidden);
+
+        var fournisseurJson = JSON.stringify(fournisseurObject);
+        $('#fournisseur-'+idFournisseur).val(fournisseurJson);
+    }
     $('#fournisseur-select').select2({
         ajax: {
-            url: "https://api-adresse.data.gouv.fr/search/",
-            delay: 250,
-            dataType: 'json',
-            data: function (term) {
-                var query = {
-                    q: term.term
-                }
-                return query;
-            },
-            processResults: function (data) {
+            url: "{{ path('app_search_pro') }}",
+                delay: 250,
+                allowClear: true,
+                dataType: 'json',
+                data: function (term) {
+                    var query = {
+                        q: term.term
+                    }
+                    return query;
+                },
+               processResults: function (data) {
                 return {
-                    results: $.map(data.features, function (item) {
+                    results: $.map(data.results, function (item) {
+                    //console.log(JSON.stringify(item));
                         return {
-                            text: item.properties.label,
-                            /*text: item.properties.housenumber + ' ' + item.properties.street + ', ' + item.properties.city + ' (' + item.properties.postcode + ')',*/
-                            id: item.properties.city,
-                            lng: item.geometry.coordinates[0],
-                            lat: item.geometry.coordinates[1],
-                            address: item.properties.housenumber + ' ' + item.properties.street,
-                            postcode: item.properties.postcode
+                            text: item.text,
+                            id: JSON.stringify(item),
                         }
                     })
                 };
             }
-        },
-        minimumInputLength: 1,
-        placeholder: 'Chercher un fournisseur existant',
-    });
+            },
+            minimumInputLength: 3,
+            placeholder: 'Saisir une adresse',
+        });
+
 
 
     {% endblock javascript %}

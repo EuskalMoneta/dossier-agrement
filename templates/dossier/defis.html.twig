@@ -146,7 +146,10 @@
                                 <div class="flex-grow-1">
                                     <div class="d-flex flex-grow-1">
                                         <select name="professionnels[{{ defi.id }}]" class="form-control pro-select form-adresse" style="">
-                                            <option value="{{ defi.valeur }}">{{ defi.valeur }}</option>
+                                            {% if defi.valeur != '' %}
+                                                {% set pro = defi.valeur | json_decode  %}
+                                                <option value="{{ defi.valeur }}">{{ pro.text }}</option>
+                                            {% endif %}
                                         </select>
 
                                         <input type="button" class="btn btn-outline-dark delSelect" value="X" />
@@ -225,11 +228,12 @@
 
             <div class="row mt-2">
                 <div class="col-12">
-                    <h4 class="h4-20bold">Affichage en euskara (signalétique, outils de communication...)</h4>
+
                     {% for defi in dossierAgrement.defis %}
                         {% if defi.type == 'promotionEuskara' %}
                             <div class="d-flex mt-3 align-items-center">
                                 <div class="flex-grow-1">
+                                    <h4 class="h4-20bold">Affichage en euskara (signalétique, outils de communication...)</h4>
                                     <div class="form-check ms-4 me-2">
                                         <input class="form-check-input" type="radio" name="promotionEuskara[{{ defi.id }}]" value="En autonomie" {% if defi.valeur == 'En autonomie' %} checked {% endif %}>
                                         <label class="form-check-label form-label">
@@ -249,17 +253,19 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="form-check ms-4 me-2">
-                                    <input class="form-check-input" type="radio" name="promotionEuskara-etat{{ defi.id }}" value="1" {% if defi.etat %} checked {% endif %}>
-                                    <label class="form-check-label">
-                                        Déjà réalisé
-                                    </label>
-                                </div>
-                                <div class="form-check ms-4 me-2" style="">
-                                    <input class="form-check-input" type="radio" name="promotionEuskara-etat{{ defi.id }}" value="0" {% if defi.etat is same as false %} checked {% endif %} >
-                                    <label class="form-check-label">
-                                        A réaliser
-                                    </label>
+                                <div class="d-none">
+                                    <div class="form-check ms-4 me-2">
+                                        <input class="form-check-input" type="radio" name="promotionEuskara-etat{{ defi.id }}" value="1" {% if defi.etat %} checked {% endif %}>
+                                        <label class="form-check-label">
+                                            Déjà réalisé
+                                        </label>
+                                    </div>
+                                    <div class="form-check ms-4 me-2" style="">
+                                        <input class="form-check-input" type="radio" name="promotionEuskara-etat{{ defi.id }}" value="0" {% if defi.etat is same as false %} checked {% endif %} >
+                                        <label class="form-check-label">
+                                            A réaliser
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
@@ -271,21 +277,13 @@
 
             <div class="row mt-5">
                 <div class="col-12">
-                    <h4 class="h4-20bold">Accueil possible en euskara</h4>
+
                     {% for defi in dossierAgrement.defis %}
                         {% if defi.type == 'accueilEuskara' %}
                             <div class="d-flex mt-3 align-items-center">
                                 <div class="flex-grow-1">
                                     <input type="hidden" name="accueilEuskara[{{ defi.id }}]" value="" />
-                                    <p class="paragraph-16reg">
-                                        Proposition de cours de basque pour les adhérents professionnels tous niveaux.<br />
-                                        - Durée : 24h<br />
-                                        - Dates et horaires : à définir avec l’apprenant Déjà réalisé<br />
-                                        - Effectif : cours individuels + travail personnalisé À réaliser<br />
-                                        - Modalités : en présentiel, online ou hybride<br />
-                                        - Prix : 750 €<br />
-                                        - Financement : CPF, OPCO, plan de formation entreprise<br />
-                                    </p>
+                                    <h4 class="h4-20bold">Accueil possible en euskara</h4>
                                 </div>
                                 <div class="form-check ms-4 me-2">
                                     <input class="form-check-input" type="radio" name="accueilEuskara-etat{{ defi.id }}" value="1" {% if defi.etat %} checked {% endif %}>
@@ -325,6 +323,8 @@
     {% block javascript %}
 
     var cpt =10000000;
+
+
     $('#defiProduitAjoutBtn').click(function (){
 
         //Template du formulaire à générer
@@ -390,10 +390,10 @@
     });
 
     function initailizeSelect2(){
-        //select 2 pour l'adresse postale
+        //select 2 pour rechercher un pro
         $('.pro-select').select2({
             ajax: {
-                url: "https://api-adresse.data.gouv.fr/search/",
+                url: "{{ path('app_search_pro') }}",
                 delay: 250,
                 allowClear: true,
                 dataType: 'json',
@@ -403,22 +403,20 @@
                     }
                     return query;
                 },
-                processResults: function (data) {
-                    return {
-                        results: $.map(data.features, function (item) {
-                            return {
-                                text: item.properties.label,
-                                id: item.properties.city,
-                                lng: item.geometry.coordinates[0],
-                                lat: item.geometry.coordinates[1],
-                                address: item.properties.housenumber + ' ' + item.properties.street,
-                                postcode: item.properties.postcode
-                            }
-                        })
-                    };
-                }
+               processResults: function (data) {
+                return {
+                    results: $.map(data.results, function (item) {
+                    console.log(item);
+                    console.log(JSON.stringify(item));
+                        return {
+                            text: item.text,
+                            id: JSON.stringify(item),
+                        }
+                    })
+                };
+            }
             },
-            minimumInputLength: 1,
+            minimumInputLength: 3,
             placeholder: 'Saisir une adresse',
         });
     }

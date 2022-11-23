@@ -49,6 +49,21 @@
                     </div>
                     <div class="row">
 
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adresse-facebook" class="form-label">Facebook</label>
+                                <input type="text" name="adresse-facebook" id="adresse-facebook" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adresse-instagram" class="form-label">Instagram</label>
+                                <input type="text" name="adresse-instagram" id="adresse-instagram" class="form-control form-adresse">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
                         <div class="col-md-12 mt-5">
                             <h3 class="h3-25bold green-color-eusko mb-2">
                                 L’activité
@@ -94,7 +109,12 @@
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <label for="adresse-horaires" class="form-label">Catégories de l’activité dans Eskuz Esku</label>
-                                <input type="text" name="adresse-horaires" id="adresse-horaires" class="form-control form-adresse">
+
+                                <select name="adresse-categories-eskuz" id="adresse-categories-eskuz" class="form-control form-adresse" multiple style="width: 800px;">
+                                    {% for categorie in categoriesAnnuaireEskuz %}
+                                        <option value="{{ categorie.id }}"> {{ categorie }} </option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-12">
