@@ -64,7 +64,7 @@ $('#fournisseur-submit').click(function (){
     } else {
         idFournisseur = 'TEMP'+cptFournisseur;
         cptFournisseur++;
-        $('#fournisseur-status').val('nouveau')
+        $('#fournisseur-status').val('nouveau prospect')
     }
 
     //sauvegarde des informations dans un objet
@@ -86,12 +86,13 @@ $('#fournisseur-submit').click(function (){
         var adresseText = '';
         if(adresse != ''){
             var adresseObj = JSON.parse(adresse);
-            adresseText = adresseObj.text;
+            adresseText = adresseObj.id;
         }
         var classBadge = 'bg-success';
-        if(status == 'nouveau'){
+        if(status == 'nouveau prospect'){
             classBadge = 'bg-dark';
         }
+
         return `
     <div class="card-relation fournisseurCard${id}">
         <div class="d-flex justify-content-between">
@@ -104,7 +105,7 @@ $('#fournisseur-submit').click(function (){
                     </div>
                 </div>
                 <div class="sousTitre-18bold">
-                    ${activite}
+                    ${activite} - ${adresseText}
                 </div>
                 <div class="paragraph-16reg mt-1">
                     ${prenom} ${nom}
@@ -166,6 +167,11 @@ $('#fournisseur-submit').click(function (){
 
 });
 
+//remplir l'input hidden avec le json de l'adresse postale
+$('.js-city-ajax').on('select2:select', function (e) {
+    var data = e.params.data;
+    $(this).next().next().val(JSON.stringify(data));
+});
 
 //select 2 pour l'Adresse postale
 $('#fournisseur-adresse').select2({

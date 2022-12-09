@@ -50,6 +50,8 @@ final class DossierAgrementAdmin extends AbstractAdmin
                 'label' => "Date d'Agrément",
                 'dp_language'=>'fr',
             ])
+            ->add('codePrestataire')
+            ->add('idExterne')
 
         ;
     }

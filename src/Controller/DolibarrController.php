@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\AdresseActivite;
+use App\Entity\Contact;
 use App\Entity\DossierAgrement;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+
 
 class DolibarrController extends AbstractController implements CRMInterface
 {
@@ -106,6 +107,17 @@ class DolibarrController extends AbstractController implements CRMInterface
                         $status = 'Prospect / Prestataire agréé';
                         break;
                 }
+
+                $adresse = $this->transformAdresseIntoJSON(
+                    $pro->address.' '.$pro->zip.' '.$pro->town,
+                    $pro->town,
+                    '',
+                    '',
+                    $pro->address,
+                    $pro->zip,
+                    ''
+                );
+
                 if($pro->client)
                     $tabPro[] = [
                         'id' => 'CRM'.$pro->id,
@@ -116,7 +128,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                         'activite' => '',
                         'telephone' => $pro->phone,
                         'email' => $pro->email,
-                        'adresse' => '',
+                        'adresse' => $adresse,
                         'commentaires' => $pro->note_private,
                         'status' => $status,
                     ];
@@ -125,11 +137,25 @@ class DolibarrController extends AbstractController implements CRMInterface
         return $tabPro;
     }
 
+    public function transformAdresseIntoJSON($text, $town, $lng, $lat, $address, $postcode, $selected){
+
+        return json_encode( [
+            'text' => $text,
+            'id' => $town,
+            'lng' => $lng,
+            'lat' => $lat,
+            'address' => $address,
+            'postcode' => $postcode,
+            'selected' => $selected
+        ]);
+    }
+
     /*
      * Fonction récursive qui récupère l'ensemble des sous catégories d'un index donné.
      * Prend l'index et un tableau par référence pour les résultats
      */
-    private function getCategoriesChildren($id_parent, &$tabCategories){
+    private function getCategoriesChildren($id_parent, &$tabCategories): bool
+    {
 
         $reponseCategories = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$id_parent.')');
         if($reponseCategories['httpcode'] == 200) {
@@ -145,11 +171,165 @@ class DolibarrController extends AbstractController implements CRMInterface
                 }
             }
         }
+        return false;
     }
 
     public function updateTier($id): bool
     {
         return true;
+    }
+
+
+    public function postAdresseActivite(AdresseActivite $adresseActivite): bool
+    {
+
+        $data = $this->transformAdresseActivite($adresseActivite);
+        $reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
+        if($reponseCategories['httpcode'] != 200) {
+            $this->addFlash("danger","Erreur lors de l'ajout de l'adresse d'activité : ".$adresseActivite->getNom());
+        }
+
+        /*
+         * Ajouter les catégories contact associées => ne marche pas
+         * foreach ($adresseActivite->getCategoriesAnnuaire() as $categorieAnnuaire){
+            $data = [
+                'id' => $categorieAnnuaire->getIdExterne(),
+            ];
+            $reponseLiaison = $this->curlRequestDolibarr('PST', 'categories/'.$reponseCategories['data'].'/categories', $data);
+            dump($reponseLiaison);
+        }*/
+
+        return true;
+    }
+
+    public function postContact(Contact $contact): int
+    {
+        $data = $this->transformContact($contact);
+        $reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
+        if($reponseCategories['httpcode'] != 200) {
+            $this->addFlash("danger","Erreur lors de l'ajout du contact : ".$contact->getNom());
+        }
+        return true;
+    }
+
+
+    public function postTier(DossierAgrement $dossierAgrement): int
+    {
+        //Préparer les données de la requête
+        $data = $this->transformTier($dossierAgrement);
+
+        if($dossierAgrement->getIdExterne() > 0){
+            //Si le tier existe déjà, on fait une mise à jour
+            $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
+            if($reponseTier['httpcode'] != 200) {
+                $this->addFlash("danger", "Erreur lors de la mise à jour du tier dans dolibarr.");
+            }
+            return $reponseTier['data']->id;
+        } else {
+            //sinon on ajoute un nouveau tier
+            $reponseTier = $this->curlRequestDolibarr('POST', 'thirdparties', $data);
+            if($reponseTier['httpcode'] != 200) {
+                $this->addFlash("danger", "Erreur lors de l'ajout du tier dans dolibarr.");
+            }
+            return $reponseTier['data'];
+        }
+
+    }
+
+    /**
+     * Transforme un objet AdresseActivite vers un tableau compatible adresse dolibarr
+     *
+     * @param AdresseActivite $adresseActivite
+     * @return array
+     */
+    private function transformAdresseActivite(AdresseActivite $adresseActivite){
+        $adresse = json_decode($adresseActivite->getAdresse());
+        $array_options = [
+            "options_latitude"=> $adresse->lat,
+            "options_longitude"=> $adresse->lng,
+            "options_facebook"=> $adresseActivite->getFacebook(),
+            "options_instagram"=> $adresseActivite->getInstagram(),
+            "options_description_francais"=> $adresseActivite->getDescriptifActivite(),
+            "options_horaires_francais"=> $adresseActivite->getHoraires(),
+            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux(),
+            //"options_euskara"=> "3",
+            //"options_horaires_euskara"=> "Astelehenetik ostiralera 8=>00 – 12=>00 / 14=>00 – 18=>30 (astelehenetan=> 9=>00etatik)",
+            //"options_autres_lieux_activite_euskara"=> null,
+            //"options_bons_plans_euskara"=> null,
+            //"options_bons_plans_francais"=> null,
+            //"options_equipement_pour_euskokart"=> "oui_famoco",
+            //"options_euskopay"=> "1"
+        ];
+
+        $data =
+            [
+                'address' => $adresse->address,
+                'zip' => $adresse->postcode,
+                'town' => $adresse->id,
+                "socid"=> $adresseActivite->getDossier()->getIdExterne(),
+                "email"=> $adresseActivite->getEmail(),
+                "mail"=> $adresseActivite->getEmail(),
+                "phone_pro"=> $adresseActivite->getTelephone(),
+                "lastname"=> $adresseActivite->getNom(),
+                "socname"=> $adresseActivite->getNom(),
+                'array_options' => $array_options
+            ];
+
+        return $data;
+    }
+
+    /**
+     * Transforme un objet DossierAgrement vers un tableau compatible tier dolibarr
+     *
+     * @param DossierAgrement $dossierAgrement
+     * @return array
+     */
+    private function transformTier(DossierAgrement $dossierAgrement){
+        $adresse = json_decode($dossierAgrement->getAdressePrincipale());
+
+        $array_options = [
+            "options_date_agrement"=> $dossierAgrement->getDateAgrement()->getTimestamp(),
+            "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier(),
+            "options_prefere_etre_contacte"=> "Mail"
+        ];
+        $data =
+            [
+                'address' => $adresse->address,
+                'zip' => $adresse->postcode,
+                'town' => $adresse->id,
+                "email"=> $dossierAgrement->getEmailPrincipal(),
+                "phone_pro"=> $dossierAgrement->getTelephone(),
+                "name_alias"=> $dossierAgrement->getFormeJuridique().' '.$dossierAgrement->getDenominationCommerciale(),
+                "name"=> $dossierAgrement->getDenominationCommerciale(),
+                "client"=> "1",
+                "code_client"=> $dossierAgrement->getCodePrestataire(),
+                'array_options' => $array_options
+            ];
+
+        return $data;
+    }
+
+    /**
+     * Transforme un objet Contact vers un tableau compatible contact dolibarr
+     *
+     * @param Contact $contact
+     * @return array
+     */
+    private function transformContact(Contact $contact){
+
+        $data =
+            [
+                "socid"=> $contact->getDossierAgrement()->getIdExterne(),
+                "email"=> $contact->getEmail(),
+                "mail"=> $contact->getEmail(),
+                "phone_pro"=> $contact->getTelephone(),
+                "lastname"=> $contact->getNom(),
+                "firstname"=> $contact->getPrenom(),
+                "poste"=> $contact->getFonction(),
+                "socname"=> $contact->getDossierAgrement()->getDenominationCommerciale()
+            ];
+
+        return $data;
     }
 
 }

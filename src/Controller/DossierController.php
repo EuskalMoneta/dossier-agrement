@@ -30,9 +30,11 @@ class DossierController extends AbstractController
 {
 
     #[Route('/dossier/nouveau', name: 'app_dossier_nouveau')]
-    public function nouveauDossier(Request $request, EntityManagerInterface $em): Response
+    public function nouveauDossier(Request $request, EntityManagerInterface $em, DolibarrController $crm): Response
     {
+
         if($request->isMethod('post')){
+            $this->synchroCategories($crm, $em);
             $dossierAgrement = new DossierAgrement();
 
             $dossierAgrement->setCreated(new \DateTime());
@@ -215,6 +217,8 @@ class DossierController extends AbstractController
             $em->persist($dossierAgrement);
             $em->flush();
 
+            return $this->redirectToRoute('app_dossier_vieDuReseau', ['id' => $dossierAgrement->getId()]);
+
         }
 
         return $this->renderForm('dossier/defis.html.twig', [
@@ -227,11 +231,6 @@ class DossierController extends AbstractController
     #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function vieDuReseau(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em): Response
     {
-        /*$response = $APITollboxController->curlRequestDolibarr('GET', 'thirdparties');
-        dump($response);
-        $data =["skype"=> "bretele"];
-        $responseBis = $APITollboxController->curlRequestDolibarr('PUT', 'thirdparties/622', $data);
-        dump($responseBis);*/
 
         if ($request->isMethod('post')) {
 
@@ -293,6 +292,7 @@ class DossierController extends AbstractController
             $em->persist($dossierAgrement);
             $em->flush();
 
+            return $this->redirectToRoute('app_dossier_adhesion', ['id' => $dossierAgrement->getId()]);
         }
 
         return $this->renderForm('dossier/vieReseau.html.twig', [
@@ -329,6 +329,8 @@ class DossierController extends AbstractController
             /**************    ENREGISTREMENT   *******************/
             $em->persist($dossierAgrement);
             $em->flush();
+
+            return $this->redirectToRoute('app_dossier_signature_electronique', ['id' => $dossierAgrement->getId()]);
         }
 
         return $this->renderForm('dossier/adhesion.html.twig', [
@@ -517,6 +519,50 @@ class DossierController extends AbstractController
             $defi->setEtat($etat);
             $dossierAgrement->addDefi($defi);
         }
+
+        return true;
+    }
+
+    /*
+     * Permet de récupérer la liste des catégories de l'annuaire + eskuz esku
+     * Mettre à jour les libellés ou créer les nouvelles catégories
+     */
+    public function synchroCategories(DolibarrController $crm, EntityManagerInterface $em): bool
+    {
+
+        $categories = $crm->getCategoriesAnnuaire();
+
+        foreach ($categories as $categorie){
+            $cat = $em->getRepository(CategorieAnnuaire::class)->findOneBy(['idExterne' => $categorie['idExterne']]);
+            if($cat){
+                $cat->setLibelle($categorie['libelle']);
+            } else {
+                $cat = new CategorieAnnuaire();
+                $cat->setType('eusko');
+                $cat->setLibelle($categorie['libelle']);
+                $cat->setIdExterne($categorie['idExterne']);
+            }
+            $em->persist($cat);
+        }
+
+        $em->flush();
+
+        $categories = $crm->getCategoriesEskuzEsku();
+
+        foreach ($categories as $categorie){
+            $cat = $em->getRepository(CategorieAnnuaire::class)->findOneBy(['idExterne' => $categorie['idExterne']]);
+            if($cat){
+                $cat->setLibelle($categorie['libelle']);
+            } else {
+                $cat = new CategorieAnnuaire();
+                $cat->setType('eskuz');
+                $cat->setLibelle($categorie['libelle']);
+                $cat->setIdExterne($categorie['idExterne']);
+            }
+            $em->persist($cat);
+        }
+
+        $em->flush();
 
         return true;
     }

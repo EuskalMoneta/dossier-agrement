@@ -139,6 +139,12 @@ class DossierAgrement
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $created = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $codePrestataire = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $idExterne = null;
+
 
     public function __toString(): string
     {
@@ -807,6 +813,30 @@ class DossierAgrement
     public function setCreated(?\DateTimeInterface $created): self
     {
         $this->created = $created;
+
+        return $this;
+    }
+
+    public function getCodePrestataire(): ?string
+    {
+        return $this->codePrestataire;
+    }
+
+    public function setCodePrestataire(?string $codePrestataire): self
+    {
+        $this->codePrestataire = $codePrestataire;
+
+        return $this;
+    }
+
+    public function getIdExterne(): ?int
+    {
+        return $this->idExterne;
+    }
+
+    public function setIdExterne(?int $idExterne): self
+    {
+        $this->idExterne = $idExterne;
 
         return $this;
     }

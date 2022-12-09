@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\CategorieAnnuaire;
+use App\Entity\Contact;
 use App\Entity\Document;
 use App\Entity\DossierAgrement;
 use Doctrine\ORM\EntityManagerInterface;
@@ -87,13 +88,42 @@ class GestionController extends AbstractController
                                     $idExterne = '0'): Response
     {
         if($idExterne == '0'){
-
+            $idTier = 0;
         } elseif(str_starts_with($idExterne,'CRM')) {
-            $idExterne = explode('CRM', $idExterne)[1];
-            $result = $crm->updateTier($idExterne);
+            $idTier = explode('CRM', $idExterne)[1];
+            $result = $crm->updateTier($idTier);
             if($result){
-                $this->addFlash('success', 'Tier '.$idExterne.' mis à jour');
+                $this->addFlash('success', 'Tier '.$idTier.' mis à jour');
             }
+            $dossierAgrement->setIdExterne($idTier);
+        }
+
+        /***** Enregistrer le tier dans le CRM */
+        $idExterne = $crm->postTier($dossierAgrement);
+        $dossierAgrement->setIdExterne($idExterne);
+
+        $em->persist($dossierAgrement);
+        $em->flush();
+
+        /***** Enregistrer le dirigeant en tant que contact */
+        $contactDirigeant = new Contact();
+        $contactDirigeant->setPrenom($dossierAgrement->getPrenomDirigeant());
+        $contactDirigeant->setNom($dossierAgrement->getNomDirigeant());
+        $contactDirigeant->setFonction($dossierAgrement->getFonctionDirigeant());
+        $contactDirigeant->setTelephone($dossierAgrement->getTelephoneDirigeant());
+        $contactDirigeant->setEmail($dossierAgrement->getEmailDirigeant());
+        $contactDirigeant->setDossierAgrement($dossierAgrement);
+
+        $crm->postContact($contactDirigeant);
+
+        /***** Enregistrer les autres contacts */
+        foreach ($dossierAgrement->getContacts() as $contact){
+            $crm->postContact($contact);
+        }
+
+        /***** Adresse(s) activité */
+        foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
+            $crm->postAdresseActivite($adresseActivite);
         }
 
         return $this->render('admin/envoiDossier.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement]);
@@ -102,52 +132,7 @@ class GestionController extends AbstractController
     }
 
 
-    /*
-     * Permet de récupérer la liste des catégories de l'annuaire + eskuz esku
-     * Mettre à jour les libellé ou créer les nouvelles catégories
-     */
-    #[Route('/synchro-categories', name: 'app_syncro_categorie')]
-    public function synchroCategories(DolibarrController $crm, EntityManagerInterface $em): Response
-    {
 
-        $categories = $crm->getCategoriesAnnuaire();
-
-        foreach ($categories as $categorie){
-            $cat = $em->getRepository(CategorieAnnuaire::class)->findOneBy(['idExterne' => $categorie['idExterne']]);
-            if($cat){
-                $cat->setLibelle($categorie['libelle']);
-            } else {
-                $cat = new CategorieAnnuaire();
-                $cat->setType('eusko');
-                $cat->setLibelle($categorie['libelle']);
-                $cat->setIdExterne($categorie['idExterne']);
-            }
-            $em->persist($cat);
-        }
-
-        $em->flush();
-
-        $categories = $crm->getCategoriesEskuzEsku();
-
-        foreach ($categories as $categorie){
-            $cat = $em->getRepository(CategorieAnnuaire::class)->findOneBy(['idExterne' => $categorie['idExterne']]);
-            if($cat){
-                $cat->setLibelle($categorie['libelle']);
-            } else {
-                $cat = new CategorieAnnuaire();
-                $cat->setType('eskuz');
-                $cat->setLibelle($categorie['libelle']);
-                $cat->setIdExterne($categorie['idExterne']);
-            }
-            $em->persist($cat);
-        }
-
-        $em->flush();
-
-        return $this->render('gestion/index.html.twig', [
-            'controller_name' => 'GestionController',
-        ]);
-    }
 
 
     /**
