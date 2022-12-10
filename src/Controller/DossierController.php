@@ -36,10 +36,11 @@ class DossierController extends AbstractController
         if($request->isMethod('post')){
             $this->synchroCategories($crm, $em);
             $dossierAgrement = new DossierAgrement();
-
             $dossierAgrement->setCreated(new \DateTime());
             $dossierAgrement->setLibelle($request->get('nom-dossier'));
             $dossierAgrement->setType($request->get('type-dossier'));
+
+            $dossierAgrement->setUtilisateur($this->getUser());
 
             $em->persist($dossierAgrement);
             $em->flush();
@@ -355,73 +356,77 @@ class DossierController extends AbstractController
             $em->persist($dossierAgrement);
             $em->flush();
 
-            //on démarre le client YouSign
-            $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
+            if(!$request->get('sauvegardeSimple')){
+                //on démarre le client YouSign
+                $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
 
-            //Création d'un identifiant unique qui permet de récupérer le webHook yousign dans la vue
-            $identifiantWebHook = time();
+                //Création d'un identifiant unique qui permet de récupérer le webHook yousign dans la vue
+                $identifiantWebHook = time();
 
-            //Création du webHook
-            $webHook = new WebHookEvent();
-            $webHook->setIdentifiant($identifiantWebHook);
+                //Création du webHook
+                $webHook = new WebHookEvent();
+                $webHook->setIdentifiant($identifiantWebHook);
 
-            //etape 1 init
-            //pour tester, besoin d'un ngrok, remplacer generateURL
-            $responseProcedure = $youSignClient->AdvancedProcedureCreate(
-                [
-                    'start'=> false,
-                    'name' => 'Signature prélèvement SEPA',
-                    'description'=> 'SEPA'
-                ],
-                true,
-                'GET',
-                'http://8629-2a01-e0a-5fa-c480-126c-e925-48a1-8f61.ngrok.io/eusko/dossier-agrement/public/index.php/webhook',
-                //$this->generateUrl('yousign_web_hook', [], UrlGeneratorInterface::ABSOLUTE_URL),
-                $identifiantWebHook
-            );
+                //etape 1 init
+                //pour tester, besoin d'un ngrok, remplacer generateURL
+                $responseProcedure = $youSignClient->AdvancedProcedureCreate(
+                    [
+                        'start'=> false,
+                        'name' => 'Signature prélèvement SEPA',
+                        'description'=> 'SEPA'
+                    ],
+                    true,
+                    'GET',
+                    //'http://8629-2a01-e0a-5fa-c480-126c-e925-48a1-8f61.ngrok.io/eusko/dossier-agrement/public/index.php/webhook',
+                    $this->generateUrl('yousign_web_hook', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                    $identifiantWebHook
+                );
 
-            //etape 2 fichier à signer
-            $pdf->generateFromHtml($this->renderView('sepa/modeleSepa.html.twig', ['dossierAgrement' => $dossierAgrement]), '/tmp/sepa-'.$identifiantWebHook.'.pdf' );
-            $responseFile = $youSignClient->AdvancedProcedureAddFile('/tmp/sepa-'.$identifiantWebHook.'.pdf', 'sepa.pdf');
+                //etape 2 fichier à signer
+                $pdf->generateFromHtml($this->renderView('sepa/modeleSepa.html.twig', ['dossierAgrement' => $dossierAgrement]), '/tmp/sepa-'.$identifiantWebHook.'.pdf' );
+                $responseFile = $youSignClient->AdvancedProcedureAddFile('/tmp/sepa-'.$identifiantWebHook.'.pdf', 'sepa.pdf');
 
-            //etape 3 ajout signataire
-            $response = $youSignClient->AdvancedProcedureAddMember(
-                $dossierAgrement->getPrenomSignature(),
-                $dossierAgrement->getNomSignature(),
-                $dossierAgrement->getEmailPrincipal(),
-                $dossierAgrement->getTelephoneSignature()
-            );
-            $member = json_decode($response);
+                //etape 3 ajout signataire
+                $response = $youSignClient->AdvancedProcedureAddMember(
+                    $dossierAgrement->getPrenomSignature(),
+                    $dossierAgrement->getNomSignature(),
+                    $dossierAgrement->getEmailPrincipal(),
+                    $dossierAgrement->getTelephoneSignature()
+                );
+                $member = json_decode($response);
 
-            //etape 4 position et contenu de la signature
-            $response = $youSignClient->AdvancedProcedureFileObject(
-                "150,235,460,335",
-                1,
-                "Lu et approuvé",
-                "Signé par ".$dossierAgrement->getPrenomSignature()." ".$dossierAgrement->getNomSignature(),
-                "Signé par ".$dossierAgrement->getPrenomSignature()." ".$dossierAgrement->getNomSignature());
+                //etape 4 position et contenu de la signature
+                $response = $youSignClient->AdvancedProcedureFileObject(
+                    "150,235,460,335",
+                    1,
+                    "Lu et approuvé",
+                    "Signé par ".$dossierAgrement->getPrenomSignature()." ".$dossierAgrement->getNomSignature(),
+                    "Signé par ".$dossierAgrement->getPrenomSignature()." ".$dossierAgrement->getNomSignature());
 
-            //etape 5 lancement de la procédure
-            $response = $youSignClient->AdvancedProcedurePut();
-            $status = json_decode($response)->status;
-            if($status == 'active'){
-                //on enregistre l'id du fichier pour le récuperer signé plus tard
-                $webHook->setFile(json_decode($responseFile)->id);
-                $em->persist($webHook);
-                $em->flush();
+                //etape 5 lancement de la procédure
+                $response = $youSignClient->AdvancedProcedurePut();
+                $status = json_decode($response)->status;
+                if($status == 'active'){
+                    //on enregistre l'id du fichier pour le récuperer signé plus tard
+                    $webHook->setFile(json_decode($responseFile)->id);
+                    $em->persist($webHook);
+                    $em->flush();
 
-                //On sauvegarde en session l'ID du webHook
-                $session->set('idWebHookEvent', $webHook->getId());
+                    //On sauvegarde en session l'ID du webHook
+                    $session->set('idWebHookEvent', $webHook->getId());
+                } else {
+                    $this->addFlash('warning', 'Erreur lors de la création de la signature électronique');
+                    $identifiantWebHook = 0;
+                }
+
+                return $this->render('dossier/signatureYousign.html.twig', [
+                    'memberToken' => $member->id,
+                    'webHook' => $identifiantWebHook,
+                    'dossierAgrement' => $dossierAgrement
+                ]);
             } else {
-                $this->addFlash('warning', 'Erreur lors de la création de la signature électronique');
-                $identifiantWebHook = 0;
+                return $this->redirectToRoute('app_dossier_fin', ['id' => $dossierAgrement->getId()]);
             }
-
-            return $this->render('dossier/signatureYousign.html.twig', [
-                'memberToken' => $member->id,
-                'webHook' => $identifiantWebHook,
-                'dossierAgrement' => $dossierAgrement
-            ]);
 
         }
 
@@ -437,13 +442,15 @@ class DossierController extends AbstractController
     public function fin(DossierAgrement $dossierAgrement, SessionInterface $session, Request $request, EntityManagerInterface $em): Response
     {
 
-        $webHook = $em->getRepository(WebHookEvent::class)->find($session->get('idWebHookEvent'));
-        $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
-        $file = $youSignClient->downloadSignedFile($webHook->getFile(), 'base64');
-        $dossierAgrement->setSepaBase64($file);
+        if($session->get('idWebHookEvent')){
+            $webHook = $em->getRepository(WebHookEvent::class)->find($session->get('idWebHookEvent'));
+            $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
+            $file = $youSignClient->downloadSignedFile($webHook->getFile(), 'base64');
+            $dossierAgrement->setSepaBase64($file);
 
-        $em->persist($dossierAgrement);
-        $em->flush();
+            $em->persist($dossierAgrement);
+            $em->flush();
+        }
 
         return $this->render('dossier/fin.html.twig', [ 'dossierAgrement' => $dossierAgrement ]);
     }

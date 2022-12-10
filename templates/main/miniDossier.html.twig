@@ -1,0 +1,27 @@
+<div class="d-flex mt-4 justify-content-between">
+    <div class="flex-grow-1" >
+        <h3 class="h3-25bold">
+            <a href="{{ path('app_dossier_coordonnees', {'id': dossier.id}) }}" class="linkText">{{ dossier }}</a>
+        </h3>
+        <div>{{ dossier.created | format_date("short") }}</div>
+    </div>
+    <div class="" style="min-width: 180px;">
+        <div>
+            <div class="paragraph-16reg"> Statut chargé de dev </div>
+            <h4 class="h4-sousTitre"> {{ dossier.statutChargesDeveloppement }}</h4>
+            <h4 class="h4-sousTitre"> {{ dossier.utilisateur }}</h4>
+
+        </div>
+    </div>
+    <div class="ms-4" style="min-width: 200px;">
+        <div>
+            <div class="paragraph-16reg"> Statut agrément </div>
+            <h4 class="h4-sousTitre"> {{ dossier.etat }}
+                {% if dossier.dateAgrement != '' %}
+                    - {{ dossier.dateAgrement | format_date("short")  }}
+                {% endif %}
+            </h4>
+
+        </div>
+    </div>
+</div>

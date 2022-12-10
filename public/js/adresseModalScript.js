@@ -6,6 +6,8 @@ function hideAdresseModal(){
     $('#adresseModal').modal('hide');
     //reinitialiser les champs à zero et fermer la modale
     $('.form-adresse').each(function() { $( this ).val( "" ); });
+
+    $('#adresse-adresse option').each( function (){ $(this).remove(); });
     $('#adresse-guide').prop('checked', false);
     $('.adresse-delete').remove();
     $('#adresse-categories').val("").trigger("change");
@@ -229,4 +231,20 @@ $('#adresse-adresse').select2({
     },
     minimumInputLength: 3,
     placeholder: 'Saisir une adresse',
+});
+
+
+//permet de pré-remplir une adresse d'activité avec l'adresse principale
+$('.remplir-adresse').on('click', function () {
+    $('#adresse-nom').val($('#coordonnees_form_denominationCommerciale').val());
+    $('#adresse-email').val($('#coordonnees_form_emailPrincipal').val());
+    $('#adresse-telephone').val($('#coordonnees_form_telephone').val());
+
+    if($('#adressePrincipale').val() != ''){
+        var adresseObj = JSON.parse($('#adressePrincipale').val());
+        var newOption = new Option(adresseObj.text, adresseObj.id, true, true);
+        $('#adresse-adresse').append(newOption).trigger('change');
+
+        $('#adresse-adresse-hidden').val($('#adressePrincipale').val());
+    }
 });

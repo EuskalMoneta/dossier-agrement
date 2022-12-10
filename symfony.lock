@@ -53,6 +53,9 @@
     "knplabs/knp-menu-bundle": {
         "version": "v3.2.0"
     },
+    "knplabs/knp-paginator-bundle": {
+        "version": "v6.0.0"
+    },
     "knplabs/knp-snappy-bundle": {
         "version": "1.9",
         "recipe": {

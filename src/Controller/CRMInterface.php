@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Entity\AdresseActivite;
 use App\Entity\Contact;
+use App\Entity\Defi;
 use App\Entity\DossierAgrement;
 
 interface CRMInterface
@@ -81,4 +82,13 @@ interface CRMInterface
      * @return int
      */
     public function postContact(Contact $contact): int;
+
+
+    /**
+     * Ajoute un nouveau defi
+     *
+     * @param Defi $defi
+     * @return int
+     */
+    public function postDefi(Defi $defi): int;
 }

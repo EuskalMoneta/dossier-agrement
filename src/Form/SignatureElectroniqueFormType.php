@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\DossierAgrement;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -17,6 +18,16 @@ class SignatureElectroniqueFormType extends AbstractType
             ->add('nomSignature',null, ['label' => 'Nom'])
             ->add('prenomSignature',null, ['label' => 'Prénom'])
             ->add('telephoneSignature',null, ['label' => 'Téléphone'])
+            ->add('statutChargesDeveloppement',ChoiceType::class,
+                [
+                    'choices' => [
+                        'nouveau' => 'nouveau',
+                        'en cours' => 'en cours',
+                        'valide' => 'valide'
+                    ],
+                    'label' => "Statut du dossier"
+                ])
+            ->add('recevoirNewsletter')
         ;
     }
 

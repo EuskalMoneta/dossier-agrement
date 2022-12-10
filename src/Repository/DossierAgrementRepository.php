@@ -39,20 +39,20 @@ class DossierAgrementRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return DossierAgrement[] Returns an array of DossierAgrement objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return DossierAgrement[] Returns an array of DossierAgrement objects
+     */
+    public function findByNom($term): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.libelle LIKE :val')
+            ->setParameter('val', '%'.$term.'%')
+            ->orderBy('d.id', 'DESC')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 
 //    public function findOneBySomeField($value): ?DossierAgrement
 //    {

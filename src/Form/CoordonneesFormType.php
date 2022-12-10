@@ -36,7 +36,7 @@ class CoordonneesFormType extends AbstractType
             ->add('telephoneDirigeant', null, ['label' => 'Téléphone'])
             ->add('emailDirigeant', null, ['label' => 'Email'])
             ->add('fonctionDirigeant', null, ['label' => 'Fonction'])
-            ->add('interlocuteurDirigeant', CheckboxType::class, ['required'=> false, 'label' => 'Est un interlocteur d\'euskal moneta'])
+            ->add('interlocuteurDirigeant', CheckboxType::class, ['required'=> false, 'label' => 'Est un interlocteur d\'Euskal Moneta'])
             ->add('save', SubmitType::class, [
                 'attr' => ['class' => 'btn btn-primary'],
                 'label' => 'Enregistrer'

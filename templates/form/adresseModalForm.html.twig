@@ -7,6 +7,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+
                 <form>
 
                     <input type="hidden" class="form-adresse" id="adresse-id" value="">
@@ -15,6 +16,11 @@
                             <div class="mb-3">
                                 <label for="adresse-nom" class="form-label">Nom du lieu</label>
                                 <input type="text" name="adresse-nom" id="adresse-nom" class="form-control form-adresse">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex mt-2 flex-row-reverse">
+                                <a class="remplir-adresse btn btn-outline-primary"> Pré-remplir</a>
                             </div>
                         </div>
 
@@ -27,7 +33,7 @@
                                 <br />
                                 <select name="adresse-adresse" id="adresse-adresse" class="form-control js-city-ajax form-adresse" style="width: 550px;">
                                 </select>
-                                <input type="hidden" name="adresse-adresse-hidden" id="adresse-adresse-hidden" value="">
+                                <input type="hidden" class="form-adresse" name="adresse-adresse-hidden" id="adresse-adresse-hidden" value="">
                             </div>
                         </div>
                     </div>
@@ -125,6 +131,8 @@
                                         Guide vacances en eusko
                                     </label>
                                 </div>
+
+
                             </div>
                         </div>
                     </div>

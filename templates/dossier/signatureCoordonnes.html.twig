@@ -75,6 +75,28 @@
 
         </div>
 
+        <div class="row spacer-vertical-column">
+            <div class="col-12 mb-3">
+                <h1 class="H1-header-40 green-color-eusko mb-2">
+                    Statut
+                </h1>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="row">
+                        {{ form_row(form.statutChargesDeveloppement) }}
+                    </div>
+                    <div class="row">
+                        {{ form_row(form.recevoirNewsletter) }}
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
         <div class="d-flex justify-content-center mt-5">
 
             <div class="d-flex">
@@ -82,7 +104,11 @@
                     <a href="{{ path('app_dossier_coordonnees', {'id': dossierAgrement.id }) }}" class="btn btn-outline-primary"> Revenir au début du dossier</a>
                 </div>
                 <div class="ms-4">
-                    <input type="submit" class="btn btn-primary" value="Enregistrer et démarrer la procédure de signature">
+                    <a class="save btn btn-outline-primary"> Enregistrer</a>
+                    <input type="hidden" name="sauvegardeSimple" id="sauvegardeSimple" value="0">
+                </div>
+                <div class="ms-4">
+                    <input type="submit" class="btn btn-primary saveSignature" value="Enregistrer et démarrer la procédure de signature">
                 </div>
 
 
@@ -96,7 +122,7 @@
 
 
 
-        {% if dossierAgrement.sepaBase64 != '' %}
+        {#  if dossierAgrement.sepaBase64 != '' %}
             <div class="row top-buffer mt-5">
                 <div class="col-md-12">
                     <div class="alert alert-info alert-dismissable">
@@ -105,7 +131,7 @@
                     </div>
                 </div>
             </div>
-        {% endif %}
+        {% endif #}
 
         <div class="spacer-end-of-block"></div>
 
@@ -113,7 +139,19 @@
 
 {% endblock %}
 
-{% block javascript %}
+    {% block javascript %}
+
+    $('.save').on('click', function () {
+        $('#sauvegardeSimple').val('1');
+        $('form').submit();
+    });
+
+    $('.saveSignature').on('click', function () {
+        $('#sauvegardeSimple').val('0');
+        $('form').submit();
+    });
 
 
-{% endblock javascript %}
+
+
+    a{% endblock javascript %}

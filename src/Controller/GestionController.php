@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\CategorieAnnuaire;
 use App\Entity\Contact;
+use App\Entity\Defi;
 use App\Entity\Document;
 use App\Entity\DossierAgrement;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,7 +86,7 @@ class GestionController extends AbstractController
                                     DolibarrController $crm,
                                     EntityManagerInterface $em,
                                     Request $request,
-                                    $idExterne = '0'): Response
+        $idExterne = '0'): Response
     {
         if($idExterne == '0'){
             $idTier = 0;
@@ -98,14 +99,14 @@ class GestionController extends AbstractController
             $dossierAgrement->setIdExterne($idTier);
         }
 
-        /***** Enregistrer le tier dans le CRM */
+        /**** Enregistrer le tier dans le CRM
         $idExterne = $crm->postTier($dossierAgrement);
         $dossierAgrement->setIdExterne($idExterne);
 
         $em->persist($dossierAgrement);
         $em->flush();
 
-        /***** Enregistrer le dirigeant en tant que contact */
+        //**** Enregistrer le dirigeant en tant que contact
         $contactDirigeant = new Contact();
         $contactDirigeant->setPrenom($dossierAgrement->getPrenomDirigeant());
         $contactDirigeant->setNom($dossierAgrement->getNomDirigeant());
@@ -116,15 +117,99 @@ class GestionController extends AbstractController
 
         $crm->postContact($contactDirigeant);
 
-        /***** Enregistrer les autres contacts */
+        //**** Enregistrer les autres contacts
         foreach ($dossierAgrement->getContacts() as $contact){
-            $crm->postContact($contact);
+        $crm->postContact($contact);
         }
 
-        /***** Adresse(s) activité */
+        //***** Adresse(s) activité
+        foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
+        $crm->postAdresseActivite($adresseActivite);
+        }*/
+
+        //***** Defis produits
+        $defisProduits = $em->getRepository(Defi::class)->findBy([
+            'dossierAgrement' => $dossierAgrement->getId(),
+            'type' => 'produit'
+        ]);
+
+        if(count($defisProduits) > 0){
+            $defi = new Defi();
+            $defi->setDossierAgrement($dossierAgrement);
+            $defi->setType('produit');
+            $defi->setEtat(false);
+
+            foreach ($defisProduits as $defiProduit){
+                $nomProduit = json_decode($defiProduit->getValeur())->text;
+                $defi->setValeur($defi->getValeur().' '.$nomProduit);
+
+                //Si un des défi est réalisé
+                if($defiProduit->isEtat()){
+                    $defi->setEtat(true);
+                }
+            }
+            $crm->postDefi($defi);
+        } else {
+
+            //***** Defis presta
+            $defisPrestataires = $em->getRepository(Defi::class)->findBy([
+                'dossierAgrement' => $dossierAgrement->getId(),
+                'type' => 'professionnel'
+            ]);
+
+            if(count($defisPrestataires) > 0){
+                $defi = new Defi();
+                $defi->setDossierAgrement($dossierAgrement);
+                $defi->setType('professionnel');
+                $defi->setEtat(false);
+
+                foreach ($defisPrestataires as $defiPresta){
+                    $nomPrestataire = json_decode($defiPresta->getValeur())->text;
+                    $defi->setValeur($defi->getValeur().' '.$nomPrestataire);
+
+                    //Si un des défi est réalisé
+                    if($defiPresta->isEtat()){
+                        $defi->setEtat(true);
+                    }
+                }
+                $crm->postDefi($defi);
+            } else {
+                //***** Defi accueil
+                $defiAccueil = $em->getRepository(Defi::class)->findOneBy([
+                    'dossierAgrement' => $dossierAgrement->getId(),
+                    'type' => 'reutiliser'
+                ]);
+                if($defiAccueil){
+                    $crm->postDefi($defiAccueil);
+                }
+
+            }
+
+        }
+
+        //***** Defi accueil
+        $defiAccueil = $em->getRepository(Defi::class)->findOneBy([
+            'dossierAgrement' => $dossierAgrement->getId(),
+            'type' => 'accueilEuskara'
+        ]);
+        if($defiAccueil){
+            $crm->postDefi($defiAccueil);
+        }
+
+        //***** Defi promotion
+        $defiPromotion = $em->getRepository(Defi::class)->findOneBy([
+            'dossierAgrement' => $dossierAgrement->getId(),
+            'type' => 'promotionEuskara'
+        ]);
+        if($defiPromotion){
+            $crm->postDefi($defiPromotion);
+        }
+
+        //***** Documents
         foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
             $crm->postAdresseActivite($adresseActivite);
         }
+
 
         return $this->render('admin/envoiDossier.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement]);
         /*$this->addFlash('success', 'Dossier envoyé sur le CRM avec succès ! ');

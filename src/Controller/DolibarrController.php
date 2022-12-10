@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\AdresseActivite;
 use App\Entity\Contact;
+use App\Entity\Defi;
+use App\Entity\Document;
 use App\Entity\DossierAgrement;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -233,6 +235,85 @@ class DolibarrController extends AbstractController implements CRMInterface
             }
             return $reponseTier['data'];
         }
+
+    }
+
+    public function postDefi(Defi $defi): int
+    {
+        $data = $this->transformDefi($defi);
+        $reponseCategories = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
+        if($reponseCategories['httpcode'] != 200) {
+            $this->addFlash("danger","Erreur lors de l'ajout du defi : ".$defi->getValeur());
+        }
+
+        return true;
+    }
+
+    public function postDocument(Document $document){
+        $data = $this->transformDocument($document);
+        $reponse = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
+        if($reponse['httpcode'] != 200) {
+            dump($reponse);
+            $this->addFlash("danger","Erreur lors de l'ajout du document : ".$document->getPath());
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Transforme un objet Document vers un tableau compatible document dolibarr
+     *
+     * @param Defi $defi
+     * @return array
+     */
+    private function transformDocument(Document $document){
+        $file = file_get_contents($document->getAbsolutePath());
+
+        $data =
+            [
+                "filename"=> $document->getPath(),
+                "modulepart"=> "tier",
+                "ref"=> $document->getDossierAgrement()->getIdExterne(),
+                "subdir"=> "",
+                "filecontent"=> base64_encode($file),
+                "fileencoding"=> "base64",
+                "overwriteifexists"=> 0
+            ];
+
+        return $data;
+
+    }
+
+    /**
+     * Transforme un objet Defi vers un tableau compatible adresse dolibarr
+     *
+     * @param Defi $defi
+     * @return array
+     */
+    private function transformDefi(Defi $defi){
+
+        $etat = '0';
+        if($defi->isEtat()){
+            $etat = '-1';
+        }
+        $debut = (new \DateTime())->modify('first day of January this year 00:00')->getTimestamp();
+        $fin = (new \DateTime())->modify('last day of December next year 00:00')->getTimestamp();
+        $data =
+            [
+                "type_code"=> "AC_DEFI",
+                'type' => "Défi",
+                'code' =>  "AC_DEFI",
+                "label"=> $defi->getLabelDefiCRM(),
+                "datep"=> $debut,
+                "datef"=> $fin,
+                "percentage" => $etat,
+                "userownerid"=> "2619",
+                "socid"=> $defi->getDossierAgrement()->getIdExterne(),
+                "note" => $defi->getValeur()
+            ];
+
+        return $data;
 
     }
 

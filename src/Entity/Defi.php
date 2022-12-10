@@ -31,6 +31,21 @@ class Defi
         return $this->id;
     }
 
+    public function getLabelDefiCRM(){
+        if($this->type =='professionnel'){
+            return 'Trois prestataires du réseau';
+        } elseif ($this->type =='accueilEuskara'){
+            return 'Accueil en euskara';
+        } elseif ($this->type =='promotionEuskara'){
+            return 'Affichage en euskara';
+        }elseif ($this->type =='produit'){
+            return 'Trois produits locaux';
+        } elseif ($this->type =='reutiliser'){
+            return 'Réutiliser à titre personnel';
+        } else {
+            return 'defi';
+        }
+    }
     public function getType(): ?string
     {
         return $this->type;

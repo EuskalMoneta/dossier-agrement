@@ -131,7 +131,7 @@ class DossierAgrement
     private ?string $sepaBase64 = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $etat = null;
+    private ?string $etat = "nouveau";
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateAgrement = null;
@@ -144,6 +144,15 @@ class DossierAgrement
 
     #[ORM\Column(nullable: true)]
     private ?int $idExterne = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $statutChargesDeveloppement = 'nouveau';
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $recevoirNewsletter = null;
+
+    #[ORM\ManyToOne(inversedBy: 'dossierAgrements')]
+    private ?User $utilisateur = null;
 
 
     public function __toString(): string
@@ -837,6 +846,42 @@ class DossierAgrement
     public function setIdExterne(?int $idExterne): self
     {
         $this->idExterne = $idExterne;
+
+        return $this;
+    }
+
+    public function getStatutChargesDeveloppement(): ?string
+    {
+        return $this->statutChargesDeveloppement;
+    }
+
+    public function setStatutChargesDeveloppement(?string $statutChargesDeveloppement): self
+    {
+        $this->statutChargesDeveloppement = $statutChargesDeveloppement;
+
+        return $this;
+    }
+
+    public function isRecevoirNewsletter(): ?bool
+    {
+        return $this->recevoirNewsletter;
+    }
+
+    public function setRecevoirNewsletter(?bool $recevoirNewsletter): self
+    {
+        $this->recevoirNewsletter = $recevoirNewsletter;
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?User
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(?User $utilisateur): self
+    {
+        $this->utilisateur = $utilisateur;
 
         return $this;
     }
