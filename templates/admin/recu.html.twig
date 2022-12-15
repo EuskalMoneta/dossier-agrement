@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <link rel="stylesheet" type="text/css" href="{{ absolute_url(asset('css/style.css')) }}">
+    <title>Eusko</title>
+    <style type="text/css">
+        p { font-size: 15px; }
+        .test td, .test tr {border: 1px solid black; border-collapse: collapse;}
+        @media screen {
+            div.divFooter {
+                display: none;
+            }
+        }
+        /* @media print {
+             div.divFooter {
+                 position: fixed;
+                 width: 500px;
+                 bottom: 0;
+                 left: 50%;
+                 margin-left: -250px;
+             }
+         }*/
+    </style>
+
+
+</head>
+<body>
+
+
+<table style="margin: 20px 10px 0px 10px; width:800px; ">
+    <tr>
+        <td style="width:400px;">
+            <img class="" src="{{absolute_url(asset('images/euskoa5.png'))}}" width="170" />
+            <p>
+
+
+
+
+
+
+
+
+            </p>
+        </td>
+        <td class="" style="width:400px; text-align: right">
+            <strong>EUSKAL MONETA</strong><br />
+            20 rue des Cordeliers<br />
+            64100 Baiona / Bayonne<br />
+            05-33-47-54-11<br />
+            www.euskalmoneta.org<br />
+            gestion@euskalmoneta.org<br />
+            info@euskalmoneta.org<br />
+
+        </td>
+    </tr>
+    <tr style="width:800px;">
+        <td COLSPAN=2>
+            <div class="">
+                <br/>
+                <br/>
+                <h3>{{ "now" |date('Y') }}ko Dosieraren gastu ordainagiria<br/>
+                    REÇU FRAIS DE DOSSIER {{ "now" |date('Y') }}</h3>
+            </div>
+            <br />
+            <br />
+            Date d'agrément : {{ dossierAgrement.dateAgrement | date('d/m/Y') }}<br />
+            Code prestataire agréé : {{ dossierAgrement.codePrestataire }}<br />
+            Nom : {{ dossierAgrement.denominationCommerciale }}<br />
+            {% set adresse = dossierAgrement.adressePrincipale | json_decode %}
+            Adresse : {{adresse.text }}<br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <h5>Zenbatekoa / Montant  : {{ dossierAgrement.fraisDeDossier | round(2) }} €</h5>
+            <br />
+            <br />
+            <div style="text-align: left">
+            <img src="{{ absolute_url(asset('images/paye.png')) }}" alt="" width="200"/>
+            </div>
+            <br />
+            <br />
+            Baionan, {{("now") |date('Y/m/d') }} an<br />
+            À Bayonne le {{("now") | date('d/m/Y') }}
+            <br />
+
+
+            <div style="text-align: right">
+            <img src="{{ absolute_url(asset('images/signature.png')) }}" alt="" width="200"/>
+            </div>
+            <br />
+            <br />
+            Association non assujettie à la TVA       ---       N° SIRET Zkia : 790 029 599 00012       ---       Code APE Kodea :  9499Z
+        </td>
+    </tr>
+</table>
+
+<div class="divFooter center">
+    <br />
+
+</div>
+
+</body>
+
+</html>

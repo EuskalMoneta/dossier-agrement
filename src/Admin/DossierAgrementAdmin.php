@@ -32,7 +32,6 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('statutChargesDeveloppement', ChoiceType::class,
                 [
                     'choices' => [
-                        'nouveau' => 'nouveau',
                         'en cours' => 'en cours',
                         'valide' => 'valide'
                     ],
@@ -76,7 +75,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('utilisateur', null, ['label' => "Chargé de dev"])
             ->end()
             ->with('contact')
-            ->add('idExterne')
+            ->add('codePrestataire')
             ->end()
 
 
@@ -133,7 +132,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             $this->hasRoute('delete') && $this->hasAccess('delete')
         ) {
             $actions['generation'] = [
-                'label' => 'Générer un compte rendu',
+                'label' => 'Générer un Ordre du jour',
                 'ask_confirmation' => false,
                 'controller' => 'App\Controller\GestionController::batchGenerationAction'
             ];

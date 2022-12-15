@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Entity\AdresseActivite;
 use App\Entity\Contact;
 use App\Entity\Defi;
+use App\Entity\Document;
 use App\Entity\DossierAgrement;
 
 interface CRMInterface
@@ -91,4 +92,40 @@ interface CRMInterface
      * @return int
      */
     public function postDefi(Defi $defi): int;
+
+
+    /**
+     * Ajoute un nouveau document
+     *
+     * @param Document $document
+     * @return int
+     */
+    public function postDocument(Document $document): int;
+
+
+    /**
+     * Ajoute un nouvel adhérent
+     *
+     * @param DossierAgrement $dossierAgrement
+     * @return int Le numéro d'adhérent crée
+     */
+    public function postAdherent(DossierAgrement $dossierAgrement): int;
+
+    /**
+     * Ajoute une ou plusieurs cotisation(s)
+     *
+     * @param DossierAgrement $dossierAgrement
+     * @return int
+     */
+    public function postCotisation(DossierAgrement $dossierAgrement): int;
+
+    /**
+     * Ajoute un utilisateur pour la banque
+     *
+     * @param DossierAgrement $dossierAgrement
+     * @return int
+     */
+    public function postBankUser(DossierAgrement $dossierAgrement): int;
+
+
 }

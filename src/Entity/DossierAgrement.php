@@ -146,13 +146,31 @@ class DossierAgrement
     private ?int $idExterne = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $statutChargesDeveloppement = 'nouveau';
+    private ?string $statutChargesDeveloppement = 'en cours';
 
     #[ORM\Column(nullable: true)]
     private ?bool $recevoirNewsletter = null;
 
     #[ORM\ManyToOne(inversedBy: 'dossierAgrements')]
     private ?User $utilisateur = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $idAdherent = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $autocollantVitrine = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $autocollantPanneau = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $typeAutocollant = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $note = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $siteWeb = null;
 
 
     public function __toString(): string
@@ -882,6 +900,78 @@ class DossierAgrement
     public function setUtilisateur(?User $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
+
+        return $this;
+    }
+
+    public function getIdAdherent(): ?string
+    {
+        return $this->idAdherent;
+    }
+
+    public function setIdAdherent(?string $idAdherent): self
+    {
+        $this->idAdherent = $idAdherent;
+
+        return $this;
+    }
+
+    public function getAutocollantVitrine(): ?string
+    {
+        return $this->autocollantVitrine;
+    }
+
+    public function setAutocollantVitrine(?string $autocollantVitrine): self
+    {
+        $this->autocollantVitrine = $autocollantVitrine;
+
+        return $this;
+    }
+
+    public function getAutocollantPanneau(): ?string
+    {
+        return $this->autocollantPanneau;
+    }
+
+    public function setAutocollantPanneau(?string $autocollantPanneau): self
+    {
+        $this->autocollantPanneau = $autocollantPanneau;
+
+        return $this;
+    }
+
+    public function getTypeAutocollant(): ?string
+    {
+        return $this->typeAutocollant;
+    }
+
+    public function setTypeAutocollant(?string $typeAutocollant): self
+    {
+        $this->typeAutocollant = $typeAutocollant;
+
+        return $this;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    public function setNote(?string $note): self
+    {
+        $this->note = $note;
+
+        return $this;
+    }
+
+    public function getSiteWeb(): ?string
+    {
+        return $this->siteWeb;
+    }
+
+    public function setSiteWeb(?string $siteWeb): self
+    {
+        $this->siteWeb = $siteWeb;
 
         return $this;
     }

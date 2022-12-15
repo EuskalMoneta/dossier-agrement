@@ -1,0 +1,52 @@
+{% extends "@SonataAdmin/standard_layout.html.twig" %}
+
+{% block sonata_page_content_header %}
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+        <span class="navbar-brand">
+            Email prestataire
+        </span>
+        </div>
+        <div class="container-fluid">
+            <div class="navbar-left">
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+    </nav>
+{% endblock sonata_page_content_header %}
+
+{% block notice %}
+    {% include 'SonataCoreBundle:FlashMessage:render.html.twig' %}
+{% endblock notice %}
+
+{% block sonata_admin_content %}
+
+    {% for message in app.session.flashbag.get('info') %}
+        <div class="alert alert-success alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            {{ message|raw }}
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Dossier : {{ dossier }}</h2>
+        </div>
+    </div>
+
+    <h3>Êtes-vous sur de vouloir envoyer l'email ? </h3>
+
+    <p>Email avec le reçu en PJ.</p>
+    <form method="post">
+        <input type="submit" value="Envoyer">
+    </form>
+
+
+    {% if method %}
+        <h2>Email envoyé !</h2>
+    {% endif %}
+
+
+{% endblock %}
+

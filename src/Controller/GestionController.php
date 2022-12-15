@@ -8,12 +8,14 @@ use App\Entity\Defi;
 use App\Entity\Document;
 use App\Entity\DossierAgrement;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Snappy\Pdf;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +23,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class GestionController extends AbstractController
@@ -39,6 +42,7 @@ class GestionController extends AbstractController
 
     /*
      * Stocke les fichiers envoyes par dropzone js
+     * Zone de depot sur la partie front
      */
     #[Route('/send/ajax/file/{id}/{type}', name: 'app_send_ajax_file')]
     #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
@@ -125,7 +129,75 @@ class GestionController extends AbstractController
         //***** Adresse(s) activité
         foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
         $crm->postAdresseActivite($adresseActivite);
-        }*/
+        }
+
+        //***** Défis
+        $this->envoiDefi($em, $crm, $dossierAgrement);
+
+        //***** Adhérent
+        $dossierAgrement->setIdAdherent($crm->postAdherent($dossierAgrement));
+
+        //***** Documents
+        foreach ($dossierAgrement->getDocuments() as $document){
+        $crm->postDocument($document);
+        }
+
+        //***** Cotisation
+        $crm->postCotisation($dossierAgrement);
+         */
+
+        //***** Compte numérique
+        $crm->postBankUser($dossierAgrement);
+
+        $em->persist($dossierAgrement);
+        $em->flush();
+
+
+        return $this->render('admin/envoiDossier.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement]);
+        /*$this->addFlash('success', 'Dossier envoyé sur le CRM avec succès ! ');
+        return $this->redirectToRoute('admin_app_dossieragrement_edit', ['id'=> $dossierAgrement->getId()]);*/
+    }
+
+    /*
+     * Envoi un email pour le prestataire, avec les autocollant et un reçu.
+     */
+    #[Route('/admin/dossier/email-prestataire/{id}', name: 'app_admin_email_prestataire')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function emailPrestatire(MailerInterface $mailer, Pdf $pdf, DossierAgrement $dossierAgrement,Pool $pool, Request $request): Response
+    {
+        $method = $request->isMethod('POST');
+        if($method){
+
+            $pdfAttach = $pdf->getOutputFromHtml(
+                $this->renderView('admin/recu.html.twig', ['dossierAgrement' => $dossierAgrement]),[]
+            );
+
+            $email = (new TemplatedEmail())
+                ->from('gestion@euskalmoneta.org')
+                ->to($dossierAgrement->getEmailPrincipal())
+                ->subject('Agrément eusko')
+                ->attach($pdfAttach, sprintf('recu.pdf', date('d-m-Y')))
+                ->html("<p>
+                        Egun on,<br /><br />  
+                            Zure elkartea Euskal monetako azken onespen batzordean baimendua izan dela jakinarazten dizut .<br />  
+                            Pegatin numerikoa eta dosier gastu ordainagiria loturik juntatzen dizkizut .<br /> <br /> 
+                            
+                            Je vous informe que votre association a bien été agréée à l'eusko lors du dernier comité d'agrément. Vous trouverez ci-joint l'autocollant numérique et le reçu de frais de dossier.<br /> <br /> 
+                                    Laster arte,
+                        </p>");
+            ;
+
+            $mailer->send($email);
+
+        }
+
+        return $this->render('admin/envoiEmailPrestataire.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement, 'method' => $method]);
+    }
+
+    /*
+     * Groupe puis envoi les défis sur le CRM
+     */
+    private function envoiDefi(EntityManagerInterface $em, DolibarrController $crm, DossierAgrement $dossierAgrement){
 
         //***** Defis produits
         $defisProduits = $em->getRepository(Defi::class)->findBy([
@@ -151,7 +223,7 @@ class GestionController extends AbstractController
             $crm->postDefi($defi);
         } else {
 
-            //***** Defis presta
+            //***** Sinon defis presta
             $defisPrestataires = $em->getRepository(Defi::class)->findBy([
                 'dossierAgrement' => $dossierAgrement->getId(),
                 'type' => 'professionnel'
@@ -174,7 +246,7 @@ class GestionController extends AbstractController
                 }
                 $crm->postDefi($defi);
             } else {
-                //***** Defi accueil
+                //***** Sinon defi réutiliser
                 $defiAccueil = $em->getRepository(Defi::class)->findOneBy([
                     'dossierAgrement' => $dossierAgrement->getId(),
                     'type' => 'reutiliser'
@@ -205,15 +277,7 @@ class GestionController extends AbstractController
             $crm->postDefi($defiPromotion);
         }
 
-        //***** Documents
-        foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
-            $crm->postAdresseActivite($adresseActivite);
-        }
-
-
-        return $this->render('admin/envoiDossier.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement]);
-        /*$this->addFlash('success', 'Dossier envoyé sur le CRM avec succès ! ');
-        return $this->redirectToRoute('admin_app_dossieragrement_edit', ['id'=> $dossierAgrement->getId()]);*/
+        return true;
     }
 
 
@@ -281,7 +345,7 @@ class GestionController extends AbstractController
         $phpWord->addParagraphStyle($paragraphStyleName, ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::START,  'spaceBefore' => 0, 'spaceAfter' => 0,'spacing' => 0]);
 
         $section->addText(
-            'Compte-rendu réunion du comité d’agrément du '.$formatter->format($date),
+            'Ordre du jour réunion du comité d’agrément du '.$formatter->format($date),
             $TitleFontStyle,
             $paragraphCenterStyleName
         );
@@ -336,13 +400,9 @@ class GestionController extends AbstractController
                 //$modelManager->update($selectedModel);
 
                 $section->addText(
-                    'TEMP00'.$dossier->getId() ,
-                    $paragraphFontStyle,
-                    $paragraphStyleName);
-                $section->addText(
                     'Nom : '.$dossier->getLibelle() ,
-                    $paragraphFontStyle,
-                    $paragraphStyleName);
+                    $blodFontStyle,
+                    $paragraphStyleBold);
                 $section->addText(
                     'Type : '.$dossier->getType() ,
                     $paragraphFontStyle,
@@ -352,7 +412,7 @@ class GestionController extends AbstractController
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addText(
-                    'Ville : '.json_decode($dossier->getAdressePrincipale())->text ,
+                    'Adresse : '.json_decode($dossier->getAdressePrincipale())->text ,
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addText(
@@ -378,10 +438,7 @@ class GestionController extends AbstractController
                     'Décision : ',
                     $paragraphFontStyle,
                     $paragraphStyleName);
-                $section->addText(
-                    '---------------------------------------------------------------' ,
-                    $paragraphFontStyle,
-                    $paragraphStyleName);
+                $section->addTextBreak(2);
 
 
             }

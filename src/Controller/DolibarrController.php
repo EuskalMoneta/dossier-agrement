@@ -14,15 +14,129 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class DolibarrController extends AbstractController implements CRMInterface
 {
 
-    private $base_url;
+    private $dolibarr_url;
     private $api_token_dolibarr;
     private $logger;
 
+    private $cyclos_url;
+    private $cyclos_user;
+    private $cyclos_pass;
+
     public function __construct(LoggerInterface $logger)
     {
-        $this->base_url = $_ENV['API_DOLIBARR_URL'];
+        $this->dolibarr_url = $_ENV['API_DOLIBARR_URL'];
         $this->api_token_dolibarr = $_ENV['API_TOKEN_DOLIBARR'];
+
+        $this->cyclos_url = $_ENV['API_CYCLOS_URL'];
+        $this->cyclos_user = $_ENV['API_CYCLOS_USER'];
+        $this->cyclos_pass = $_ENV['API_CYCLOS_PASS'];
+
         $this->logger = $logger;
+    }
+
+    public function postBankUser(DossierAgrement $dossierAgrement):int
+    {
+
+        //On vérifie si aucun utilisateur avec ce login existe.
+        $responseExist = $this->curlRequestCyclos('POST', '/user/search', [
+            'keywords'=> $dossierAgrement->getCodePrestataire(),
+            ['userStatus'=> ['ACTIVE', 'BLOCKED', 'DISABLED']]
+        ]);
+        if($responseExist['httpcode'] == 200) {
+            if ($responseExist['data']->result->totalCount==0){
+
+                //Préparation et enregistrement de l'utilisateur
+                $group = $_ENV['ADHERENTS_SANS_COMPTE'];
+                $status = 'INACTIVE';
+                if($dossierAgrement->isCompteNumeriqueBool()) {
+                    $group = $_ENV['ADHERENTS_PRESTATAIRES'];
+                    $status = 'ACTIVE';
+                }elseif ($dossierAgrement->isPaiementViaEuskopay()){
+                    $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
+                    $status = 'ACTIVE';
+                }
+
+                $data = [
+                    'group'=> $group,
+                    'name'=> $dossierAgrement->getDenominationCommerciale(),
+                    'username'=> $dossierAgrement->getCodePrestataire(),
+                    'skipActivationEmail'=> True,
+                ];
+                $responseUser = $this->curlRequestCyclos('POST', '/user/register', $data);
+
+                if($responseUser['httpcode'] == 200) {
+
+                    //si l'utilisateur est actif, changer son status
+                    if($status == 'ACTIVE'){
+                        $data = [
+                            'user'=> $responseUser['data']->result->user->id,
+                            'status'=> 'ACTIVE',
+                        ];
+                        $responseActivation = $this->curlRequestCyclos('POST', '/userStatus/changeStatus', $data);
+                        if($responseActivation['httpcode'] == 200) {
+                            $this->addFlash('success', "Utilisateur cyclos ajouté avec succés.");
+                        } else {
+                            $this->addFlash('danger', "L'utilisateur cyclos n'a pas pu être activé.");
+                        }
+                    }
+                } else{
+                    $this->addFlash('danger', "L'utilisateur cyclos n'a pas été créé.");
+                }
+
+            }else{
+                $this->addFlash('warning', "Utilisateur déjà présent dans Cyclos, le compte cyclos n'a pas été créé.");
+            }
+        }
+
+
+        return true;
+    }
+
+    /**
+     * Makes a cUrl request for cyclos
+     *
+     * @param $method
+     * @param $link
+     * @param string $data
+     * @return array
+     */
+    private function curlRequestCyclos($method, $link,  $data = '')
+    {
+        $curlCyclos = curl_init();
+        curl_setopt($curlCyclos, CURLOPT_URL, $this->cyclos_url.$link);
+        curl_setopt($curlCyclos, CURLOPT_COOKIESESSION, true);
+        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curlCyclos, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlCyclos, CURLOPT_CUSTOMREQUEST, $method);
+
+        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
+            curl_setopt($curlCyclos, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
+                    'Content-Length: ' . strlen(json_encode($data)))
+            );
+        } else {
+            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
+                )
+            );
+        }
+
+        $responseLogin = json_decode(curl_exec($curlCyclos));
+        $http_status = curl_getinfo($curlCyclos, CURLINFO_HTTP_CODE);
+        curl_close($curlCyclos);
+
+
+        $token = '';
+        if($http_status != 200){
+            $this->addFlash('danger', "Connexion à Cyclos impossible, vérifier vos paramètres user, pass et URL de l'API.");
+            return ['data' => 'bad credential', 'httpcode' =>'500'];
+        }
+
+        return ['data' => $responseLogin, 'httpcode' => $http_status];
     }
 
     /**
@@ -41,7 +155,7 @@ class DolibarrController extends AbstractController implements CRMInterface
         }
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->base_url.$link);
+        curl_setopt($curl, CURLOPT_URL, $this->dolibarr_url.$link);
         curl_setopt($curl, CURLOPT_COOKIESESSION, true);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -89,7 +203,7 @@ class DolibarrController extends AbstractController implements CRMInterface
     {
         $tabPro = [];
 
-        $url = "thirdparties?limit=10&sqlfilters=".urlencode("(t.status:=:1) and (t.nom:like:'%".$term."%')");
+        $url = "thirdparties?sortfield=t.nom&limit=10&sqlfilters=".urlencode("(t.status:=:1) and (t.nom:like:'%".$term."%')");
         $responsePro = $this->curlRequestDolibarr('GET', $url);
 
         if($responsePro['httpcode'] == 200){
@@ -189,6 +303,7 @@ class DolibarrController extends AbstractController implements CRMInterface
         $reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
         if($reponseCategories['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout de l'adresse d'activité : ".$adresseActivite->getNom());
+            return false;
         }
 
         /*
@@ -210,6 +325,7 @@ class DolibarrController extends AbstractController implements CRMInterface
         $reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
         if($reponseCategories['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout du contact : ".$contact->getNom());
+            return false;
         }
         return true;
     }
@@ -225,6 +341,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
             if($reponseTier['httpcode'] != 200) {
                 $this->addFlash("danger", "Erreur lors de la mise à jour du tier dans dolibarr.");
+                return false;
             }
             return $reponseTier['data']->id;
         } else {
@@ -232,6 +349,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             $reponseTier = $this->curlRequestDolibarr('POST', 'thirdparties', $data);
             if($reponseTier['httpcode'] != 200) {
                 $this->addFlash("danger", "Erreur lors de l'ajout du tier dans dolibarr.");
+                return false;
             }
             return $reponseTier['data'];
         }
@@ -244,27 +362,106 @@ class DolibarrController extends AbstractController implements CRMInterface
         $reponseCategories = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
         if($reponseCategories['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout du defi : ".$defi->getValeur());
+            return false;
         }
 
         return true;
     }
 
-    public function postDocument(Document $document){
+    public function postDocument(Document $document):int
+    {
         $data = $this->transformDocument($document);
-        $reponse = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
+        $reponse = $this->curlRequestDolibarr('POST', 'documents/upload', $data);
         if($reponse['httpcode'] != 200) {
-            dump($reponse);
+            //$this->addFlash("danger","Erreur lors de l'ajout du document : ".$reponse['data']->error->message);
             $this->addFlash("danger","Erreur lors de l'ajout du document : ".$document->getPath());
+            return false;
         }
 
         return true;
+    }
+
+    public function postAdherent(DossierAgrement $dossierAgrement):int
+    {
+        $data = $this->transformAdherent($dossierAgrement);
+        $reponse = $this->curlRequestDolibarr('POST', 'members', $data);
+        if($reponse['httpcode'] != 200) {
+            $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
+            return false;
+        }
+
+        return $reponse['data'];
+    }
+
+    public function postCotisation(DossierAgrement $dossierAgrement): int{
+
+        //Cotisation gratuite fin du mois
+        $cotisationGratuite = $this->transformCotisation(
+            (new \DateTime()),
+            (new \DateTime())->modify("last day of this month"),
+            0,
+            "Adhésion/cotisation".date('Y'),
+            $dossierAgrement
+        );
+        $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationGratuite);
+        if($reponse['httpcode'] != 200) {
+            $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationGratuite['note']);
+            return false;
+        }
+
+        //Cotisation au prorata pour le reste de l'année, sauf pour le mois de décembre.
+        if((new \DateTime())->format('m') != '12'){
+            $startNextMonth = (new \DateTime())->modify("first day of next month");
+            $endOfYear = (new \DateTime())->modify("last day of this year");
+            $numberOfDays = $endOfYear->diff($startNextMonth)->format("%a");
+            $montant = ($numberOfDays * $dossierAgrement->getMontant())/365;
+
+            $cotisationProrata = $this->transformCotisation(
+                $startNextMonth,
+                $endOfYear,
+                $montant,
+                "Adhésion/cotisation".date('Y'),
+                $dossierAgrement
+            );
+            $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationProrata);
+            if($reponse['httpcode'] != 200) {
+                dump($reponse['data']);
+                $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationProrata['note']);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Transforme un objet Document vers un tableau compatible document dolibarr
+     *
+     * @param DossierAgrement $dossierAgrement
+     * @return array
+     */
+    private function transformCotisation(\DateTime $start, \DateTime $end, $montant, $label, DossierAgrement $dossierAgrement){
+
+        $data =
+            [
+                "datec"=> (new \DateTime('now'))->getTimestamp(),
+                "datem"=> $start->getTimestamp(),
+                "dateh"=> $start->getTimestamp(),
+                "datef"=> $end->getTimestamp(),
+                "fk_adherent"=> $dossierAgrement->getIdAdherent(),
+                "amount"=> $montant,
+                "fk_bank"=> "55495",
+                "note"=> $label,
+            ];
+
+        return $data;
 
     }
 
     /**
      * Transforme un objet Document vers un tableau compatible document dolibarr
      *
-     * @param Defi $defi
+     * @param Document $document
      * @return array
      */
     private function transformDocument(Document $document){
@@ -273,8 +470,8 @@ class DolibarrController extends AbstractController implements CRMInterface
         $data =
             [
                 "filename"=> $document->getPath(),
-                "modulepart"=> "tier",
-                "ref"=> $document->getDossierAgrement()->getIdExterne(),
+                "modulepart"=> "adherent",
+                "ref"=> $document->getDossierAgrement()->getIdAdherent(),
                 "subdir"=> "",
                 "filecontent"=> base64_encode($file),
                 "fileencoding"=> "base64",
@@ -384,6 +581,68 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "name"=> $dossierAgrement->getDenominationCommerciale(),
                 "client"=> "1",
                 "code_client"=> $dossierAgrement->getCodePrestataire(),
+                'array_options' => $array_options
+            ];
+
+        return $data;
+    }
+
+    /**
+     * Transforme un objet DossierAgrement vers un tableau compatible adherent dolibarr
+     *
+     * @param DossierAgrement $dossierAgrement
+     * @return array
+     */
+    private function transformAdherent(DossierAgrement $dossierAgrement){
+        $adresse = json_decode($dossierAgrement->getAdressePrincipale());
+
+        //Parcours des réduction, si il y en a une c'est la valeur 1 (25%) dans dolibarr
+        //Si une seule des réductions cochée est > 26 donc c'est la valeur 2 (50%) dans dolibarr
+        $options_reduction_cotisation = '0';
+        foreach ($dossierAgrement->getReductionsAdhesion() as $reduction){
+            $options_reduction_cotisation = '1';
+            if($reduction->getPourcentageReduction()>26){
+                $options_reduction_cotisation = '2';
+            }
+        }
+
+        $array_options = [
+            "options_recevoir_actus"=> $dossierAgrement->isRecevoirNewsletter(),
+            "options_iban"=> $dossierAgrement->getIban(),
+            "options_bic"=> $dossierAgrement->getBic(),
+            "options_prelevement_auto_cotisation"=> '1',
+            //"options_prelevement_auto_cotisation_eusko"=> '1',
+            "options_nb_salaries"=> $dossierAgrement->getNbSalarie(),
+            "options_reduction_cotisation"=> $options_reduction_cotisation,
+            "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
+            "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
+            "options_prelevement_cotisation_periodicite"=> '12',
+            "options_accepte_cgu_eusko_numerique" => '1',
+            "options_documents_pour_ouverture_du_compte_valides" => '1',
+            "options_accord_pour_ouverture_de_compte" => 'oui',
+            "options_notifications_validation_mandat_prelevement"=> '1',
+            "options_notifications_refus_ou_annulation_mandat_prelevement"=> '1',
+            "options_notifications_prelevements"=> '1',
+            "options_notifications_virements"=> '1',
+            "options_recevoir_bons_plans"=> '1',
+        ];
+        $data =
+            [
+                "login"=> $dossierAgrement->getCodePrestataire(),
+                "typeid"=> $dossierAgrement->getType() == 'professionnel'?"2":"1",
+                "morphy"=> "mor",
+                "lastname"=>  $dossierAgrement->getNomDirigeant(),
+                "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
+                "email"=> $dossierAgrement->getEmailDirigeant(),
+                'address' => $adresse->address,
+                'zip' => $adresse->postcode,
+                'town' => $adresse->id,
+                "phone_mobile"=> $dossierAgrement->getTelephoneDirigeant(),
+                "fk_soc"=> $dossierAgrement->getIdExterne(),
+                "societe"=> $dossierAgrement->getDenominationCommerciale(),
+                "company"=> $dossierAgrement->getDenominationCommerciale(),
+                "public"=> "0",
+                "statut"=> "1",
                 'array_options' => $array_options
             ];
 

@@ -21,13 +21,11 @@ class SignatureElectroniqueFormType extends AbstractType
             ->add('statutChargesDeveloppement',ChoiceType::class,
                 [
                     'choices' => [
-                        'nouveau' => 'nouveau',
                         'en cours' => 'en cours',
-                        'valide' => 'valide'
+                        'complet' => 'complet'
                     ],
                     'label' => "Statut du dossier"
                 ])
-            ->add('recevoirNewsletter')
         ;
     }
 

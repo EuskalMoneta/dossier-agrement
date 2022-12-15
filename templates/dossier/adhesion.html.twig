@@ -158,6 +158,47 @@
             </div>
         </div>
 
+        <div class="row spacer-vertical-column">
+            <div class="col-12 mb-3">
+                <h1 class="H1-header-40 green-color-eusko mb-2">
+                    Options diverses
+                </h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="">
+                    {{ form_row(form.recevoirNewsletter) }}
+                </div>
+
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="flex-grow-2">
+                        {{ form_label(form.autocollantVitrine) }}
+                    </div>
+                    <div class="flex-grow-1 ms-4">
+                        {{ form_widget(form.autocollantVitrine) }}
+                    </div>
+                </div>
+                <div class="mt-3 d-flex align-items-center">
+                    <div class="flex-grow-2">
+                        {{ form_label(form.autocollantPanneau) }}
+                    </div>
+                    <div class="flex-grow-1 ms-4">
+                        {{ form_widget(form.autocollantPanneau) }}
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    {{ form_row(form.typeAutocollant) }}
+                </div>
+
+                <div class="mt-3">
+                    {{ form_row(form.note) }}
+                </div>
+            </div>
+        </div>
+
 
         <div class="spacer-end-of-block"></div>
         <div class="row">

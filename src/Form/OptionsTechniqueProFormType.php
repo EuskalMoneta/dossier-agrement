@@ -43,6 +43,17 @@ class OptionsTechniqueProFormType extends AbstractType
             ->add('euskopay',null, ['label' => ' '])
             ->add('paiementViaEuskopay',null, ['label' => 'Paiement possible sur l’application euskopay'])
             ->add('siren',null, ['label' => 'SIREN'])
+            ->add('recevoirNewsletter')
+            ->add('autocollantVitrine')
+            ->add('autocollantPanneau')
+            ->add('typeAutocollant', ChoiceType::class,[
+                'label' => 'Type autocollant',
+                'choices'  => [
+                    'Bilingue/euskaraz' => 'Bilingue/euskaraz',
+                    'Premiers mots en langue basque/lehen hitza euskara' => 'Premiers mots en langue basque/lehen hitza euskara'
+                ]
+            ])
+            ->add('note')
         ;
     }
 
