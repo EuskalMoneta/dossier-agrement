@@ -42,7 +42,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('type', ChoiceType::class,
                 [
                     'choices' => [
-                        'professionnel' => 'professionnel',
+                        'entreprise' => 'entreprise',
                         'association' => 'association'
                     ],
                     'required' => false,

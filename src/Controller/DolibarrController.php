@@ -415,7 +415,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             $startNextMonth = (new \DateTime())->modify("first day of next month");
             $endOfYear = (new \DateTime())->modify("last day of this year");
             $numberOfDays = $endOfYear->diff($startNextMonth)->format("%a");
-            $montant = ($numberOfDays * $dossierAgrement->getMontant())/365;
+            $montant = round(($numberOfDays * $dossierAgrement->getMontant())/365,2);
 
             $cotisationProrata = $this->transformCotisation(
                 $startNextMonth,
@@ -631,7 +631,7 @@ class DolibarrController extends AbstractController implements CRMInterface
         $data =
             [
                 "login"=> $dossierAgrement->getCodePrestataire(),
-                "typeid"=> $dossierAgrement->getType() == 'professionnel'?"2":"1",
+                "typeid"=> $dossierAgrement->getType() == 'entreprise'?"2":"1",
                 "morphy"=> "mor",
                 "lastname"=>  $dossierAgrement->getNomDirigeant(),
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),

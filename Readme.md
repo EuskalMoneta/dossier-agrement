@@ -30,7 +30,10 @@ Migrate the database to the newest version \
 
 Check permissions for  var/cache var/log, public/uploads
 
-Faire une mise à jour des assets \
+Add a new user admin
+`php bin/console app:reset-admin <email> <nom> <prenom> <password>`
+
+Update assets \
 `php bin/console assets:install --symlink`
 
 ## Update frais de dossier

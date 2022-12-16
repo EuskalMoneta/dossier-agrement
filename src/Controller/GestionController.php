@@ -173,6 +173,7 @@ class GestionController extends AbstractController
                 ->to($dossierAgrement->getEmailPrincipal())
                 ->subject('Agrément eusko')
                 ->attach($pdfAttach, sprintf('recu.pdf', date('d-m-Y')))
+                ->attachFromPath('../public/images/Autocollant-Eusko-Euskaraz.jpg')
                 ->html("<p>
                         Egun on,<br /><br />  
                             Zure elkartea Euskal monetako azken onespen batzordean baimendua izan dela jakinarazten dizut .<br />  
