@@ -172,6 +172,9 @@ class DossierAgrement
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $siteWeb = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $complementAdresse = null;
+
 
     public function __toString(): string
     {
@@ -972,6 +975,18 @@ class DossierAgrement
     public function setSiteWeb(?string $siteWeb): self
     {
         $this->siteWeb = $siteWeb;
+
+        return $this;
+    }
+
+    public function getComplementAdresse(): ?string
+    {
+        return $this->complementAdresse;
+    }
+
+    public function setComplementAdresse(?string $complementAdresse): self
+    {
+        $this->complementAdresse = $complementAdresse;
 
         return $this;
     }

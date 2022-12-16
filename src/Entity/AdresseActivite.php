@@ -59,6 +59,9 @@ class AdresseActivite
     #[ORM\JoinTable(name: 'adresse_activite_categorie_annuaire_eskuz')]
     private Collection $categoriesAnnuaireEskuz;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $complementAdresse = null;
+
     public function __construct()
     {
         $this->categoriesAnnuaire = new ArrayCollection();
@@ -89,6 +92,7 @@ class AdresseActivite
                 'facebook' => $this->facebook,
                 'instagram' => $this->instagram,
                 'telephone' => $this->telephone,
+                'complement' => $this->complementAdresse,
                 'descriptif' => $this->descriptifActivite,
                 'horaires' => $this->horaires,
                 'categoriesAnnuaire' => $catAnnuaire,
@@ -107,6 +111,7 @@ class AdresseActivite
         $this->setEmail($contactObjet->email);
         $this->setInstagram($contactObjet->instagram);
         $this->setFacebook($contactObjet->facebook);
+        $this->setComplementAdresse($contactObjet->complement);
         $this->setTelephone($contactObjet->telephone);
         $this->setDescriptifActivite($contactObjet->descriptif);
         $this->setHoraires($contactObjet->horaires);
@@ -319,6 +324,18 @@ class AdresseActivite
     public function cleanCategoriesAnnuaireEskuz(): self
     {
         $this->categoriesAnnuaireEskuz->clear();
+
+        return $this;
+    }
+
+    public function getComplementAdresse(): ?string
+    {
+        return $this->complementAdresse;
+    }
+
+    public function setComplementAdresse(?string $complementAdresse): self
+    {
+        $this->complementAdresse = $complementAdresse;
 
         return $this;
     }

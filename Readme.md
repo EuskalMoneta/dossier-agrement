@@ -16,6 +16,13 @@
 
 8. Create and give -rw rights to the following folders `public/uploads/assets`
 
+## Configuration
+Don't forget to modify these entries in the .env.local :
+- WKHTMLTOPDF_PATH
+- MAILER_DSN
+
+And all the other configurations for the API credentials
+
 ## Usefull commands
 
 Migrate the database to the newest version \

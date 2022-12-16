@@ -27,7 +27,7 @@ $('#contactModalFooter').on('click', '.contact-delete', function (){
 
 //Edition d'une card
 $('#contactContainer').on('click', '.contact-edit', function (){
-
+    hideAdresseModal();
     //récupération de l'id et de l'objet JSON
     var idContact = $(this).attr('id');
     var contactObject =  JSON.parse($('#contact-'+idContact).val());

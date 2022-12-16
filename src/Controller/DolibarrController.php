@@ -387,6 +387,7 @@ class DolibarrController extends AbstractController implements CRMInterface
         $reponse = $this->curlRequestDolibarr('POST', 'members', $data);
         if($reponse['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
+            $this->addFlash("danger",$reponse['data']->error->message);
             return false;
         }
 
@@ -541,7 +542,7 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         $data =
             [
-                'address' => $adresse->address,
+                'address' => $adresseActivite->getComplementAdresse()!=''?$adresseActivite->getComplementAdresse():$adresse->address,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 "socid"=> $adresseActivite->getDossier()->getIdExterne(),
@@ -570,9 +571,10 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier(),
             "options_prefere_etre_contacte"=> "Mail"
         ];
+
         $data =
             [
-                'address' => $adresse->address,
+                'address' => $dossierAgrement->getComplementAdresse()!=''?$dossierAgrement->getComplementAdresse():$adresse->address,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 "email"=> $dossierAgrement->getEmailPrincipal(),

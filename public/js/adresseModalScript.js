@@ -31,7 +31,7 @@ $('#adresseModalFooter').on('click', '.adresse-delete', function (){
 
 //Edition d'une card
 $('#adresseContainer').on('click', '.adresse-edit', function (){
-
+    hideAdresseModal();
     //récupération de l'id et de l'objet JSON
     var idAdresse = $(this).attr('id');
     var adresseObject =  JSON.parse($('#adresse-'+idAdresse).val());
@@ -47,6 +47,7 @@ $('#adresseContainer').on('click', '.adresse-edit', function (){
     }
 
     $('#adresse-adresse-hidden').val(adresseObject.adresse);
+    $('#adresse-complement').val(adresseObject.complement);
     $('#adresse-email').val(adresseObject.email);
     $('#adresse-instagram').val(adresseObject.instagram);
     $('#adresse-facebook').val(adresseObject.facebook);
@@ -105,6 +106,7 @@ $('#adresse-submit').click(function (){
         instagram: $('#adresse-instagram').val(),
         telephone: $('#adresse-telephone').val(),
         descriptif: $('#adresse-descriptif').val(),
+        complement: $('#adresse-complement').val(),
         horaires: $('#adresse-horaires').val(),
         autresLieux: $('#adresse-autresLieux').val(),
         categoriesAnnuaire: categoriesAnnuaireSelect,

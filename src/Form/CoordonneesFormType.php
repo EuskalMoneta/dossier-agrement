@@ -42,6 +42,7 @@ class CoordonneesFormType extends AbstractType
                 'label' => 'Enregistrer'
             ])
             ->add('siteWeb')
+            ->add('complementAdresse')
         ;
     }
 

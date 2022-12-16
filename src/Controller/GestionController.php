@@ -90,20 +90,16 @@ class GestionController extends AbstractController
                                     DolibarrController $crm,
                                     EntityManagerInterface $em,
                                     Request $request,
-        $idExterne = '0'): Response
+                                    $idExterne = '0'): Response
     {
         if($idExterne == '0'){
-            $idTier = 0;
+            $idExterne = 0;
         } elseif(str_starts_with($idExterne,'CRM')) {
-            $idTier = explode('CRM', $idExterne)[1];
-            $result = $crm->updateTier($idTier);
-            if($result){
-                $this->addFlash('success', 'Tier '.$idTier.' mis à jour');
-            }
-            $dossierAgrement->setIdExterne($idTier);
+            //sinon on récupère l'id du tier
+            $dossierAgrement->setIdExterne(explode('CRM', $idExterne)[1]);
         }
 
-        /**** Enregistrer le tier dans le CRM
+        //**** Enregistrer le tier dans le CRM, récupérer son ID
         $idExterne = $crm->postTier($dossierAgrement);
         $dossierAgrement->setIdExterne($idExterne);
 
@@ -144,7 +140,7 @@ class GestionController extends AbstractController
 
         //***** Cotisation
         $crm->postCotisation($dossierAgrement);
-         */
+
 
         //***** Compte numérique
         $crm->postBankUser($dossierAgrement);
@@ -212,7 +208,7 @@ class GestionController extends AbstractController
             $defi->setEtat(false);
 
             foreach ($defisProduits as $defiProduit){
-                $nomProduit = json_decode($defiProduit->getValeur())->text;
+                $nomProduit = $defiProduit->getValeur();
                 $defi->setValeur($defi->getValeur().' '.$nomProduit);
 
                 //Si un des défi est réalisé

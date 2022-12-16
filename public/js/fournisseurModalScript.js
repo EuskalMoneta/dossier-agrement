@@ -25,6 +25,7 @@ $('#fournisseurModalFooter').on('click', '.fournisseur-delete', function (){
 
 //Edition d'une card
 $('#fournisseurContainer').on('click', '.fournisseur-edit', function (){
+    hideAdresseModal();
 
     //récupération de l'id et de l'objet JSON
     var idFournisseur = $(this).attr('id');
