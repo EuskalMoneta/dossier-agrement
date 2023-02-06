@@ -20,7 +20,7 @@ class OptionsTechniqueProFormType extends AbstractType
                 'attr' => ['class' => 'typeCotisation'],
                 'choices'  => [
                     'Solidaire' => 'solidaire',
-                    'Minimale' => 'minimale'
+                    'De base' => 'minimale'
                 ]
             ])
             ->add('fraisDeDossier',null, ['label' => 'Frais de dossier', 'attr' => ['class' => 'fdd']])
@@ -50,7 +50,7 @@ class OptionsTechniqueProFormType extends AbstractType
                 'label' => 'Type autocollant',
                 'choices'  => [
                     'Bilingue/euskaraz' => 'Bilingue/euskaraz',
-                    'Premiers mots en langue basque/lehen hitza euskara' => 'Premiers mots en langue basque/lehen hitza euskara'
+                    'Premiers mots en langue basque/lehen hitza euskaraz' => 'Premiers mots en langue basque/lehen hitza euskaraz'
                 ]
             ])
             ->add('note')
