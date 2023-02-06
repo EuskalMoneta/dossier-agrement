@@ -43,7 +43,7 @@ class MainController extends AbstractController
         $dossiersPaginate = $paginator->paginate(
             $dossiers, // Requête contenant les données à paginer (ici nos articles)
             $request->query->getInt('page', 1), // Numéro de la page en cours, passé dans l'URL, 1 si aucune page
-            2 // Nombre de résultats par page
+            12 // Nombre de résultats par page
         );
 
         return $this->render('main/mesDossiers.html.twig', [

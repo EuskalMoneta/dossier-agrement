@@ -315,9 +315,11 @@ class DossierController extends AbstractController
 
             //Ajout des réductions qui ont été cochées
             $dossierAgrement->cleanReductionsAdhesion();
-            foreach ($request->get('reductions') as $idReduction){
-                $reduction = $em->getRepository(ReductionAdhesion::class)->find($idReduction);
-                $dossierAgrement->addReductionsAdhesion($reduction);
+            if($request->get('reductions')){
+                foreach ($request->get('reductions') as $idReduction){
+                    $reduction = $em->getRepository(ReductionAdhesion::class)->find($idReduction);
+                    $dossierAgrement->addReductionsAdhesion($reduction);
+                }
             }
 
             //suppression des documents
