@@ -349,8 +349,11 @@
                processResults: function (data) {
                 return {
                     results: $.map(data.results, function (item) {
-                    console.log(item);
-                    console.log(JSON.stringify(item));
+
+                    if(item.status != 'Prestataire agréé'){
+                        return null;
+                    }
+                    
                         return {
                             text: item.text,
                             id: JSON.stringify(item),
