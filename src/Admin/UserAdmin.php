@@ -4,15 +4,25 @@ declare(strict_types=1);
 
 namespace App\Admin;
 
+use App\Entity\User;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\CollectionType;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class UserAdmin extends AbstractAdmin
 {
+
+    private $userPasswordHasher;
+
+    public function __construct(UserPasswordHasherInterface $userPasswordHasher)
+    {
+        $this->userPasswordHasher = $userPasswordHasher;
+        parent::__construct();
+    }
 
     protected function configureFormFields(FormMapper $form): void
     {
@@ -22,7 +32,8 @@ final class UserAdmin extends AbstractAdmin
             ->add('email')
             ->add('roles', CollectionType::class, [
                 'allow_add' => true,
-                "help" => "Pour donner les droits admin à un utilisateur : rajouter une nouvelle ligne avec la valeur 'ROLE_ADMIN'."
+                'required' => false,
+                "help" => "Pour donner les droits admin à un utilisateur : rajouter une nouvelle ligne avec la valeur 'ROLE_ADMIN'. Lors de la création de compte, laisser vide."
             ], [
                 'edit' => 'inline',
                 'inline' => 'table',
@@ -69,4 +80,14 @@ final class UserAdmin extends AbstractAdmin
             ->add('prenom')
             ;
     }
+
+
+    protected function prePersist(object $object): void
+    {
+        /** @var User $object */
+        $pass = $this->userPasswordHasher->hashPassword($object, hash('sha256', date('d-m-y h:i:s')));
+        $object->setPassword($pass);
+        $object->setRoles(['ROLE_USER']);
+    }
+
 }
