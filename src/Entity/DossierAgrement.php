@@ -217,6 +217,16 @@ class DossierAgrement
 
     }
 
+    public function getDefisByType($type){
+        $array = [];
+        foreach ($this->getDefis() as $defi){
+            if($defi->getType() == $type){
+                $array[] = $defi;
+            }
+        }
+        return $array;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

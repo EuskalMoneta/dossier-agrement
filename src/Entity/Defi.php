@@ -26,6 +26,11 @@ class Defi
     #[ORM\ManyToOne(inversedBy: 'defis')]
     private ?DossierAgrement $dossierAgrement = null;
 
+    public function __toString(): string
+    {
+        return $this->getLabelDefiCRM().' : '.$this->valeur.' ('.$this->etat.')';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -46,6 +51,15 @@ class Defi
             return 'defi';
         }
     }
+
+    public function getEtatReadable(){
+        if($this->etat){
+            return "déjà réalisé";
+        } else {
+            return "à réaliser";
+        }
+    }
+
     public function getType(): ?string
     {
         return $this->type;

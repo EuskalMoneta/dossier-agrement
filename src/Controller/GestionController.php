@@ -172,7 +172,7 @@ class GestionController extends AbstractController
                 ->from('gestion@euskalmoneta.org')
                 ->to($dossierAgrement->getEmailPrincipal())
                 ->subject('Agrément eusko')
-                ->attach($pdfAttach, sprintf('recu.pdf', date('d-m-Y')))
+                ->attach($pdfAttach, sprintf('recu-%s.pdf', date('d-m-Y')))
                 ->attachFromPath('../public/images/Autocollant-Eusko-Euskaraz.jpg')
                 ->html("<p>
                         Egun on,<br /><br />  
@@ -404,10 +404,13 @@ class GestionController extends AbstractController
                     'Type : '.$dossier->getType() ,
                     $paragraphFontStyle,
                     $paragraphStyleName);
-                $section->addText(
-                    'Activité : ' ,
-                    $paragraphFontStyle,
-                    $paragraphStyleName);
+                if($adresseActivite = $dossier->getAdresseActivites()->first()){
+                        $section->addText(
+                            'Activité : '.$adresseActivite->getDescriptifActivite(),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
+                }
+
                 $section->addText(
                     'Adresse : '.json_decode($dossier->getAdressePrincipale())->text ,
                     $paragraphFontStyle,
@@ -426,7 +429,86 @@ class GestionController extends AbstractController
                     $paragraphFontStyle,
                     $paragraphStyleName);
 
-                $section->addTextBreak(1);
+                $produitsLocaux = $dossier->getDefisByType('produit');
+                if(count($produitsLocaux) >0){
+                    $section->addText(
+                        "Trois produits locaux",
+                        $paragraphFontStyle,
+                        $paragraphStyleName);
+                    /** @var Defi $defi */
+                    foreach ($produitsLocaux as $defi){
+                        $section->addText(
+                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
+                    }
+                }
+                $section->addTextBreak();
+
+                $pros = $dossier->getDefisByType('professionnel');
+                if(count($pros) >0){
+                    $section->addText(
+                        "Trois prestataires du réseau",
+                        $paragraphFontStyle,
+                        $paragraphStyleName);
+                    /** @var Defi $defi */
+                    foreach ($pros as $defi){
+                        $section->addText(
+                            json_decode($defi->getValeur())->text.' - '.$defi->getEtatReadable(),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
+                    }
+                }
+                $section->addTextBreak();
+
+                $reutilisers = $dossier->getDefisByType('reutiliser');
+                if(count($reutilisers) >0 and $reutilisers[0]->getValeur() != '' ){
+                    $section->addText(
+                        "Réutiliser à titre personnel",
+                        $paragraphFontStyle,
+                        $paragraphStyleName);
+                    /** @var Defi $defi */
+                    foreach ($reutilisers as $defi){
+                        $section->addText(
+                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
+                    }
+                }
+                $section->addTextBreak();
+
+                $promotion = $dossier->getDefisByType('promotionEuskara');
+                if(count($promotion) >0 and $promotion[0]->getValeur() != '' ){
+                    $section->addText(
+                        "Affichage en euskara",
+                        $paragraphFontStyle,
+                        $paragraphStyleName);
+                    /** @var Defi $defi */
+                    foreach ($promotion as $defi){
+                        $section->addText(
+                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
+                    }
+                }
+                $section->addTextBreak();
+
+                $accueil = $dossier->getDefisByType('accueilEuskara');
+                if(count($accueil) >0  ){
+                    $section->addText(
+                        "Accueil en euskara",
+                        $paragraphFontStyle,
+                        $paragraphStyleName);
+                    /** @var Defi $defi */
+                    foreach ($accueil as $defi){
+                        $section->addText(
+                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
+                    }
+                }
+                $section->addTextBreak();
+
                 $section->addText(
                     'Commentaires : ',
                     $paragraphFontStyle,
