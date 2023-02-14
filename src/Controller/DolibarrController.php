@@ -192,18 +192,13 @@ class DolibarrController extends AbstractController implements CRMInterface
     }
 
 
-    public function getCategoriesEskuzEsku():array
-    {
-        $tabCategoriesEskuzEsku = [];
-        $this->getCategoriesChildren('376', $tabCategoriesEskuzEsku);
-        return $tabCategoriesEskuzEsku;
-    }
+
 
     public function searchProfessionnel($term):array
     {
         $tabPro = [];
 
-        $url = "thirdparties?sortfield=t.nom&limit=10&sqlfilters=".urlencode("(t.status:=:1) and (t.nom:like:'%".$term."%')");
+        $url = "thirdparties?sortfield=t.nom&sqlfilters=".urlencode("(t.status:=:1) and (t.nom:like:'%".$term."%')");
         $responsePro = $this->curlRequestDolibarr('GET', $url);
 
         if($responsePro['httpcode'] == 200){
@@ -266,27 +261,63 @@ class DolibarrController extends AbstractController implements CRMInterface
         ]);
     }
 
+
+    public function getCategoriesEskuzEsku():array
+    {
+        $tabCategoriesEskuzEsku = [];
+        $this->getCategoriesChildren('376', $tabCategoriesEskuzEsku);
+        return $tabCategoriesEskuzEsku;
+    }
+
     /*
      * Fonction récursive qui récupère l'ensemble des sous catégories d'un index donné.
      * Prend l'index et un tableau par référence pour les résultats
      */
     private function getCategoriesChildren($id_parent, &$tabCategories): bool
     {
+        /**
+         * $tabCategories[] = [
+        'idExterne' => $categorie2->id,
+        'libelle' => $libelleArbo.explode('/', $categorie2->label)[1]
+        ];
+         */
+        $libelleArbo = '';
+        $reponseCategoriesNiv1 = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$id_parent.')');
+        if($reponseCategoriesNiv1['httpcode'] == 200) {
+            if(count($reponseCategoriesNiv1['data']) != 0) {
+                foreach ($reponseCategoriesNiv1['data'] as $categorie) {
 
-        $reponseCategories = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$id_parent.')');
-        if($reponseCategories['httpcode'] == 200) {
-            if(count($reponseCategories['data']) == 0){
-                return true;
-            } else {
-                foreach ($reponseCategories['data'] as $categorie){
-                    $tabCategories[] = [
-                        'idExterne' => $categorie->id,
-                        'libelle' => explode('/', $categorie->label)[1]
-                    ];
-                    $this->getCategoriesChildren($categorie->id, $tabCategories);
+                    $reponseCategoriesNiv2 = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$categorie->id.')');
+                    if($reponseCategoriesNiv2['httpcode'] == 200) {
+                        if (count($reponseCategoriesNiv2['data']) != 0) {
+                            foreach ($reponseCategoriesNiv2['data'] as $categorie2) {
+
+                                $libelleArbo = explode('/', $categorie->label)[1].' >'.explode('/', $categorie2->label)[1];
+                                $reponseCategoriesNiv3 = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$categorie2->id.')');
+                                if($reponseCategoriesNiv3['httpcode'] == 200) {
+                                    if (count($reponseCategoriesNiv3['data']) != 0) {
+                                        foreach ($reponseCategoriesNiv3['data'] as $categorie3) {
+                                            dump($categorie3);
+                                            $tabCategories[] = [
+                                                'idExterne' => $categorie3->id,
+                                                'libelle' => $libelleArbo.' >'.explode('/', $categorie3->label)[1]
+                                            ];
+                                        }
+                                    }
+                                } else{
+                                    $tabCategories[] = [
+                                        'idExterne' => $categorie2->id,
+                                        'libelle' => $libelleArbo
+                                    ];
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+
+
         return false;
     }
 
