@@ -44,10 +44,14 @@ file that was distributed with this source code.
 {% block form %}
     {{ block('parentForm') }}
 
-    <h5>Penser à sauvegarder/mettre à jour avant d'actionner les boutons ci dessous</h5>
-    <div style="display: flex;">
 
-        {% if object.id > 0 %}
+
+
+    {% if object.id > 0 %}
+
+        <h5>Penser à sauvegarder/mettre à jour avant d'actionner les boutons ci dessous</h5>
+        <div style="display: flex; margin-top: 50px;">
+
             <div>
                 <a href="{{ path('app_admin_dossier_check', {'id': object.id}) }}" class="btn btn-primary">Envoyer le dossier sur le CRM</a>
             </div>
@@ -58,9 +62,10 @@ file that was distributed with this source code.
             <div style="margin-left: 30px">
                 <a href="{{ path('app_admin_email_prestataire', {'id': object.id}) }}" class="btn btn-primary" > Email prestataire</a>
             </div>
-        {% endif %}
+        </div>
+    {% endif %}
 
-    </div>
+
 {% endblock %}
 
 
