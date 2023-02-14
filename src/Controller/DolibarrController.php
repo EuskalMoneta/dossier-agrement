@@ -7,6 +7,7 @@ use App\Entity\Contact;
 use App\Entity\Defi;
 use App\Entity\Document;
 use App\Entity\DossierAgrement;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -18,6 +19,10 @@ class DolibarrController extends AbstractController implements CRMInterface
     private $api_token_dolibarr;
     private $logger;
 
+    private $dolibarr_user;
+    private $dolibarr_pass;
+
+
     private $cyclos_url;
     private $cyclos_user;
     private $cyclos_pass;
@@ -25,13 +30,138 @@ class DolibarrController extends AbstractController implements CRMInterface
     public function __construct(LoggerInterface $logger)
     {
         $this->dolibarr_url = $_ENV['API_DOLIBARR_URL'];
-        $this->api_token_dolibarr = $_ENV['API_TOKEN_DOLIBARR'];
+
+        $this->dolibarr_user = $_ENV['API_DOLIBARR_USER'];
+        $this->dolibarr_pass = $_ENV['API_DOLIBARR_PASS'];
 
         $this->cyclos_url = $_ENV['API_CYCLOS_URL'];
         $this->cyclos_user = $_ENV['API_CYCLOS_USER'];
         $this->cyclos_pass = $_ENV['API_CYCLOS_PASS'];
 
         $this->logger = $logger;
+
+        $this->api_token_dolibarr = $this->loginRequestDolibarr();
+    }
+
+    private function loginRequestDolibarr()
+    {
+        $data = ['login' => $this->dolibarr_user, 'password' => $this->dolibarr_pass];
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $this->dolibarr_url.'login');
+        curl_setopt($curl, CURLOPT_COOKIESESSION, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen(json_encode($data)))
+        );
+        $return = curl_exec($curl);
+        $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if($http_status == 200) {
+            return json_decode($return)->success->token;
+        } else {
+            $this->addFlash("danger","Erreur lors de la connexion à Dolibarr");
+            return false;
+        }
+
+    }
+    /**
+     * Makes a cUrl request
+     *
+     * @param $method
+     * @param $link
+     * @param string $data
+     * @param string $token
+     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    private function curlRequestDolibarr($method, $link,  $data = '', $token ='')
+    {
+
+        if($this->api_token_dolibarr) {
+            $token = $this->api_token_dolibarr;
+        }
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $this->dolibarr_url.$link);
+        curl_setopt($curl, CURLOPT_COOKIESESSION, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+
+        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'DOLAPIKEY: ' . $token,
+                    'Content-Length: ' . strlen(json_encode($data)))
+            );
+        } else {
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                    'DOLAPIKEY: ' . $token)
+            );
+        }
+
+        $return = curl_exec($curl);
+        $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        return ['data' => json_decode($return), 'httpcode' => $http_status];
+    }
+
+
+
+    /**
+     * Makes a cUrl request for cyclos
+     *
+     * @param $method
+     * @param $link
+     * @param string $data
+     * @return array
+     */
+    private function curlRequestCyclos($method, $link,  $data = '')
+    {
+        $curlCyclos = curl_init();
+        curl_setopt($curlCyclos, CURLOPT_URL, $this->cyclos_url.$link);
+        curl_setopt($curlCyclos, CURLOPT_COOKIESESSION, true);
+        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curlCyclos, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlCyclos, CURLOPT_CUSTOMREQUEST, $method);
+
+        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
+            curl_setopt($curlCyclos, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
+                    'Content-Length: ' . strlen(json_encode($data)))
+            );
+        } else {
+            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
+                )
+            );
+        }
+
+        $responseLogin = json_decode(curl_exec($curlCyclos));
+        $http_status = curl_getinfo($curlCyclos, CURLINFO_HTTP_CODE);
+        curl_close($curlCyclos);
+
+
+        $token = '';
+        if($http_status != 200){
+            $this->addFlash('danger', "Connexion à Cyclos impossible, vérifier vos paramètres user, pass et URL de l'API.");
+            return ['data' => 'bad credential', 'httpcode' =>'500'];
+        }
+
+        return ['data' => $responseLogin, 'httpcode' => $http_status];
     }
 
     public function postBankUser(DossierAgrement $dossierAgrement):int
@@ -90,97 +220,6 @@ class DolibarrController extends AbstractController implements CRMInterface
 
 
         return true;
-    }
-
-    /**
-     * Makes a cUrl request for cyclos
-     *
-     * @param $method
-     * @param $link
-     * @param string $data
-     * @return array
-     */
-    private function curlRequestCyclos($method, $link,  $data = '')
-    {
-        $curlCyclos = curl_init();
-        curl_setopt($curlCyclos, CURLOPT_URL, $this->cyclos_url.$link);
-        curl_setopt($curlCyclos, CURLOPT_COOKIESESSION, true);
-        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curlCyclos, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curlCyclos, CURLOPT_CUSTOMREQUEST, $method);
-
-        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
-            curl_setopt($curlCyclos, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
-                    'Content-Length: ' . strlen(json_encode($data)))
-            );
-        } else {
-            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
-                )
-            );
-        }
-
-        $responseLogin = json_decode(curl_exec($curlCyclos));
-        $http_status = curl_getinfo($curlCyclos, CURLINFO_HTTP_CODE);
-        curl_close($curlCyclos);
-
-
-        $token = '';
-        if($http_status != 200){
-            $this->addFlash('danger', "Connexion à Cyclos impossible, vérifier vos paramètres user, pass et URL de l'API.");
-            return ['data' => 'bad credential', 'httpcode' =>'500'];
-        }
-
-        return ['data' => $responseLogin, 'httpcode' => $http_status];
-    }
-
-    /**
-     * Makes a cUrl request
-     *
-     * @param $method
-     * @param $link
-     * @param string $data
-     * @param string $token
-     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
-     */
-    private function curlRequestDolibarr($method, $link,  $data = '', $token ='')
-    {
-        if($token == '') {
-            $token = $this->api_token_dolibarr;
-        }
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->dolibarr_url.$link);
-        curl_setopt($curl, CURLOPT_COOKIESESSION, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
-
-        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'DOLAPIKEY: ' . $token,
-                    'Content-Length: ' . strlen(json_encode($data)))
-            );
-        } else {
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'DOLAPIKEY: ' . $token)
-            );
-        }
-
-        $return = curl_exec($curl);
-        $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-
-        return ['data' => json_decode($return), 'httpcode' => $http_status];
     }
 
 
