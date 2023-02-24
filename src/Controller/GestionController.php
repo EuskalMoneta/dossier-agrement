@@ -420,7 +420,8 @@ class GestionController extends AbstractController
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addText(
-                    'Cotisation : '.$dossier->getMontant().' €' ,
+                    'Cotisation : '.$dossier->getMontant().' € ('.
+                    ($dossier->getTypeCotisation() == 'solidaire'?"Cotisation solidaire":"Cotisation de base").')' ,
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addTextBreak(1);
