@@ -31,7 +31,7 @@
                             <div class="mb-3">
                                 <label for="adresse-adresse" class="form-label">Adresse</label>
                                 <br />
-                                <select name="adresse-adresse" id="adresse-adresse" class="form-control js-city-ajax form-adresse" style="width: 550px;">
+                                <select name="adresse-adresse" id="adresse-adresse" class="form-control js-city-ajax form-adresse" style="width: 100%;">
                                 </select>
                                 <input type="hidden" class="form-adresse" name="adresse-adresse-hidden" id="adresse-adresse-hidden" value="">
                             </div>
@@ -111,7 +111,7 @@
                             <div class="mb-3">
                                 <label for="adresse-categories" class="form-label">Catégories de l’activité dans l’annuaire de zone</label>
                                 <br>
-                                <select name="adresse-categories" id="adresse-categories" class="form-control form-adresse" multiple style="width: 800px;">
+                                <select name="adresse-categories" id="adresse-categories" class="form-control form-adresse" multiple style="width: 100%">
                                     {% for categorie in categoriesAnnuaire %}
                                         <option value="{{ categorie.id }}"> {{ categorie }} </option>
                                     {% endfor %}
@@ -122,7 +122,7 @@
                             <div class="mb-3">
                                 <label for="adresse-horaires" class="form-label">Catégories de l’activité dans Eskuz Esku</label>
 
-                                <select name="adresse-categories-eskuz" id="adresse-categories-eskuz" class="form-control form-adresse" multiple style="width: 800px;">
+                                <select name="adresse-categories-eskuz" id="adresse-categories-eskuz" class="form-control form-adresse" multiple style="width: 100%">
                                     {% for categorie in categoriesAnnuaireEskuz %}
                                         <option value="{{ categorie.id }}"> {{ categorie }} </option>
                                     {% endfor %}
