@@ -241,6 +241,7 @@ $('.remplir-adresse').on('click', function () {
     $('#adresse-nom').val($('#coordonnees_form_denominationCommerciale').val());
     $('#adresse-email').val($('#coordonnees_form_emailPrincipal').val());
     $('#adresse-telephone').val($('#coordonnees_form_telephone').val());
+    $('#adresse-complement').val($('#coordonnees_form_complementAdresse').val());
 
     if($('#adressePrincipale').val() != ''){
         var adresseObj = JSON.parse($('#adressePrincipale').val());
