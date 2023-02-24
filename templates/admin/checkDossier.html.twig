@@ -57,6 +57,10 @@
                             <p>{{ pro.email }}</p>
                             <p>{{ pro.telephone }}</p>
                             <p>{{ pro.status }}</p>
+                            {% set adresseObj = pro.adresse | json_decode  %}
+                            {% if adresseObj.text is defined %}
+                                <p style="font-weight: bolder"> {{ adresseObj.id }}</p>
+                            {% endif %}
                         </div>
                         <div class="col-sm-6">
                             <div style="text-align: right">
