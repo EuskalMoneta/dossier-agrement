@@ -210,7 +210,7 @@
 
                 </form>
                 #}
-                <h3 class="sousTitre-18bold mt-4">Pièce identité de la structure (K-BIS, INSEE, Chambre des métiers)</h3>
+                <h3 class="sousTitre-18bold mt-4">Pièce juridique de la structure (K-BIS, INSEE, Chambre des métiers)</h3>
                 <div class="d-flex">
                     <div class="dropzone my-dropzone flex-grow-1" style="min-width: 300px;" id="dropzone_kbis" action="{{path('app_send_ajax_file', {'type': 'kbis', 'id': dossierAgrement.id})}}" style="">
                     </div>
@@ -336,9 +336,27 @@
 
     Dropzone.autoDiscover = false;
     var actionKbis = $('#dropzone_kbis').attr('action');
-    var myDropzone = new Dropzone("#dropzone_kbis", { url: actionKbis, maxFilesize: 5 });
-    /*myDropzone.on("addedfile", function(file) {
-    });*/
+    var myDropzone = new Dropzone("#dropzone_kbis", {
+        url: actionKbis,
+        maxFilesize: 5,
+        {#addRemoveLinks: true,
+        removedfile: function(file) {
+            var fileName = file.name;
+            console.log(fileName);
+            $.ajax({
+                type: 'POST',
+                url: 'upload.php',
+                data: {name: fileName,request: 'delete'},
+                sucess: function(data){
+                    console.log('success: ' + data);
+                }
+            });
+
+            var _ref;
+            return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+        }#}
+
+    });
 
     var actionIdentite = $('#dropzone_identite').attr('action');
     var myDropzone = new Dropzone("#dropzone_identite", { url: actionIdentite, maxFilesize: 5 });
