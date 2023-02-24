@@ -9,6 +9,7 @@ use Sonata\AdminBundle\Datagrid\DatagridInterface;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
+use Sonata\AdminBundle\Form\Type\TemplateType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\DoctrineORMAdminBundle\Filter\ChoiceFilter;
 use Sonata\DoctrineORMAdminBundle\Filter\DateRangeFilter;
@@ -75,7 +76,11 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('utilisateur', null, ['label' => "Chargé de dev"])
             ->end()
             ->with('contact')
-            ->add('codePrestataire')
+            ->add('codePrestataire', null, ['label' => "Numéro d'adhérent"])
+            ->add('Actions', TemplateType::class, [
+                'template'   => 'admin/boutonAction_dossierAgrement_edit.html.twig',
+                'parameters' => [],
+            ])
             ->end()
 
 

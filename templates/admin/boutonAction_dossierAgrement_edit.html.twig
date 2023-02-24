@@ -1,0 +1,19 @@
+{% if object.codePrestataire != '' %}
+
+    <h5>Penser à sauvegarder/mettre à jour avant d'actionner les boutons ci dessous</h5>
+    <div style="display: flex; margin-top: 20px;">
+
+        <div>
+            <a href="{{ path('app_admin_dossier_check', {'id': object.id}) }}" class="btn btn-primary">Envoyer le dossier sur le CRM</a>
+        </div>
+
+        <div style="margin-left: 30px">
+            <a href="{{ path('app_dossier_coordonnees', {'id': object.id}) }}" class="btn btn-primary" target="_blank"> Consulter le dossier complet</a>
+        </div>
+        <div style="margin-left: 30px">
+            <a href="{{ path('app_admin_email_prestataire', {'id': object.id}) }}" class="btn btn-primary" > Email prestataire</a>
+        </div>
+    </div>
+{% else %}
+    <h5>Merci de rentrer un numéro d'adhérent</h5>
+{% endif %}

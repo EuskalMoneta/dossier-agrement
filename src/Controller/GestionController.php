@@ -135,7 +135,7 @@ class GestionController extends AbstractController
 
         //***** Documents
         foreach ($dossierAgrement->getDocuments() as $document){
-        $crm->postDocument($document);
+            $crm->postDocument($document);
         }
 
         //***** Cotisation
