@@ -448,7 +448,16 @@ class DossierController extends AbstractController
             $webHook = $em->getRepository(WebHookEvent::class)->find($session->get('idWebHookEvent'));
             $youSignClient = new WiziSignClient($_ENV['YOUSIGN_API_KEY'], $_ENV['YOUSIGN_MODE']);
             $file = $youSignClient->downloadSignedFile($webHook->getFile(), 'base64');
-            $dossierAgrement->setSepaBase64($file);
+
+            $filename_path = time().'-sepa'.".pdf";
+            $decoded=base64_decode($file);
+            file_put_contents(__DIR__.'/../../public/uploads/sepa/'.$filename_path, $decoded);
+
+            $document = new Document();
+            $document->setType('sepa');
+            $document->setPath($filename_path);
+
+            $dossierAgrement->addDocument($document);
 
             $em->persist($dossierAgrement);
             $em->flush();

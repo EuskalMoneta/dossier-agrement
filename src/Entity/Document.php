@@ -81,6 +81,26 @@ class Document
         return $str;
     }
 
+    public function getFileNameFromType(){
+        $numeroAdherent = $this->getDossierAgrement()->getCodePrestataire();
+
+        $nomFichier = '';
+        switch ($this->type){
+            case 'kbis':
+                $nomFichier = "-Pièce-juridique-";
+                break;
+            case 'identite':
+                $nomFichier = "-Pièce-d-identité-";
+                break;
+            case 'rib':
+                $nomFichier = "-RIB-";
+                break;
+        }
+
+        $ext = explode('.', $this->getPath())[1];
+        return $numeroAdherent.$nomFichier.$this->getId().'.'.$ext;
+    }
+
     /**
      * Lifecycle callback to upload the file to the server
      */

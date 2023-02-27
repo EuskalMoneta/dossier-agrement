@@ -131,16 +131,17 @@ class GestionController extends AbstractController
         $this->envoiDefi($em, $crm, $dossierAgrement);
 
         //***** Adhérent
-        $dossierAgrement->setIdAdherent($crm->postAdherent($dossierAgrement));
-
-        //***** Documents
-        foreach ($dossierAgrement->getDocuments() as $document){
-            $crm->postDocument($document);
+        if($crm->postAdherent($dossierAgrement) != false){
+            $dossierAgrement->setIdAdherent($crm->postAdherent($dossierAgrement));
         }
 
         //***** Cotisation
         $crm->postCotisation($dossierAgrement);
 
+        //***** Documents
+        foreach ($dossierAgrement->getDocuments() as $document){
+            $crm->postDocument($document);
+        }
 
         //***** Compte numérique
         $crm->postBankUser($dossierAgrement);
@@ -210,13 +211,14 @@ class GestionController extends AbstractController
 
             foreach ($defisProduits as $defiProduit){
                 $nomProduit = $defiProduit->getValeur();
-                $defi->setValeur($defi->getValeur().' '.$nomProduit);
+                $defi->setValeur($defi->getValeur().' '.$nomProduit.',');
 
                 //Si un des défi est réalisé
                 if($defiProduit->isEtat()){
                     $defi->setEtat(true);
                 }
             }
+            $defi->setValeur(rtrim($defi->getValeur(), ','));
             $crm->postDefi($defi);
         } else {
 
@@ -234,13 +236,14 @@ class GestionController extends AbstractController
 
                 foreach ($defisPrestataires as $defiPresta){
                     $nomPrestataire = json_decode($defiPresta->getValeur())->text;
-                    $defi->setValeur($defi->getValeur().' '.$nomPrestataire);
+                    $defi->setValeur($defi->getValeur().' '.$nomPrestataire.',');
 
                     //Si un des défi est réalisé
                     if($defiPresta->isEtat()){
                         $defi->setEtat(true);
                     }
                 }
+                $defi->setValeur(rtrim($defi->getValeur(), ','));
                 $crm->postDefi($defi);
             } else {
                 //***** Sinon defi réutiliser
@@ -256,15 +259,6 @@ class GestionController extends AbstractController
 
         }
 
-        //***** Defi accueil
-        $defiAccueil = $em->getRepository(Defi::class)->findOneBy([
-            'dossierAgrement' => $dossierAgrement->getId(),
-            'type' => 'accueilEuskara'
-        ]);
-        if($defiAccueil){
-            $crm->postDefi($defiAccueil);
-        }
-
         //***** Defi promotion
         $defiPromotion = $em->getRepository(Defi::class)->findOneBy([
             'dossierAgrement' => $dossierAgrement->getId(),
@@ -273,6 +267,22 @@ class GestionController extends AbstractController
         if($defiPromotion){
             $crm->postDefi($defiPromotion);
         }
+
+        //***** Defi accueil
+        $defiAccueil = $em->getRepository(Defi::class)->findOneBy([
+            'dossierAgrement' => $dossierAgrement->getId(),
+            'type' => 'accueilEuskara'
+        ]);
+        if($defiAccueil && $defiAccueil->getValeur() != 'Non renseigné'){
+            if($defiAccueil->getValeur() == 'Déjà réalisé'){
+                $defiAccueil->setEtat(1);
+            } else {
+                $defiAccueil->setEtat(0);
+            }
+            $crm->postDefi($defiAccueil);
+        }
+
+
 
         return true;
     }
@@ -405,10 +415,10 @@ class GestionController extends AbstractController
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 if($adresseActivite = $dossier->getAdresseActivites()->first()){
-                        $section->addText(
-                            'Activité : '.$adresseActivite->getDescriptifActivite(),
-                            $paragraphFontStyle,
-                            $paragraphStyleName);
+                    $section->addText(
+                        'Activité : '.$adresseActivite->getDescriptifActivite(),
+                        $paragraphFontStyle,
+                        $paragraphStyleName);
                 }
 
                 $section->addText(

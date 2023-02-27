@@ -181,7 +181,8 @@ class DolibarrController extends AbstractController implements CRMInterface
                 if($dossierAgrement->isCompteNumeriqueBool()) {
                     $group = $_ENV['ADHERENTS_PRESTATAIRES'];
                     $status = 'ACTIVE';
-                }elseif ($dossierAgrement->isPaiementViaEuskopay()){
+                }
+                if ($dossierAgrement->isPaiementViaEuskopay()){
                     $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
                     $status = 'ACTIVE';
                 }
@@ -460,6 +461,7 @@ class DolibarrController extends AbstractController implements CRMInterface
     {
         $data = $this->transformDocument($document);
         $reponse = $this->curlRequestDolibarr('POST', 'documents/upload', $data);
+
         if($reponse['httpcode'] != 200) {
             //$this->addFlash("danger","Erreur lors de l'ajout du document : ".$reponse['data']->error->message);
             $this->addFlash("danger","Erreur lors de l'ajout du document : ".$document->getPath());
@@ -566,9 +568,10 @@ class DolibarrController extends AbstractController implements CRMInterface
     private function transformDocument(Document $document){
         $file = file_get_contents($document->getAbsolutePath());
 
+        //$document->getPath()
         $data =
             [
-                "filename"=> $document->getPath(),
+                "filename"=> $document->getFileNameFromType(),
                 "modulepart"=> "adherent",
                 "ref"=> $document->getDossierAgrement()->getIdAdherent(),
                 "subdir"=> "",
