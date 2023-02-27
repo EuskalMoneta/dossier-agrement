@@ -471,15 +471,19 @@ class DolibarrController extends AbstractController implements CRMInterface
 
     public function postAdherent(DossierAgrement $dossierAgrement):int
     {
-        $data = $this->transformAdherent($dossierAgrement);
-        $reponse = $this->curlRequestDolibarr('POST', 'members', $data);
-        if($reponse['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
-            $this->addFlash("danger",$reponse['data']->error->message);
-            return false;
+        if($dossierAgrement->getIdAdherent() > 0){
+            $this->addFlash("warning","L'adhérent existe déjà, impossible d'en créer un nouveau");
+        } else {
+            $data = $this->transformAdherent($dossierAgrement);
+            $reponse = $this->curlRequestDolibarr('POST', 'members', $data);
+            if($reponse['httpcode'] != 200) {
+                $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
+                $this->addFlash("danger",$reponse['data']->error->message);
+                return false;
+            }
+            return $reponse['data'];
         }
-
-        return $reponse['data'];
+        return false;
     }
 
     public function postCotisation(DossierAgrement $dossierAgrement): int{
@@ -495,13 +499,14 @@ class DolibarrController extends AbstractController implements CRMInterface
         $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationGratuite);
         if($reponse['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationGratuite['note']);
+            $this->addFlash("danger",$reponse['data']->error->message);
             return false;
         }
 
         //Cotisation au prorata pour le reste de l'année, sauf pour le mois de décembre.
         if((new \DateTime())->format('m') != '12'){
-            $startNextMonth = (new \DateTime())->modify("first day of next month");
-            $endOfYear = (new \DateTime())->modify("last day of this year");
+            $startNextMonth = (new \DateTime())->modify("first day of next month 00:00");
+            $endOfYear = (new \DateTime())->modify("last day of December this year 00:00");
             $numberOfDays = $endOfYear->diff($startNextMonth)->format("%a");
             $montant = round(($numberOfDays * $dossierAgrement->getMontant())/365,2);
 
@@ -512,9 +517,11 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "Adhésion/cotisation".date('Y'),
                 $dossierAgrement
             );
+
             $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationProrata);
             if($reponse['httpcode'] != 200) {
                 $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationProrata['note']);
+                $this->addFlash("danger",$reponse['data']->error->message);
                 return false;
             }
         }
@@ -532,9 +539,13 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         $data =
             [
+                //creation
                 "datec"=> (new \DateTime('now'))->getTimestamp(),
-                "datem"=> $start->getTimestamp(),
+                //modif ?
+                //"datem"=> (new \DateTime('now'))->getTimestamp(),
+                //debut
                 "dateh"=> $start->getTimestamp(),
+                //fin
                 "datef"=> $end->getTimestamp(),
                 "fk_adherent"=> $dossierAgrement->getIdAdherent(),
                 "amount"=> $montant,
@@ -714,7 +725,6 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
             "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
             "options_prelevement_cotisation_periodicite"=> '12',
-            "options_accepte_cgu_eusko_numerique" => '1',
             "options_documents_pour_ouverture_du_compte_valides" => '1',
             "options_accord_pour_ouverture_de_compte" => 'oui',
             "options_notifications_validation_mandat_prelevement"=> '1',
