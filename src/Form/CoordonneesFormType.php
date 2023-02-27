@@ -17,7 +17,7 @@ class CoordonneesFormType extends AbstractType
     {
         $builder
             ->add('denominationCommerciale', null, ['label' => "Raison sociale"])
-            ->add('formeJuridique', ChoiceType::class, [
+            /*->add('formeJuridique', ChoiceType::class, [
                 'choices'  => [
                     'Micro' => 'Micro',
                     'EIRL/EURL' => 'EIRL/EURL',
@@ -28,7 +28,7 @@ class CoordonneesFormType extends AbstractType
                     'GAEC' => 'GAEC',
                     'Autre' => 'Autre',
                 ],
-            ])
+            ])*/
             ->add('emailPrincipal', EmailType::class, ['label' => 'Email'])
             ->add('nomDirigeant', null, ['label' => 'Nom'])
             ->add('telephone', null, ['label' => 'Téléphone'])

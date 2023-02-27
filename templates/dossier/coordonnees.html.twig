@@ -27,7 +27,7 @@
                     Coordonnées
                 </h1>
                 <h3 class="h2-30 green-color-eusko mb-2">
-                    L'entreprise
+                    L'{{ dossierAgrement.type }}
                 </h3>
             </div>
         </div>
@@ -36,7 +36,7 @@
                 {{ form_row(form.denominationCommerciale) }}
             </div>
             <div class="col-6">
-                {{ form_row(form.formeJuridique) }}
+                {{ form_row(form.emailPrincipal) }}
             </div>
         </div>
         <div class="row">
@@ -56,22 +56,14 @@
             </div>
 
             <div class="col-6">
-                {{ form_row(form.emailPrincipal) }}
-
+                {{ form_row(form.telephone) }}
             </div>
             <div class="col-6">
                 {{ form_row(form.complementAdresse) }}
-
-            </div>
-
-            <div class="col-6">
-                {{ form_row(form.telephone) }}
-
             </div>
 
             <div class="col-6">
                 {{ form_row(form.siteWeb) }}
-
             </div>
         </div>
 

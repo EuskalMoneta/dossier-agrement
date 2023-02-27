@@ -336,7 +336,6 @@ class DolibarrController extends AbstractController implements CRMInterface
                                 if($reponseCategoriesNiv3['httpcode'] == 200) {
                                     if (count($reponseCategoriesNiv3['data']) != 0) {
                                         foreach ($reponseCategoriesNiv3['data'] as $categorie3) {
-                                            dump($categorie3);
                                             $tabCategories[] = [
                                                 'idExterne' => $categorie3->id,
                                                 'libelle' => $libelleArbo.' >'.explode('/', $categorie3->label)[1]
@@ -405,7 +404,7 @@ class DolibarrController extends AbstractController implements CRMInterface
     {
         //Préparer les données de la requête
         $data = $this->transformTier($dossierAgrement);
-
+        
         if($dossierAgrement->getIdExterne() > 0){
             //Si le tier existe déjà, on fait une mise à jour
             $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
@@ -496,7 +495,6 @@ class DolibarrController extends AbstractController implements CRMInterface
             );
             $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationProrata);
             if($reponse['httpcode'] != 200) {
-                dump($reponse['data']);
                 $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationProrata['note']);
                 return false;
             }
@@ -638,8 +636,7 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         $array_options = [
             "options_date_agrement"=> $dossierAgrement->getDateAgrement()->getTimestamp(),
-            "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier(),
-            "options_prefere_etre_contacte"=> "Mail"
+            "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier()
         ];
 
         $data =
@@ -647,9 +644,10 @@ class DolibarrController extends AbstractController implements CRMInterface
                 'address' => $dossierAgrement->getComplementAdresse()!=''?$dossierAgrement->getComplementAdresse():$adresse->address,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
+                'url' => $dossierAgrement->getSiteWeb(),
                 "email"=> $dossierAgrement->getEmailPrincipal(),
                 "phone_pro"=> $dossierAgrement->getTelephone(),
-                "name_alias"=> $dossierAgrement->getFormeJuridique().' '.$dossierAgrement->getDenominationCommerciale(),
+                "name_alias"=> $dossierAgrement->getDenominationCommerciale(),
                 "name"=> $dossierAgrement->getDenominationCommerciale(),
                 "client"=> "1",
                 "code_client"=> $dossierAgrement->getCodePrestataire(),
