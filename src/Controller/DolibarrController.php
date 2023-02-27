@@ -232,6 +232,18 @@ class DolibarrController extends AbstractController implements CRMInterface
 
 
 
+    public function searchActiveUser(string $email):int
+    {
+        $url = "users?sqlfilters=" . urlencode("(t.email:like:'" . $email . "')");
+        $responseUser = $this->curlRequestDolibarr('GET', $url);
+
+        if ($responseUser['httpcode'] == 200) {
+            foreach ($responseUser['data'] as $user){
+                return $user->id;
+            }
+        }
+        return 0;
+    }
 
     public function searchProfessionnel($term):array
     {
@@ -404,7 +416,7 @@ class DolibarrController extends AbstractController implements CRMInterface
     {
         //Préparer les données de la requête
         $data = $this->transformTier($dossierAgrement);
-        
+
         if($dossierAgrement->getIdExterne() > 0){
             //Si le tier existe déjà, on fait une mise à jour
             $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
@@ -427,10 +439,17 @@ class DolibarrController extends AbstractController implements CRMInterface
 
     public function postDefi(Defi $defi): int
     {
-        $data = $this->transformDefi($defi);
-        $reponseCategories = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
-        if($reponseCategories['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de l'ajout du defi : ".$defi->getValeur());
+        $idUser = $this->searchActiveUser($defi->getDossierAgrement()->getUtilisateur()->getEmail());
+
+        if($idUser > 0){
+            $data = $this->transformDefi($defi, $idUser);
+            $reponseCategories = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
+            if($reponseCategories['httpcode'] != 200) {
+                $this->addFlash("danger","Erreur lors de l'ajout du defi : ".$defi->getValeur());
+                return false;
+            }
+        } else {
+            $this->addFlash("danger","Erreur lors de l'ajout du defi : utilisateur non trouvé");
             return false;
         }
 
@@ -555,16 +574,20 @@ class DolibarrController extends AbstractController implements CRMInterface
      * Transforme un objet Defi vers un tableau compatible adresse dolibarr
      *
      * @param Defi $defi
+     * @param int $idUser
      * @return array
      */
-    private function transformDefi(Defi $defi){
+    private function transformDefi(Defi $defi,int $idUser){
 
         $etat = '0';
-        if($defi->isEtat()){
-            $etat = '-1';
-        }
         $debut = (new \DateTime())->modify('first day of January this year 00:00')->getTimestamp();
         $fin = (new \DateTime())->modify('last day of December next year 00:00')->getTimestamp();
+
+        if($defi->isEtat()){
+            $etat = '-1';
+            $fin = (new \DateTime())->modify('last day of December this year 00:00')->getTimestamp();
+        }
+
         $data =
             [
                 "type_code"=> "AC_DEFI",
@@ -574,7 +597,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "datep"=> $debut,
                 "datef"=> $fin,
                 "percentage" => $etat,
-                "userownerid"=> "2619",
+                "userownerid"=> $idUser,
                 "socid"=> $defi->getDossierAgrement()->getIdExterne(),
                 "note" => $defi->getValeur()
             ];
@@ -598,8 +621,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_instagram"=> $adresseActivite->getInstagram(),
             "options_description_francais"=> $adresseActivite->getDescriptifActivite(),
             "options_horaires_francais"=> $adresseActivite->getHoraires(),
-            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux(),
-            //"options_euskara"=> "3",
+            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux()
             //"options_horaires_euskara"=> "Astelehenetik ostiralera 8=>00 – 12=>00 / 14=>00 – 18=>30 (astelehenetan=> 9=>00etatik)",
             //"options_autres_lieux_activite_euskara"=> null,
             //"options_bons_plans_euskara"=> null,
@@ -607,6 +629,11 @@ class DolibarrController extends AbstractController implements CRMInterface
             //"options_equipement_pour_euskokart"=> "oui_famoco",
             //"options_euskopay"=> "1"
         ];
+        if($adresseActivite->getDossier()->getTypeAutocollant()=='Bilingue/euskaraz'){
+            $array_options["options_euskara"] = "3";
+        } elseif ($adresseActivite->getDossier()->getTypeAutocollant()=='Premiers mots en langue basque/lehen hitza euskaraz'){
+            $array_options["options_euskara"] = "1";
+        }
 
         $data =
             [
