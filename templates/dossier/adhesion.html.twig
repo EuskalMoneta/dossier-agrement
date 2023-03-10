@@ -338,7 +338,7 @@
     var actionKbis = $('#dropzone_kbis').attr('action');
     var myDropzone = new Dropzone("#dropzone_kbis", {
         url: actionKbis,
-        maxFilesize: 5,
+        maxFilesize: 10,
         {#addRemoveLinks: true,
         removedfile: function(file) {
             var fileName = file.name;
