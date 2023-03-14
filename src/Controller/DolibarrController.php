@@ -177,14 +177,11 @@ class DolibarrController extends AbstractController implements CRMInterface
 
                 //Préparation et enregistrement de l'utilisateur
                 $group = $_ENV['ADHERENTS_SANS_COMPTE'];
-                $status = 'INACTIVE';
                 if($dossierAgrement->isCompteNumeriqueBool()) {
                     $group = $_ENV['ADHERENTS_PRESTATAIRES'];
-                    $status = 'ACTIVE';
-                }
-                if ($dossierAgrement->isPaiementViaEuskopay()){
-                    $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
-                    $status = 'ACTIVE';
+                    if ($dossierAgrement->isPaiementViaEuskopay()){
+                        $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
+                    }
                 }
 
                 $data = [
@@ -197,15 +194,31 @@ class DolibarrController extends AbstractController implements CRMInterface
 
                 if($responseUser['httpcode'] == 200) {
 
-                    //si l'utilisateur est actif, changer son status
-                    if($status == 'ACTIVE'){
+                    //si l'utilisateur a un compte numérique, changer son status
+                    if($dossierAgrement->isCompteNumeriqueBool()) {
                         $data = [
                             'user'=> $responseUser['data']->result->user->id,
                             'status'=> 'ACTIVE',
                         ];
                         $responseActivation = $this->curlRequestCyclos('POST', '/userStatus/changeStatus', $data);
                         if($responseActivation['httpcode'] == 200) {
-                            $this->addFlash('success', "Utilisateur cyclos ajouté avec succés.");
+                            // et créer un QR code pour cet utilisateur
+                            $data = [
+                                'user'=> $responseUser['data']->result->user->id,
+                                'type'=> 'qr_code',
+                                'value'=> $dossierAgrement->getCodePrestataire(),
+                            ];
+                            $responseQrCode = $this->curlRequestCyclos('POST', '/token/save', $data);
+                            if($responseQrCode['httpcode'] == 200) {
+                                $responseActivationQrCode = $this->curlRequestCyclos('POST', '/token/activatePending', [$responseQrCode['data']->result]);
+                                if($responseActivationQrCode['httpcode'] == 200) {
+                                    $this->addFlash('success', "Utilisateur cyclos ajouté avec succés.");
+                                } else {
+                                    $this->addFlash('danger', "Le QR code n'a pas pu être activé.");
+                                }
+                            } else {
+                                $this->addFlash('danger', "Le QR code n'a pas pu être créé.");
+                            }
                         } else {
                             $this->addFlash('danger', "L'utilisateur cyclos n'a pas pu être activé.");
                         }
