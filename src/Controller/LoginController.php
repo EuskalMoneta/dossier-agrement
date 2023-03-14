@@ -63,7 +63,7 @@ class LoginController extends AbstractController
 
             $body = "Bonjour,<br /><br /> Vous pouvez changer votre mot de passe en suivant le lien suivant <a href=\"" . $url. '">'.$url.'</a> <br /><br /> <br /><br />';
             $email = (new TemplatedEmail())
-                ->from('contact@euskal-moneta.org')
+                ->from('support@euskalmoneta.org')
                 ->to($user->getEmail())
                 ->subject('Demande de nouveau mot de passe')
                 ->htmlTemplate('email/email_notification.html.twig')
