@@ -155,6 +155,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('emailPrincipal')
             ->add('utilisateur', null, ['label' => 'Chargé de développement'])
             ->add('dateAgrement')
+            ->add('codePrestataire', null, ['label' => "Numéro d'adhérent"])
             ->add('montant')
             ->add('fraisDeDossier')
             ->add('statutChargesDeveloppement', null, ['label' => "Statut chargé de dev"])
