@@ -166,72 +166,66 @@ class DolibarrController extends AbstractController implements CRMInterface
 
     public function postBankUser(DossierAgrement $dossierAgrement):int
     {
-
         //On vérifie si aucun utilisateur avec ce login existe.
         $responseExist = $this->curlRequestCyclos('POST', '/user/search', [
             'keywords'=> $dossierAgrement->getCodePrestataire(),
             ['userStatus'=> ['ACTIVE', 'BLOCKED', 'DISABLED']]
         ]);
-        if($responseExist['httpcode'] == 200) {
-            if ($responseExist['data']->result->totalCount==0){
-
-                //Préparation et enregistrement de l'utilisateur
-                $group = $_ENV['ADHERENTS_SANS_COMPTE'];
-                if($dossierAgrement->isCompteNumeriqueBool()) {
-                    $group = $_ENV['ADHERENTS_PRESTATAIRES'];
-                    if ($dossierAgrement->isPaiementViaEuskopay()){
-                        $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
-                    }
+        if ($responseExist['httpcode'] != 200) {
+            $this->addFlash('warning', "Erreur lors de la recherche de l'utilisateur dans Cyclos.");
+        } else if ($responseExist['data']->result->totalCount > 0) {
+            $this->addFlash('warning', "Utilisateur déjà présent dans Cyclos, le compte cyclos n'a pas été créé.");
+        } else {
+            //Préparation et enregistrement de l'utilisateur
+            $group = $_ENV['ADHERENTS_SANS_COMPTE'];
+            if ($dossierAgrement->isCompteNumeriqueBool()) {
+                $group = $_ENV['ADHERENTS_PRESTATAIRES'];
+                if ($dossierAgrement->isPaiementViaEuskopay()) {
+                    $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
                 }
+            }
 
-                $data = [
-                    'group'=> $group,
-                    'name'=> $dossierAgrement->getDenominationCommerciale(),
-                    'username'=> $dossierAgrement->getCodePrestataire(),
-                    'skipActivationEmail'=> True,
-                ];
-                $responseUser = $this->curlRequestCyclos('POST', '/user/register', $data);
+            $data = [
+                'group'=> $group,
+                'name'=> $dossierAgrement->getDenominationCommerciale(),
+                'username'=> $dossierAgrement->getCodePrestataire(),
+                'skipActivationEmail'=> True,
+            ];
+            $responseUser = $this->curlRequestCyclos('POST', '/user/register', $data);
+            if ($responseUser['httpcode'] != 200) {
+                $this->addFlash('danger', "L'utilisateur Cyclos n'a pas été créé.");
+            } else {
+                $this->addFlash('success', "Utilisateur Cyclos ajouté avec succès.");
 
-                if($responseUser['httpcode'] == 200) {
-
-                    //si l'utilisateur a un compte numérique, changer son status
-                    if($dossierAgrement->isCompteNumeriqueBool()) {
+                //si l'utilisateur a un compte numérique, changer son status
+                if ($dossierAgrement->isCompteNumeriqueBool()) {
+                    $data = [
+                        'user'=> $responseUser['data']->result->user->id,
+                        'status'=> 'ACTIVE',
+                    ];
+                    $responseActivation = $this->curlRequestCyclos('POST', '/userStatus/changeStatus', $data);
+                    if($responseActivation['httpcode'] != 200) {
+                        $this->addFlash('danger', "L'utilisateur Cyclos n'a pas pu être activé.");
+					} else {
+                        // et créer un QR code pour cet utilisateur
                         $data = [
                             'user'=> $responseUser['data']->result->user->id,
-                            'status'=> 'ACTIVE',
+                            'type'=> 'qr_code',
+                            'value'=> $dossierAgrement->getCodePrestataire(),
                         ];
-                        $responseActivation = $this->curlRequestCyclos('POST', '/userStatus/changeStatus', $data);
-                        if($responseActivation['httpcode'] == 200) {
-                            // et créer un QR code pour cet utilisateur
-                            $data = [
-                                'user'=> $responseUser['data']->result->user->id,
-                                'type'=> 'qr_code',
-                                'value'=> $dossierAgrement->getCodePrestataire(),
-                            ];
-                            $responseQrCode = $this->curlRequestCyclos('POST', '/token/save', $data);
-                            if($responseQrCode['httpcode'] == 200) {
-                                $responseActivationQrCode = $this->curlRequestCyclos('POST', '/token/activatePending', [$responseQrCode['data']->result]);
-                                if($responseActivationQrCode['httpcode'] == 200) {
-                                    $this->addFlash('success', "Utilisateur cyclos ajouté avec succés.");
-                                } else {
-                                    $this->addFlash('danger', "Le QR code n'a pas pu être activé.");
-                                }
-                            } else {
-                                $this->addFlash('danger', "Le QR code n'a pas pu être créé.");
-                            }
+                        $responseQrCode = $this->curlRequestCyclos('POST', '/token/save', $data);
+                        if ($responseQrCode['httpcode'] != 200) {
+                            $this->addFlash('danger', "Le QR code n'a pas pu être créé.");
                         } else {
-                            $this->addFlash('danger', "L'utilisateur cyclos n'a pas pu être activé.");
+                            $responseActivationQrCode = $this->curlRequestCyclos('POST', '/token/activatePending', [$responseQrCode['data']->result]);
+                            if($responseActivationQrCode['httpcode'] != 200) {
+                                $this->addFlash('danger', "Le QR code n'a pas pu être activé.");
+                            }
                         }
                     }
-                } else{
-                    $this->addFlash('danger', "L'utilisateur cyclos n'a pas été créé.");
                 }
-
-            }else{
-                $this->addFlash('warning', "Utilisateur déjà présent dans Cyclos, le compte cyclos n'a pas été créé.");
             }
         }
-
 
         return true;
     }
