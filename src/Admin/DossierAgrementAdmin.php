@@ -34,6 +34,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
                 [
                     'choices' => [
                         'en cours' => 'en cours',
+                        'complet' => 'complet'
                         'valide' => 'valide'
                     ],
                     'required' => false,
@@ -103,8 +104,8 @@ final class DossierAgrementAdmin extends AbstractAdmin
                     'field_type' => ChoiceType::class,
                     'field_options' => [
                         'choices' => [
-                            'nouveau' => 'nouveau',
                             'en cours' => 'en cours',
+                            'complet' => 'complet',
                             'valide' => 'valide'],
                         'required' => false
 
