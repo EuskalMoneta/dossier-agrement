@@ -34,7 +34,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
                 [
                     'choices' => [
                         'en cours' => 'en cours',
-                        'complet' => 'complet'
+                        'complet' => 'complet',
                         'valide' => 'valide'
                     ],
                     'required' => false,
