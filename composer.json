@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
+        "ext-gd": "*",
         "artgris/filemanager-bundle": "^2.5",
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.7",

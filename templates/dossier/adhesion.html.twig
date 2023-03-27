@@ -327,9 +327,7 @@
     {% block javascript %}
 
     $('.docToDelete').on('click', function (){
-        console.log(idDocument);
         var idDocument = $(this).attr('data-action');
-        console.log(idDocument);
         $('#deleteDocContainer').append('<input type="hidden" name="docToDelete[]" value="'+idDocument+'">');
         $(this).parent().parent().remove();
     });
@@ -355,6 +353,7 @@
             var _ref;
             return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
         }#}
+
 
     });
 
