@@ -194,17 +194,17 @@ $('#adresse-submit').click(function (){
 
 //select 2 pour les categories
 $('#adresse-categories').select2({
-    dropdownParent: $('#adresseModal'),
+    dropdownParent: $('#annuaire-select'),
 });
 
 //select 2 pour les categories Eskuz
 $('#adresse-categories-eskuz').select2({
-    dropdownParent: $('#adresseModal'),
+    dropdownParent: $('#euskuz-select'),
 });
 
 //select 2 pour l'adresse postale
 $('#adresse-adresse').select2({
-    dropdownParent: $('#adresseModal'),
+    dropdownParent: $('#adresse-modal-select'),
     ajax: {
         url: "https://api-adresse.data.gouv.fr/search/",
         delay: 250,
