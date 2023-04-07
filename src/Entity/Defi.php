@@ -37,15 +37,15 @@ class Defi
     }
 
     public function getLabelDefiCRM(){
-        if($this->type =='professionnel'){
+        if($this->type == 'professionnel'){
             return 'Trois prestataires du réseau';
-        } elseif ($this->type =='accueilEuskara'){
+        } elseif ($this->type == 'accueilEuskara'){
             return 'Accueil en euskara';
-        } elseif ($this->type =='promotionEuskara'){
+        } elseif ($this->type == 'promotionEuskara'){
             return 'Affichage en euskara';
-        }elseif ($this->type =='produit'){
+        }elseif ($this->type == 'produit'){
             return 'Trois produits locaux';
-        } elseif ($this->type =='reutiliser'){
+        } elseif ($this->type == 'reutiliser'){
             return 'Réutiliser à titre personnel';
         } else {
             return 'defi';

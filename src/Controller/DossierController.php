@@ -165,7 +165,7 @@ class DossierController extends AbstractController
         }
 
 
-        return $this->renderForm('dossier/coordonnees.html.twig', [
+        return $this->render('dossier/coordonnees.html.twig', [
             'form' => $form,
             'dossierAgrement' => $dossierAgrement,
             'categoriesAnnuaire' => $categoriesAnnuaire,
@@ -182,14 +182,14 @@ class DossierController extends AbstractController
 
         if ($request->isMethod('post')) {
 
-            //Enregistrer les défis produits
+            //Enregistrer les défis professionnels
             if($request->get('professionnels')) {
                 foreach ($request->get('professionnels') as $key => $produit) {
                     $this->enregistrerDefi($key, $produit, 'professionnel', $request->get('professionnels-etat'.$key),  $dossierAgrement, $em);
                 }
             }
 
-            //Enregistrer les défis professionnels
+            //Enregistrer les défis produits
             if($request->get('produits')) {
                 foreach ($request->get('produits') as $key => $produit) {
                     $this->enregistrerDefi($key, $produit, 'produit', $request->get('produits-etat'.$key),  $dossierAgrement, $em);
@@ -222,7 +222,7 @@ class DossierController extends AbstractController
 
         }
 
-        return $this->renderForm('dossier/defis.html.twig', [
+        return $this->render('dossier/defis.html.twig', [
             'dossierAgrement' => $dossierAgrement
         ]);
 
@@ -296,7 +296,7 @@ class DossierController extends AbstractController
             return $this->redirectToRoute('app_dossier_adhesion', ['id' => $dossierAgrement->getId()]);
         }
 
-        return $this->renderForm('dossier/vieReseau.html.twig', [
+        return $this->render('dossier/vieReseau.html.twig', [
             'dossierAgrement' => $dossierAgrement
         ]);
 
@@ -336,7 +336,7 @@ class DossierController extends AbstractController
             return $this->redirectToRoute('app_dossier_signature_electronique', ['id' => $dossierAgrement->getId()]);
         }
 
-        return $this->renderForm('dossier/adhesion.html.twig', [
+        return $this->render('dossier/adhesion.html.twig', [
             'form' => $form,
             'dossierAgrement' => $dossierAgrement,
             'reductionsAdhesion' => $reductionsAdhesion
@@ -432,7 +432,7 @@ class DossierController extends AbstractController
 
         }
 
-        return $this->renderForm('dossier/signatureCoordonnes.html.twig', [
+        return $this->render('dossier/signatureCoordonnes.html.twig', [
             'form' => $form,
             'dossierAgrement' => $dossierAgrement
         ]);
