@@ -206,7 +206,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                     $responseActivation = $this->curlRequestCyclos('POST', '/userStatus/changeStatus', $data);
                     if($responseActivation['httpcode'] != 200) {
                         $this->addFlash('danger', "L'utilisateur Cyclos n'a pas pu être activé.");
-					} else {
+                    } else {
                         // et créer un QR code pour cet utilisateur
                         $data = [
                             'user'=> $responseUser['data']->result->user->id,
@@ -393,17 +393,17 @@ class DolibarrController extends AbstractController implements CRMInterface
         if ($reponseAdresseActivite['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout de l'adresse d'activité : ".$adresseActivite->getNom());
             return false;
-	}
-	$idAdresseActivite = $reponseAdresseActivite['data'];
+        }
+        $idAdresseActivite = $reponseAdresseActivite['data'];
 
         // Ajouter l'étiquette "Adresse d'activité"
         $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/370/objects/contact/'.$idAdresseActivite);
         if ($reponseLiaison['httpcode'] != 200) {
             $this->addFlash("danger", "Erreur lors de l'ajout de l'étiquette \"Adresse d'activité\" à l'adresse d'activité : ".$adresseActivite->getNom());
             return false;
-	}
+        }
 
-	// Ajouter les étiquettes des catégories des annuaires
+        // Ajouter les étiquettes des catégories des annuaires
         $categories = array_merge($adresseActivite->getCategoriesAnnuaire()->toArray(), $adresseActivite->getCategoriesAnnuaireEskuz()->toArray());
         foreach ($categories as $cat) {
             $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/'.$cat->getIdExterne().'/objects/contact/'.$idAdresseActivite);
