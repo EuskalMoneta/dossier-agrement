@@ -447,6 +447,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
             if($reponseTier['httpcode'] != 200) {
                 $this->addFlash("danger", "Erreur lors de la mise à jour du tier dans dolibarr.");
+                $this->logger->error("Erreur lors de la mise à jour du tiers dans Dolibarr : ".$reponseTier['data']->error->message);
                 return false;
             }
             return $reponseTier['data']->id;
@@ -455,6 +456,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             $reponseTier = $this->curlRequestDolibarr('POST', 'thirdparties', $data);
             if($reponseTier['httpcode'] != 200) {
                 $this->addFlash("danger", "Erreur lors de l'ajout du tier dans dolibarr.");
+                $this->logger->error("Erreur lors de l'ajout du tiers dans Dolibarr : ".$reponseTier['data']->error->message);
                 return false;
             }
             return $reponseTier['data'];
