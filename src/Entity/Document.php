@@ -113,18 +113,18 @@ class Document
         $nomFichier = '';
         switch ($this->type) {
             case 'kbis':
-                $nomFichier = "-Pièce-juridique-";
+                $nomFichier = "Pièce-juridique";
                 break;
             case 'identite':
-                $nomFichier = "-Pièce-d-identité-";
+                $nomFichier = "Pièce-d'identité";
                 break;
             case 'rib':
-                $nomFichier = "-RIB-";
+                $nomFichier = "RIB";
                 break;
         }
 
         $ext = explode('.', $this->getPath())[1];
-        return $numeroAdherent . $nomFichier . $this->getId() . '.' . $ext;
+        return $numeroAdherent.'-'.$nomFichier.'.'.$ext;
     }
 
     /**
