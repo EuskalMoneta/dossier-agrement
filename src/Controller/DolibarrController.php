@@ -516,42 +516,18 @@ class DolibarrController extends AbstractController implements CRMInterface
 
     public function postCotisation(DossierAgrement $dossierAgrement): int{
 
-        //Cotisation gratuite fin du mois
-        $cotisationGratuite = $this->transformCotisation(
-            (new \DateTime()),
+        // La cotisation est offerte pour le premier mois.
+        $cotisation = $this->transformCotisation(
+            $dossierAgrement->getDateAgrement(),
             (new \DateTime())->modify("last day of this month"),
             0,
-            "Adhésion/cotisation".date('Y'),
-            $dossierAgrement
+            "Adhésion/cotisation ".date('Y')
         );
-        $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationGratuite);
-        if($reponse['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationGratuite['note']);
-            $this->addFlash("danger",$reponse['data']->error->message);
+        $reponse = $this->curlRequestDolibarr('POST', 'members/'.$dossierAgrement->getIdAdherent().'/subscriptions', $cotisation);
+        if ($reponse['httpcode'] != 200) {
+            $this->addFlash("danger","Erreur lors de la création de la cotisation.");
+            $this->logger->error("Erreur lors de la création de la cotisation dans Dolibarr : ".$reponse['data']->error->message);
             return false;
-        }
-
-        //Cotisation au prorata pour le reste de l'année, sauf pour le mois de décembre.
-        if((new \DateTime())->format('m') != '12'){
-            $startNextMonth = (new \DateTime())->modify("first day of next month 00:00");
-            $endOfYear = (new \DateTime())->modify("last day of December this year 00:00");
-            $numberOfDays = $endOfYear->diff($startNextMonth)->format("%a");
-            $montant = round(($numberOfDays * $dossierAgrement->getMontant())/365,2);
-
-            $cotisationProrata = $this->transformCotisation(
-                $startNextMonth,
-                $endOfYear,
-                $montant,
-                "Adhésion/cotisation".date('Y'),
-                $dossierAgrement
-            );
-
-            $reponse = $this->curlRequestDolibarr('POST', 'subscriptions', $cotisationProrata);
-            if($reponse['httpcode'] != 200) {
-                $this->addFlash("danger","Erreur lors de la cotisation : ".$cotisationProrata['note']);
-                $this->addFlash("danger",$reponse['data']->error->message);
-                return false;
-            }
         }
 
         return true;
@@ -563,22 +539,14 @@ class DolibarrController extends AbstractController implements CRMInterface
      * @param DossierAgrement $dossierAgrement
      * @return array
      */
-    private function transformCotisation(\DateTime $start, \DateTime $end, $montant, $label, DossierAgrement $dossierAgrement){
+    private function transformCotisation(\DateTime $start, \DateTime $end, $montant, $label){
 
         $data =
             [
-                //creation
-                "datec"=> (new \DateTime('now'))->getTimestamp(),
-                //modif ?
-                //"datem"=> (new \DateTime('now'))->getTimestamp(),
-                //debut
-                "dateh"=> $start->getTimestamp(),
-                //fin
-                "datef"=> $end->getTimestamp(),
-                "fk_adherent"=> $dossierAgrement->getIdAdherent(),
+                "start_date"=> $start->getTimestamp(),
+                "end_date"=> $end->getTimestamp(),
                 "amount"=> $montant,
-                "fk_bank"=> "55495",
-                "note"=> $label,
+                "label"=> $label,
             ];
 
         return $data;
