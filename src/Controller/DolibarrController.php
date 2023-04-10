@@ -413,6 +413,15 @@ class DolibarrController extends AbstractController implements CRMInterface
             }
         }
 
+        // Ajouter l'étiquette "Vacances en eusko"
+        if ($adresseActivite->isGuideVEE()) {
+            $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/489/objects/contact/'.$idAdresseActivite);
+            if ($reponseLiaison['httpcode'] != 200) {
+                $this->addFlash("danger", "Erreur lors de l'ajout de l'étiquette \"Vacances en eusko\" à l'adresse d'activité : ".$adresseActivite->getNom());
+                return false;
+            }
+        }
+
         return true;
     }
 
