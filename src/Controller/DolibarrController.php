@@ -389,21 +389,29 @@ class DolibarrController extends AbstractController implements CRMInterface
     {
 
         $data = $this->transformAdresseActivite($adresseActivite);
-        $reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
-        if($reponseCategories['httpcode'] != 200) {
+        $reponseAdresseActivite = $this->curlRequestDolibarr('POST', 'contacts', $data);
+        if ($reponseAdresseActivite['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout de l'adresse d'activité : ".$adresseActivite->getNom());
             return false;
-        }
+	}
+	$idAdresseActivite = $reponseAdresseActivite['data'];
 
-        /*
-         * Ajouter les catégories contact associées => ne marche pas
-         * foreach ($adresseActivite->getCategoriesAnnuaire() as $categorieAnnuaire){
-            $data = [
-                'id' => $categorieAnnuaire->getIdExterne(),
-            ];
-            $reponseLiaison = $this->curlRequestDolibarr('PST', 'categories/'.$reponseCategories['data'].'/categories', $data);
-            dump($reponseLiaison);
-        }*/
+        // Ajouter l'étiquette "Adresse d'activité"
+        $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/370/objects/contact/'.$idAdresseActivite);
+        if ($reponseLiaison['httpcode'] != 200) {
+            $this->addFlash("danger", "Erreur lors de l'ajout de l'étiquette \"Adresse d'activité\" à l'adresse d'activité : ".$adresseActivite->getNom());
+            return false;
+	}
+
+	// Ajouter les étiquettes des catégories des annuaires
+        $categories = array_merge($adresseActivite->getCategoriesAnnuaire()->toArray(), $adresseActivite->getCategoriesAnnuaireEskuz()->toArray());
+        foreach ($categories as $cat) {
+            $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/'.$cat->getIdExterne().'/objects/contact/'.$idAdresseActivite);
+            if ($reponseLiaison['httpcode'] != 200) {
+                $this->addFlash("danger", "Erreur lors de l'ajout de la catégorie '.$cat->getIdExterne().' à l'adresse d'activité : ".$adresseActivite->getNom());
+                return false;
+            }
+        }
 
         return true;
     }
