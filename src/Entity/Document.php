@@ -121,10 +121,13 @@ class Document
             case 'rib':
                 $nomFichier = "RIB";
                 break;
+            case 'sepa':
+                $nomFichier = "Mandat-SEPA";
+                break;
         }
 
         $ext = explode('.', $this->getPath())[1];
-        return $numeroAdherent.'-'.$nomFichier.'.'.$ext;
+        return $numeroAdherent.'-'.$nomFichier.'-'.$this->getId().'.'.$ext;
     }
 
     /**
