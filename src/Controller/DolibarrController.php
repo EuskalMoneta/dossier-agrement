@@ -470,8 +470,8 @@ class DolibarrController extends AbstractController implements CRMInterface
         $reponse = $this->curlRequestDolibarr('POST', 'documents/upload', $data);
 
         if($reponse['httpcode'] != 200) {
-            //$this->addFlash("danger","Erreur lors de l'ajout du document : ".$reponse['data']->error->message);
             $this->addFlash("danger","Erreur lors de l'ajout du document : ".$document->getPath());
+            $this->logger->error("Erreur lors de l'ajout du document : ".$document->getPath()."\nErreur : ".$reponse['data']->error->message);
             return false;
         }
 
