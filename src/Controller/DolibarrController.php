@@ -506,7 +506,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             $reponse = $this->curlRequestDolibarr('POST', 'members', $data);
             if($reponse['httpcode'] != 200) {
                 $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
-                $this->addFlash("danger",$reponse['data']->error->message);
+                $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : ".$reponse['data']->error->message);
                 return false;
             }
             return $reponse['data'];
@@ -751,7 +751,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_bic"=> $dossierAgrement->getBic(),
             "options_prelevement_auto_cotisation"=> '1',
             //"options_prelevement_auto_cotisation_eusko"=> '1',
-            "options_nb_salaries"=> $dossierAgrement->getNbSalarie(),
+            "options_nb_salaries"=> strval($dossierAgrement->getNbSalarie()),
             "options_reduction_cotisation"=> $options_reduction_cotisation,
             "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
             "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
@@ -771,12 +771,12 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "morphy"=> "mor",
                 "lastname"=>  $dossierAgrement->getNomDirigeant(),
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
-                "email"=> $dossierAgrement->getEmailDirigeant(),
+                "email"=> $dossierAgrement->getCompteNumerique(),
                 'address' => $adresse->address,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
-                "phone_mobile"=> $dossierAgrement->getTelephoneDirigeant(),
+                "phone"=> $dossierAgrement->getTelephone(),
                 "fk_soc"=> $dossierAgrement->getIdExterne(),
                 "societe"=> $dossierAgrement->getDenominationCommerciale(),
                 "company"=> $dossierAgrement->getDenominationCommerciale(),

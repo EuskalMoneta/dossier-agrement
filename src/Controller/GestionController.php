@@ -131,16 +131,17 @@ class GestionController extends AbstractController
         $this->envoiDefi($em, $crm, $dossierAgrement);
 
         //***** Adhérent
-        if($crm->postAdherent($dossierAgrement) != false){
-            $dossierAgrement->setIdAdherent($crm->postAdherent($dossierAgrement));
-        }
+        $idAdherent = $crm->postAdherent($dossierAgrement);
+        if ($idAdherent) {
+            $dossierAgrement->setIdAdherent($idAdherent);
 
-        //***** Cotisation
-        $crm->postCotisation($dossierAgrement);
+            //***** Cotisation
+            $crm->postCotisation($dossierAgrement);
 
-        //***** Documents
-        foreach ($dossierAgrement->getDocuments() as $document){
-            $crm->postDocument($document);
+            //***** Documents
+            foreach ($dossierAgrement->getDocuments() as $document){
+                $crm->postDocument($document);
+            }
         }
 
         //***** Compte numérique
