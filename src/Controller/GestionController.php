@@ -197,66 +197,59 @@ class GestionController extends AbstractController
      */
     private function envoiDefi(EntityManagerInterface $em, DolibarrController $crm, DossierAgrement $dossierAgrement){
 
-        //***** Defis produits
+        //***** Défi "Trois produits locaux"
         $defisProduits = $em->getRepository(Defi::class)->findBy([
             'dossierAgrement' => $dossierAgrement->getId(),
             'type' => 'produit'
         ]);
-
         if(count($defisProduits) > 0){
             $defi = new Defi();
             $defi->setDossierAgrement($dossierAgrement);
             $defi->setType('produit');
-            $defi->setEtat(false);
+            $defi->setEtat(true);
 
             foreach ($defisProduits as $defiProduit){
                 $nomProduit = $defiProduit->getValeur();
-                $defi->setValeur($defi->getValeur().' '.$nomProduit.',');
+                $defi->setValeur($defi->getValeur().' '.$nomProduit.' : '.$defiProduit->getEtatReadable().'<br>');
 
-                //Si un des défi est réalisé
-                if($defiProduit->isEtat()){
-                    $defi->setEtat(true);
+                //Si un des produits est "A réaliser"
+                if(!$defiProduit->isEtat()){
+                    $defi->setEtat(false);
                 }
             }
-            $defi->setValeur(rtrim($defi->getValeur(), ','));
             $crm->postDefi($defi);
-        } else {
+        }
 
-            //***** Sinon defis presta
-            $defisPrestataires = $em->getRepository(Defi::class)->findBy([
-                'dossierAgrement' => $dossierAgrement->getId(),
-                'type' => 'professionnel'
-            ]);
+        //***** Défi "Trois professionnels du réseau"
+        $defisPrestataires = $em->getRepository(Defi::class)->findBy([
+            'dossierAgrement' => $dossierAgrement->getId(),
+            'type' => 'professionnel'
+        ]);
+        if(count($defisPrestataires) > 0){
+            $defi = new Defi();
+            $defi->setDossierAgrement($dossierAgrement);
+            $defi->setType('professionnel');
+            $defi->setEtat(true);
 
-            if(count($defisPrestataires) > 0){
-                $defi = new Defi();
-                $defi->setDossierAgrement($dossierAgrement);
-                $defi->setType('professionnel');
-                $defi->setEtat(false);
+            foreach ($defisPrestataires as $defiPresta){
+                $nomPrestataire = json_decode($defiPresta->getValeur())->text;
+                $defi->setValeur($defi->getValeur().' '.$nomPrestataire.' : '.$defiPresta->getEtatReadable().'<br>');
 
-                foreach ($defisPrestataires as $defiPresta){
-                    $nomPrestataire = json_decode($defiPresta->getValeur())->text;
-                    $defi->setValeur($defi->getValeur().' '.$nomPrestataire.',');
-
-                    //Si un des défi est réalisé
-                    if($defiPresta->isEtat()){
-                        $defi->setEtat(true);
-                    }
+                //Si un des prestataires est "A réaliser"
+                if(!$defiPresta->isEtat()){
+                    $defi->setEtat(false);
                 }
-                $defi->setValeur(rtrim($defi->getValeur(), ','));
-                $crm->postDefi($defi);
-            } else {
-                //***** Sinon defi réutiliser
-                $defiAccueil = $em->getRepository(Defi::class)->findOneBy([
-                    'dossierAgrement' => $dossierAgrement->getId(),
-                    'type' => 'reutiliser'
-                ]);
-                if($defiAccueil){
-                    $crm->postDefi($defiAccueil);
-                }
-
             }
+            $crm->postDefi($defi);
+        }
 
+        //***** Défi "Réutiliser à titre personnel"
+        $defiReutiliser = $em->getRepository(Defi::class)->findOneBy([
+            'dossierAgrement' => $dossierAgrement->getId(),
+            'type' => 'reutiliser'
+        ]);
+        if($defiReutiliser){
+            $crm->postDefi($defiReutiliser);
         }
 
         //***** Defi promotion
@@ -264,7 +257,7 @@ class GestionController extends AbstractController
             'dossierAgrement' => $dossierAgrement->getId(),
             'type' => 'promotionEuskara'
         ]);
-        if($defiPromotion){
+        if($defiPromotion && $defiPromotion->getValeur() != NULL){
             $crm->postDefi($defiPromotion);
         }
 
