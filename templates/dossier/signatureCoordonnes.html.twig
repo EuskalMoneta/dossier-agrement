@@ -120,16 +120,17 @@
 
 
 
-        {#  if dossierAgrement.sepaBase64 != '' %}
-            <div class="row top-buffer mt-5">
-                <div class="col-md-12">
-                    <div class="alert alert-info alert-dismissable">
-                        <h4 class="alert-heading">Attention</h4>
-                        <p>Une signature électronique est déjà enregistrée pour ce dossier !</p>
+        {% for document in dossierAgrement.documents%}
+            {% if document.type == 'sepa' and document.path != '' %}
+                <div class="row top-buffer mt-5">
+                    <div class="col-md-12">
+                        <div class="alert alert-info alert-dismissable">
+                            <p class="mb-0">Une <a href="{{ asset(document.getWebPath) }}">signature électronique</a> est déjà enregistrée pour ce dossier !</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        {% endif #}
+            {% endif %}
+        {% endfor %}
 
         <div class="spacer-end-of-block"></div>
 
