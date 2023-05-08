@@ -31,6 +31,18 @@ class CoordonneesFormType extends AbstractType
             ])*/
             ->add('emailPrincipal', EmailType::class, ['label' => 'Email'])
             ->add('nomDirigeant', null, ['label' => 'Nom'])
+            ->add('civiliteDirigeant',ChoiceType::class,[
+                'label' => 'Genre',
+                'required' => false,
+                'attr' => ['class' => ''],
+                'choices'  => [
+                    'Monsieur' => 'MR',
+                    'Madame' => 'MME',
+                    'Docteur' => 'DR',
+                    'Maître' => 'MTRE',
+                    'M.' => 'M'
+                ]
+            ])
             ->add('telephone', null, ['label' => 'Téléphone'])
             ->add('prenomDirigeant', null, ['label' => 'Prénom'])
             ->add('telephoneDirigeant', null, ['label' => 'Téléphone'])

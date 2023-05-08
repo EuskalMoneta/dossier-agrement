@@ -175,6 +175,9 @@ class DossierAgrement
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $complementAdresse = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $civiliteDirigeant = null;
+
 
     public function __toString(): string
     {
@@ -997,6 +1000,18 @@ class DossierAgrement
     public function setComplementAdresse(?string $complementAdresse): self
     {
         $this->complementAdresse = $complementAdresse;
+
+        return $this;
+    }
+
+    public function getCiviliteDirigeant(): ?string
+    {
+        return $this->civiliteDirigeant;
+    }
+
+    public function setCiviliteDirigeant(?string $civiliteDirigeant): self
+    {
+        $this->civiliteDirigeant = $civiliteDirigeant;
 
         return $this;
     }

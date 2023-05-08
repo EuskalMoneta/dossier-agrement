@@ -109,6 +109,7 @@ class GestionController extends AbstractController
         //**** Enregistrer le dirigeant en tant que contact
         $contactDirigeant = new Contact();
         $contactDirigeant->setPrenom($dossierAgrement->getPrenomDirigeant());
+        $contactDirigeant->setCivilite($dossierAgrement->getCiviliteDirigeant());
         $contactDirigeant->setNom($dossierAgrement->getNomDirigeant());
         $contactDirigeant->setFonction($dossierAgrement->getFonctionDirigeant());
         $contactDirigeant->setTelephone($dossierAgrement->getTelephoneDirigeant());
