@@ -258,7 +258,12 @@ class GestionController extends AbstractController
             'dossierAgrement' => $dossierAgrement->getId(),
             'type' => 'promotionEuskara'
         ]);
-        if($defiPromotion && $defiPromotion->getValeur() != NULL){
+        if($defiPromotion && $defiPromotion->getValeur() !== 'Non renseigné'){
+            if($defiPromotion->getValeur() === 'Déjà réalisé'){
+                $defiPromotion->setEtat(1);
+            } else {
+                $defiPromotion->setEtat(0);
+            }
             $crm->postDefi($defiPromotion);
         }
 
@@ -267,8 +272,8 @@ class GestionController extends AbstractController
             'dossierAgrement' => $dossierAgrement->getId(),
             'type' => 'accueilEuskara'
         ]);
-        if($defiAccueil && $defiAccueil->getValeur() != 'Non renseigné'){
-            if($defiAccueil->getValeur() == 'Déjà réalisé'){
+        if($defiAccueil && $defiAccueil->getValeur() !== 'Non renseigné'){
+            if($defiAccueil->getValeur() === 'Déjà réalisé'){
                 $defiAccueil->setEtat(1);
             } else {
                 $defiAccueil->setEtat(0);

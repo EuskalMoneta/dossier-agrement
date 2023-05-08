@@ -201,18 +201,15 @@ class DossierController extends AbstractController
                 $this->enregistrerDefi($key, $produit, 'reutiliser', $request->get('reutiliser-etat'.$key),  $dossierAgrement, $em);
             }
 
-
             //Enregistrer le défi promotion euskara
             foreach ($request->get('promotionEuskara') as $key => $produit) {
                 $this->enregistrerDefi($key, $produit, 'promotionEuskara', $request->get('promotionEuskara-etat'.$key),  $dossierAgrement, $em);
             }
 
-
             //Enregistrer le défi accueil euskara
             foreach ($request->get('accueilEuskara') as $key => $produit) {
                 $this->enregistrerDefi($key, $produit, 'accueilEuskara', $request->get('accueilEuskara-etat'.$key),  $dossierAgrement, $em);
             }
-
 
             /**************    ENREGISTREMENT   *******************/
             $em->persist($dossierAgrement);
@@ -505,7 +502,7 @@ class DossierController extends AbstractController
 
     /**
      *
-     * Enregistre les défis en base de données
+     * Enregistre/met à jour les défis en base de données
      *
      * @param $key integer identifiant du défi s'il existe déjà en base
      * @param $produit
@@ -516,7 +513,7 @@ class DossierController extends AbstractController
      *
      * @return bool
      */
-    public function enregistrerDefi($key,$produit, $type, $etat, DossierAgrement &$dossierAgrement, EntityManagerInterface $em){
+    public function enregistrerDefi($key, $produit, $type, $etat, DossierAgrement &$dossierAgrement, EntityManagerInterface $em){
         $defi = $em->getRepository(Defi::class)->find($key);
         if(!$defi){
             $defi = new Defi();
