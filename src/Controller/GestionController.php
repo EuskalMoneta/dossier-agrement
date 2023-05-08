@@ -468,7 +468,11 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($pros as $defi){
-                        $section->addListItem(json_decode($defi->getValeur())->text.' - '.json_decode($defi->getValeur())->note.' - '.$defi->getEtatReadable(),
+                        $note ='';
+                        if(json_decode($defi->getValeur())->note !== ''){
+                            $note = ' - '.json_decode($defi->getValeur())->note;
+                        }
+                        $section->addListItem(json_decode($defi->getValeur())->text.$note.' - '.$defi->getEtatReadable(),
                             0,
                             $paragraphFontStyle,
                             null,
