@@ -33,6 +33,7 @@ $('#contactContainer').on('click', '.contact-edit', function (){
     var contactObject =  JSON.parse($('#contact-'+idContact).val());
 
     //Peupler la modal avec les informations
+    $('#contact-civilite').val(contactObject.civilite);
     $('#contact-nom').val(contactObject.nom);
     $('#contact-prenom').val(contactObject.prenom);
     $('#contact-email').val(contactObject.email);
@@ -65,6 +66,7 @@ $('#contact-submit').click(function (){
 
     //sauvegarde des informations dans un objet
     var contactObject = {
+        civilite: $('#contact-civilite').val(),
         nom: $('#contact-nom').val(),
         prenom: $('#contact-prenom').val(),
         email: $('#contact-email').val(),
@@ -118,6 +120,7 @@ $('#contact-submit').click(function (){
     var templating =
         [
             {
+                civilite: contactObject.civilite,
                 nom: contactObject.nom,
                 prenom: contactObject.prenom,
                 email: contactObject.email,

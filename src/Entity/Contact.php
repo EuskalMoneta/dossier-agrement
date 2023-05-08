@@ -34,6 +34,9 @@ class Contact
     #[ORM\ManyToOne(inversedBy: 'contacts')]
     private ?DossierAgrement $dossierAgrement = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $civilite = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -42,6 +45,7 @@ class Contact
     public function getJsonFormat(): ?string
     {
         return json_encode([
+            'civilite' => $this->civilite,
             'nom' => $this->nom,
             'prenom' => $this->prenom,
             'email' => $this->email,
@@ -55,6 +59,7 @@ class Contact
 
     public function updateFormJsonObject($contactObjet): self
     {
+        $this->setCivilite($contactObjet->civilite);
         $this->setNom($contactObjet->nom);
         $this->setPrenom($contactObjet->prenom);
         $this->setEmail($contactObjet->email);
@@ -145,6 +150,18 @@ class Contact
     public function setDossierAgrement(?DossierAgrement $dossierAgrement): self
     {
         $this->dossierAgrement = $dossierAgrement;
+
+        return $this;
+    }
+
+    public function getCivilite(): ?string
+    {
+        return $this->civilite;
+    }
+
+    public function setCivilite(?string $civilite): self
+    {
+        $this->civilite = $civilite;
 
         return $this;
     }

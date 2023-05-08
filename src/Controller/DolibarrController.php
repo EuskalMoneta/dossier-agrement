@@ -788,6 +788,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "socid"=> $contact->getDossierAgrement()->getIdExterne(),
                 "email"=> $contact->getEmail(),
                 "mail"=> $contact->getEmail(),
+                "civility_id"=> $contact->getCivilite(),
                 "phone_pro"=> $contact->getTelephone(),
                 "lastname"=> $contact->getNom(),
                 "firstname"=> $contact->getPrenom(),
