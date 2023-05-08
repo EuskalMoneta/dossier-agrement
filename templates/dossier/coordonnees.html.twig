@@ -43,14 +43,14 @@
             <div class="col-6">
 
                 <div class="mb-3">
-                    <label for="form_city" class="form-label">Adresse</label>
-                    <select id="form_city" name="adresse" class="form-control js-city-ajax" style="width: 100%;">
+                    <label for="form_city" class="form-label required">Adresse</label>
+                    <select id="form_city" name="adresse" class="form-control js-city-ajax" style="width: 100%;" required>
                         {% if dossierAgrement.adressePrincipale != '' %}
                             {% set adresse = dossierAgrement.adressePrincipale | json_decode  %}
                             <option value="{{ dossierAgrement.adressePrincipale }}" selected="selected">{{ adresse.text }}</option>
                         {% endif %}
                     </select>
-                    <input type="hidden" name="adressePrincipale" id="adressePrincipale" value="{{ dossierAgrement.adressePrincipale }}">
+                    <input type="hidden" name="adressePrincipale" id="adressePrincipale" value="{{ dossierAgrement.adressePrincipale }}" required>
 
                 </div>
             </div>

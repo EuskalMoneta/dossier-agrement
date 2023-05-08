@@ -260,3 +260,7 @@ li.hp-list-dossier:not(:last-child) {
         margin: 1.75rem auto;
     }
 }
+label.required:after, legend.required::before{
+    content: " *";
+    color: #c23321;
+}
