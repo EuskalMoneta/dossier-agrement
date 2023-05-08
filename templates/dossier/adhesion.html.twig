@@ -251,7 +251,7 @@
                         <div class="d-flex flex-wrap">
                             {% for document in dossierAgrement.documents %}
                                 {% if document.type == "identite" %}
-                                    <div class="ms-2">
+                                    <div class="ms-2" style="min-width: 200px; border: 1px solid black; min-height: 60px; padding: 5px;">
                                         <div class="" style="position: relative;">
                                             <embed src="{{ asset('uploads/'~ document.type ~ '/'~ document.path) }}" width="250" height="200">
                                             <a class="btn btn-danger docToDelete" data-action="{{ document.id }}" style="position: absolute; top: 10px; right: 20px;">
@@ -259,7 +259,11 @@
                                                     <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
                                                 </svg>
                                             </a>
+
                                         </div>
+                                        <div >
+                                            {{ document.path }}</div>
+
                                     </div>
                                 {% endif %}
                             {% endfor %}
@@ -336,15 +340,14 @@
     var actionKbis = $('#dropzone_kbis').attr('action');
     var myDropzone = new Dropzone("#dropzone_kbis", {
         url: actionKbis,
-        maxFilesize: 10,
-        {#addRemoveLinks: true,
+        maxFilesize: 5,
+        addRemoveLinks: true,
         removedfile: function(file) {
-            var fileName = file.name;
-            console.log(fileName);
+            var documentId = file.xhr.response;
             $.ajax({
                 type: 'POST',
-                url: 'upload.php',
-                data: {name: fileName,request: 'delete'},
+                url: "{{path('app_remove_ajax_file') }}",
+                data: {idDocument: documentId, request: 'delete'},
                 sucess: function(data){
                     console.log('success: ' + data);
                 }
@@ -352,122 +355,152 @@
 
             var _ref;
             return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
-        }#}
-
-
+        },
     });
 
-    var actionIdentite = $('#dropzone_identite').attr('action');
-    var myDropzone = new Dropzone("#dropzone_identite", { url: actionIdentite, maxFilesize: 5 });
+        var actionIdentite = $('#dropzone_identite').attr('action');
+var idDropzone = new Dropzone("#dropzone_identite", { url: actionIdentite,maxFilesize: 5,
+        addRemoveLinks: true,
+        removedfile: function(file) {
+            var documentId = file.xhr.response;
+            $.ajax({
+                type: 'POST',
+                url: "{{path('app_remove_ajax_file') }}",
+                data: {idDocument: documentId, request: 'delete'},
+                sucess: function(data){
+                    console.log('success: ' + data);
+                }
+            });
 
-    var actionRib = $('#dropzone_rib').attr('action');
-    var ribDropzone = new Dropzone("#dropzone_rib", { url: actionRib, maxFilesize: 5 });
+            var _ref;
+            return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+        },
+    });
+
+var actionRib = $('#dropzone_rib').attr('action');
+var ribDropzone = new Dropzone("#dropzone_rib", { url: actionRib, maxFilesize: 5,
+        addRemoveLinks: true,
+        removedfile: function(file) {
+            var documentId = file.xhr.response;
+            $.ajax({
+                type: 'POST',
+                url: "{{path('app_remove_ajax_file') }}",
+                data: {idDocument: documentId, request: 'delete'},
+                sucess: function(data){
+                    console.log('success: ' + data);
+                }
+            });
+
+            var _ref;
+            return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+        },
+    });
 
 
 
-    $('#calculAdhesion').on('click', function (){
+$('#calculAdhesion').on('click', function (){
 
-        //montant total qui prendra en compte les réductions
-        var montant = 0;
+    //montant total qui prendra en compte les réductions
+    var montant = 0;
 
-        //montant de la cotisation solidaire ou minimale
-        var solidaire = 0;
-        var minimale = 0;
+    //montant de la cotisation solidaire ou minimale
+    var solidaire = 0;
+    var minimale = 0;
 
-        //Frais de dossier = fdd
-        var fdd = 0;
+    //Frais de dossier = fdd
+    var fdd = 0;
 
-        //nombre de salariés
-        var nbSalarie = $('.nbSalarie').val();
+    //nombre de salariés
+    var nbSalarie = $('.nbSalarie').val();
 
-        //cotisation solidaire ou minimale
-        var typeCotisation = $('.typeCotisation').val();
+    //cotisation solidaire ou minimale
+    var typeCotisation = $('.typeCotisation').val();
 
 
-    {% if dossierAgrement.type == 'association' %}
+{% if dossierAgrement.type == 'association' %}
 
-        if(nbSalarie < 1){
-            solidaire = 45;
-            minimale = 30;
-            fdd = 0;
-        } else if(nbSalarie < 3){
-            solidaire = 90;
-            minimale = 60;
-            fdd = 0;
-        }else if(nbSalarie < 6){
-            solidaire = 150;
-            minimale = 100;
-            fdd = 0;
-        }else if(nbSalarie < 10){
-            solidaire = 225;
-            minimale = 150;
-            fdd = 0;
-        } else {
-            solidaire = 345;
-            minimale = 230;
-            fdd = 0;
-        }
-    {% else %}
-        if(nbSalarie < 1){
-            solidaire = 126;
-            minimale = 84;
-            fdd = 75;
-        } else if(nbSalarie < 3){
-            solidaire = 180;
-            minimale = 120;
-            fdd = 75;
-        }else if(nbSalarie < 6){
-            solidaire = 252;
-            minimale = 168;
-            fdd = 120;
-        }else if(nbSalarie < 10){
-            solidaire = 360;
-            minimale = 240;
-            fdd = 180;
-        }else if(nbSalarie < 20){
-            solidaire = 504;
-            minimale = 336;
-            fdd = 240;
-        }else if(nbSalarie < 50){
-            solidaire = 720;
-            minimale = 480;
-            fdd = 240;
-        }else if(nbSalarie < 100){
-            solidaire = 1152;
-            minimale = 768;
-            fdd = 240;
-        }else if(nbSalarie < 200){
-            solidaire = 1830;
-            minimale = 1220;
-            fdd = 240;
-        }else {
-            solidaire = 2970;
-            minimale = 1980;
-            fdd = 240;
-        }
-    {% endif %}
-
-    if(typeCotisation === 'solidaire'){
-        montant = solidaire;
-    } else{
-        montant = minimale;
+    if(nbSalarie < 1){
+        solidaire = 45;
+        minimale = 30;
+        fdd = 0;
+    } else if(nbSalarie < 3){
+        solidaire = 90;
+        minimale = 60;
+        fdd = 0;
+    }else if(nbSalarie < 6){
+        solidaire = 150;
+        minimale = 100;
+        fdd = 0;
+    }else if(nbSalarie < 10){
+        solidaire = 225;
+        minimale = 150;
+        fdd = 0;
+    } else {
+        solidaire = 345;
+        minimale = 230;
+        fdd = 0;
     }
+{% else %}
+    if(nbSalarie < 1){
+        solidaire = 126;
+        minimale = 84;
+        fdd = 75;
+    } else if(nbSalarie < 3){
+        solidaire = 180;
+        minimale = 120;
+        fdd = 75;
+    }else if(nbSalarie < 6){
+        solidaire = 252;
+        minimale = 168;
+        fdd = 120;
+    }else if(nbSalarie < 10){
+        solidaire = 360;
+        minimale = 240;
+        fdd = 180;
+    }else if(nbSalarie < 20){
+        solidaire = 504;
+        minimale = 336;
+        fdd = 240;
+    }else if(nbSalarie < 50){
+        solidaire = 720;
+        minimale = 480;
+        fdd = 240;
+    }else if(nbSalarie < 100){
+        solidaire = 1152;
+        minimale = 768;
+        fdd = 240;
+    }else if(nbSalarie < 200){
+        solidaire = 1830;
+        minimale = 1220;
+        fdd = 240;
+    }else {
+        solidaire = 2970;
+        minimale = 1980;
+        fdd = 240;
+    }
+{% endif %}
 
-    var reductionmax = 1;
-    var checkboxes = $('input[name="reductions[]"]');
-    var $checked = checkboxes.filter(":checked"),
-        checkedValues = $checked.map(function () {
-            var value = $(this).attr('data-value');
-            if(reductionmax > value){
-                reductionmax = value;
-            }
-            return this.value;
-        }).get()
+if(typeCotisation === 'solidaire'){
+    montant = solidaire;
+} else{
+    montant = minimale;
+}
 
-    montant = montant * reductionmax;
+var reductionmax = 1;
+var checkboxes = $('input[name="reductions[]"]');
+var $checked = checkboxes.filter(":checked"),
+    checkedValues = $checked.map(function () {
+        var value = $(this).attr('data-value');
+        if(reductionmax > value){
+            reductionmax = value;
+        }
+        return this.value;
+    }).get()
 
-    $('.montant').val(montant);
-    $('.fdd').val(fdd);
+montant = montant * reductionmax;
+
+$('.montant').val(montant);
+$('.fdd').val(fdd);
 });
 
 {% endblock javascript %}

@@ -56,7 +56,20 @@ class GestionController extends AbstractController
         $dossierAgrement->addDocument($document);
         $em->persist($dossierAgrement);
         $em->flush();
-        return new JsonResponse('ok');
+        return new JsonResponse($document->getId());
+    }
+
+    /*
+     * Stocke les fichiers envoyes par dropzone js
+     * Zone de depot sur la partie front
+     */
+    #[Route('/remove/ajax/file', name: 'app_remove_ajax_file')]
+    public function removeFile(Request $request, EntityManagerInterface $em): Response
+    {
+        $document = $em->find(Document::class, $request->get('idDocument'));
+        $em->remove($document);
+        $em->flush();
+        return new JsonResponse($document->getId());
     }
 
 
