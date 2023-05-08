@@ -185,6 +185,10 @@ class DossierController extends AbstractController
             //Enregistrer les défis professionnels
             if($request->get('professionnels')) {
                 foreach ($request->get('professionnels') as $key => $produit) {
+                    $selectValue = json_decode($produit, true);
+                    $selectValue['note'] = $request->get('professionnels-note'.$key);
+                    $produit = json_encode($selectValue);
+
                     $this->enregistrerDefi($key, $produit, 'professionnel', $request->get('professionnels-etat'.$key),  $dossierAgrement, $em);
                 }
             }

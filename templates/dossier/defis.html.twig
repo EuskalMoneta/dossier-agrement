@@ -80,13 +80,19 @@
                         {% if defi.type == 'professionnel' %}
                             <div class="d-flex mt-3 align-items-center">
                                 <div class="flex-grow-1">
-                                    <div class="d-flex flex-grow-1">
-                                        <select name="professionnels[{{ defi.id }}]" class="form-control pro-select form-adresse" style="">
-                                            {% if defi.valeur != '' %}
-                                                {% set pro = defi.valeur | json_decode  %}
-                                                <option value="{{ defi.valeur }}">{{ pro.text }}</option>
-                                            {% endif %}
-                                        </select>
+                                    <div class="d-flex">
+                                        <div class="flex-grow-1 me-3">
+                                            <select name="professionnels[{{ defi.id }}]" class="form-control pro-select form-adresse" style="">
+                                                {% if defi.valeur != '' %}
+                                                    {% set pro = defi.valeur | json_decode  %}
+                                                    <option value="{{ defi.valeur }}">{{ pro.text }}</option>
+                                                {% endif %}
+                                            </select>
+                                            <br />
+                                            <textarea name="professionnels-note{{ defi.id }}" class="form-control ">{% if defi.valeur != '' %}{% set pro = defi.valeur | json_decode  %}{{ pro.note }}{% endif %}</textarea>
+
+                                        </div>
+
 
                                         <input type="button" class="btn btn-outline-dark delSelect" value="X" />
 

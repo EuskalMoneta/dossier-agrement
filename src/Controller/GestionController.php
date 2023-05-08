@@ -446,12 +446,16 @@ class GestionController extends AbstractController
                         "Trois produits locaux",
                         $paragraphFontStyle,
                         $paragraphStyleName);
+
                     /** @var Defi $defi */
                     foreach ($produitsLocaux as $defi){
-                        $section->addText(
-                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                            0,
                             $paragraphFontStyle,
-                            $paragraphStyleName);
+                            null,
+                            $paragraphStyleName
+                            );
+
                     }
                 }
                 $section->addTextBreak();
@@ -464,10 +468,12 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($pros as $defi){
-                        $section->addText(
-                            json_decode($defi->getValeur())->text.' - '.$defi->getEtatReadable(),
+                        $section->addListItem(json_decode($defi->getValeur())->text.' - '.json_decode($defi->getValeur())->note.' - '.$defi->getEtatReadable(),
+                            0,
                             $paragraphFontStyle,
-                            $paragraphStyleName);
+                            null,
+                            $paragraphStyleName
+                        );
                     }
                 }
                 $section->addTextBreak();
@@ -480,10 +486,12 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($reutilisers as $defi){
-                        $section->addText(
-                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                            0,
                             $paragraphFontStyle,
-                            $paragraphStyleName);
+                            null,
+                            $paragraphStyleName
+                        );
                     }
                 }
                 $section->addTextBreak();
@@ -496,10 +504,12 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($promotion as $defi){
-                        $section->addText(
-                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                            0,
                             $paragraphFontStyle,
-                            $paragraphStyleName);
+                            null,
+                            $paragraphStyleName
+                        );
                     }
                 }
                 $section->addTextBreak();
@@ -512,10 +522,12 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($accueil as $defi){
-                        $section->addText(
-                            $defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                            0,
                             $paragraphFontStyle,
-                            $paragraphStyleName);
+                            null,
+                            $paragraphStyleName
+                        );
                     }
                 }
                 $section->addTextBreak();
@@ -543,10 +555,10 @@ class GestionController extends AbstractController
             $paragraphStyleName);
         // Saving the document as OOXML file...
         //$objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-        $objWriter = IOFactory::createWriter($phpWord, 'ODText');
+        $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
 
         // Create a temporal file in the system
-        $fileName = 'ordre_du_jour-'.$date->format('d-m-Y').'.odt';
+        $fileName = 'ordre_du_jour-'.$date->format('d-m-Y').'.docx';
         $temp_file = tempnam(sys_get_temp_dir(), $fileName);
 
         // Write in the temporal filepath
