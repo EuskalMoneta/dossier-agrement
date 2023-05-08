@@ -643,9 +643,15 @@ class DolibarrController extends AbstractController implements CRMInterface
             $array_options["options_euskara"] = "1";
         }
 
+        $adresseRue = '';
+        if($adresseActivite->getComplementAdresse()!=''){
+            $adresseRue = $adresseActivite->getComplementAdresse();
+        } else if (!str_contains($adresse->address, 'undefined')) {
+            $adresseRue = $adresse->address;
+        }
         $data =
             [
-                'address' => $adresseActivite->getComplementAdresse()!=''?$adresseActivite->getComplementAdresse():$adresse->address,
+                'address' => $adresseRue,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
@@ -675,9 +681,16 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier()
         ];
 
+        $adresseRue = '';
+        if($dossierAgrement->getComplementAdresse()!=''){
+            $adresseRue = $dossierAgrement->getComplementAdresse();
+        } else if (!str_contains($adresse->address, 'undefined')) {
+            $adresseRue = $adresse->address;
+        }
+
         $data =
             [
-                'address' => $dossierAgrement->getComplementAdresse()!=''?$dossierAgrement->getComplementAdresse():$adresse->address,
+                'address' => $adresseRue,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
@@ -702,9 +715,15 @@ class DolibarrController extends AbstractController implements CRMInterface
      */
     private function transformAdherent(DossierAgrement $dossierAgrement){
         $adresse = json_decode($dossierAgrement->getAdressePrincipale());
+        $adresseRue = '';
+        if($dossierAgrement->getComplementAdresse()!=''){
+            $adresseRue = $dossierAgrement->getComplementAdresse();
+        } else if (!str_contains($adresse->address, 'undefined')) {
+            $adresseRue = $adresse->address;
+        }
 
-        //Parcours des réduction, si il y en a une c'est la valeur 1 (25%) dans dolibarr
-        //Si une seule des réductions cochée est > 26 donc c'est la valeur 2 (50%) dans dolibarr
+        //Parcours des réduction, si il y en a au moins une => c'est la valeur 1 (25%) dans dolibarr
+        //Si une seule des réductions cochée est > 26 donc c'est la valeur 2 (50%) qui l'emporte dans dolibarr
         $options_reduction_cotisation = '0';
         foreach ($dossierAgrement->getReductionsAdhesion() as $reduction){
             $options_reduction_cotisation = '1';
@@ -719,7 +738,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_bic"=> $dossierAgrement->getBic(),
             "options_prelevement_auto_cotisation"=> '1',
             //"options_prelevement_auto_cotisation_eusko"=> '1',
-            "options_nb_salaries"=> strval($dossierAgrement->getNbSalarie()),
+            "options_nb_salaries"=> (string) $dossierAgrement->getNbSalarie(),
             "options_reduction_cotisation"=> $options_reduction_cotisation,
             "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
             "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
@@ -740,14 +759,14 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "lastname"=>  $dossierAgrement->getNomDirigeant(),
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
                 "email"=> $dossierAgrement->getCompteNumerique(),
-                'address' => $adresse->address,
+                'address' => $adresseRue,
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
                 "phone"=> $dossierAgrement->getTelephone(),
                 "fk_soc"=> $dossierAgrement->getIdExterne(),
-                "societe"=> $dossierAgrement->getDenominationCommerciale(),
-                "company"=> $dossierAgrement->getDenominationCommerciale(),
+                "societe"=> $dossierAgrement->getLibelle(),
+                "company"=> $dossierAgrement->getLibelle(),
                 "public"=> "0",
                 "statut"=> "1",
                 'array_options' => $array_options
