@@ -54,7 +54,6 @@ class OptionsTechniqueProFormType extends AbstractType
                     'Premiers mots en langue basque/lehen hitza euskaraz' => 'Premiers mots en langue basque/lehen hitza euskaraz'
                 ]
             ])
-            ->add('note')
         ;
     }
 

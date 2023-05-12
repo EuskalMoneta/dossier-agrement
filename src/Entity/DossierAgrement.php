@@ -166,8 +166,12 @@ class DossierAgrement
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $typeAutocollant = null;
 
+    //Notes agrément qui seront affichées dans le CR
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $note = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $notesAdministratif = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $siteWeb = null;
@@ -1012,6 +1016,18 @@ class DossierAgrement
     public function setCiviliteDirigeant(?string $civiliteDirigeant): self
     {
         $this->civiliteDirigeant = $civiliteDirigeant;
+
+        return $this;
+    }
+
+    public function getNotesAdministratif(): ?string
+    {
+        return $this->notesAdministratif;
+    }
+
+    public function setNotesAdministratif(?string $notesAdministratif): self
+    {
+        $this->notesAdministratif = $notesAdministratif;
 
         return $this;
     }

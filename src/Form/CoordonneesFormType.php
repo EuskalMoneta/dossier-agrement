@@ -55,6 +55,8 @@ class CoordonneesFormType extends AbstractType
             ])
             ->add('siteWeb')
             ->add('complementAdresse')
+            ->add('note', null, ['label' => "Note pour le comité d'agrément"])
+            ->add('notesAdministratif',null, ['label' => "Note pour l”équipe administrative"])
         ;
     }
 

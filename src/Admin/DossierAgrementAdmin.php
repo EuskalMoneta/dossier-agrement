@@ -69,6 +69,8 @@ final class DossierAgrementAdmin extends AbstractAdmin
                 'label' => "Date d'Agrément",
                 'dp_language'=>'fr',
             ])
+            ->add('notesAdministratif')
+            ->add('note', null, ['label' => 'Notes pour le dossier agrément'])
             ->end()
             ->with('Contact', ['class' => 'col-md-4'])
             ->add('emailPrincipal')
@@ -76,7 +78,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('prenomDirigeant')
             ->add('utilisateur', null, ['label' => "Chargé de dev"])
             ->end()
-            ->with('contact')
+            ->with('Opérations dossier')
             ->add('codePrestataire', null, ['label' => "Numéro d'adhérent"])
             ->add('Actions', TemplateType::class, [
                 'template'   => 'admin/boutonAction_dossierAgrement_edit.html.twig',

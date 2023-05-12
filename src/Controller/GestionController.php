@@ -550,7 +550,7 @@ class GestionController extends AbstractController
                 $section->addTextBreak();
 
                 $section->addText(
-                    'Commentaires : ',
+                    'Commentaires : '.$dossier->getNote(),
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addText(
