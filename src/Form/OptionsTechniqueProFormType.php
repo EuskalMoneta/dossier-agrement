@@ -23,7 +23,7 @@ class OptionsTechniqueProFormType extends AbstractType
                     'De base' => 'minimale'
                 ]
             ])
-            ->add('fraisDeDossier',null, ['label' => 'Frais de dossier', 'attr' => ['class' => 'fdd']])
+            ->add('fraisDeDossier',null, ['label' => 'Frais de dossier', 'required' => true, 'attr' => ['class' => 'fdd']])
             ->add('fraisDeDossierRecu',ChoiceType::class,[
                 'label' => 'Frais de dossier reçu par',
                 'attr' => ['class' => 'typeCotisation'],
@@ -31,7 +31,8 @@ class OptionsTechniqueProFormType extends AbstractType
                     '' => '',
                     'chèque' => 'chèque',
                     'espèces' => 'espèces',
-                    'virement' => 'virement'
+                    'virement' => 'virement',
+                    'offert' => 'offert'
                 ]
             ])
 

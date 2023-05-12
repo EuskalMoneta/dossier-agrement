@@ -89,7 +89,7 @@
                                                 {% endif %}
                                             </select>
                                             <br />
-                                            <textarea name="professionnels-note{{ defi.id }}" class="form-control ">{% if defi.valeur != '' %}{% set pro = defi.valeur | json_decode  %}{{ pro.note }}{% endif %}</textarea>
+                                            <textarea name="professionnels-note{{ defi.id }}" class="form-control" placeholder="Notes supplémentaires ...">{% if defi.valeur != '' %}{% set pro = defi.valeur | json_decode  %}{{ pro.note }}{% endif %}</textarea>
 
                                         </div>
 

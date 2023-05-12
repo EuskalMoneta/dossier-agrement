@@ -496,7 +496,7 @@ class GestionController extends AbstractController
                 $section->addTextBreak();
 
                 $reutilisers = $dossier->getDefisByType('reutiliser');
-                if(count($reutilisers) >0 and $reutilisers[0]->getValeur() != '' ){
+                if(count($reutilisers) >0 && $reutilisers[0]->getValeur() != '' && $reutilisers[0]->getValeur() != 'Non renseigné' ){
                     $section->addText(
                         "Réutiliser à titre personnel",
                         $paragraphFontStyle,
@@ -514,7 +514,7 @@ class GestionController extends AbstractController
                 $section->addTextBreak();
 
                 $promotion = $dossier->getDefisByType('promotionEuskara');
-                if(count($promotion) >0 and $promotion[0]->getValeur() != '' ){
+                if(count($promotion) >0 && $promotion[0]->getValeur() != '' && $promotion[0]->getValeur() != 'Non renseigné'){
                     $section->addText(
                         "Affichage en euskara",
                         $paragraphFontStyle,
@@ -532,7 +532,7 @@ class GestionController extends AbstractController
                 $section->addTextBreak();
 
                 $accueil = $dossier->getDefisByType('accueilEuskara');
-                if(count($accueil) >0  ){
+                if(count($accueil) >0 && $accueil[0]->getValeur() != 'Non renseigné'){
                     $section->addText(
                         "Accueil en euskara",
                         $paragraphFontStyle,

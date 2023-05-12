@@ -264,3 +264,7 @@ label.required:after, legend.required::before{
     content: " *";
     color: #c23321;
 }
+.form-control::placeholder {
+    color: #aca7a7;
+    opacity: 1;
+}
