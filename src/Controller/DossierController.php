@@ -252,7 +252,7 @@ class DossierController extends AbstractController
                         $fournisseur = new Fournisseur();
                     } elseif( str_starts_with($fournisseurObjet->id, 'CRM')){
                         $fournisseur = new Fournisseur();
-                        $fournisseur->setIdExterne(substr($fournisseurObjet->id, -3 ));
+                        $fournisseur->setIdExterne(substr($fournisseurObjet->id, -4 ));
 
                     } else {
                         //on récupère le fournisseur existant et on le retire du tableau
