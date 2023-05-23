@@ -109,7 +109,6 @@ class OdooController extends AbstractController implements CRMInterface
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         if ($method = "search_read"){
             $result = $models->execute_kw($_ENV['API_ODOO_DB_NAME'], $uid,$_ENV['API_ODOO_PASS'] , $model, $method, $domain, $field);
-
             return ['data' => (object)$result];
         }
         $result = $models->execute_kw($this->odoo_db_name, $uid, $this->odoo_pass, $model, $method, $domain);
@@ -277,11 +276,13 @@ class OdooController extends AbstractController implements CRMInterface
             $tab2[]=$pro['id'];
         }
         $field3 =  array('fields'=>array('name', 'website_description', 'street', 'city','zip', 'phone', 'secondary_industry_ids','email'));
-        $domain3 = array(array(array('id','in',$tab2),array('in_gogocarto', '=', True)));
+        $domain3 = array(array(array('id','in',$tab2),array('in_gogocarto', '=', True),array('name', 'like', $term)));
         $responsePro = $this->RequestOdoo('search_read','res.partner',$domain3,$field3);
-        foreach ($responsePro['data'] as $pro){
+        if (!empty($responsePro))
+        {
+            foreach ($responsePro['data'] as $pro){
 
-                $status = '';
+                $status = 'Prestataire agréé';
                 /*switch ($pro->client){
                     case 0:
                         $status = 'Ni prestataire agréé, ni prospect';
@@ -306,19 +307,20 @@ class OdooController extends AbstractController implements CRMInterface
                     $pro['zip'],
                     ''
                 );
-                    $tabPro[] = [
-                        'id' => 'CRM'.$pro['id'],
-                        'text' => $pro['name'],
-                        /*'prenom' => $pro->firstname,
-                        'nom' => $pro->lastname,*/
-                        'entreprise' => $pro['name'],
-                        'activite' => '',
-                        'telephone' => $pro['phone'],
-                        'email' => $pro['email'],
-                        /*'adresse' => $adresse,
-                        'commentaires' => $pro->note_private,
-                        'status' => $status,*/
-                    ];
+                $tabPro[] = [
+                    'id' => 'CRM'.$pro['id'],
+                    'text' => $pro['name'],
+                    'prenom' => null,
+                    'nom' => null,
+                    'entreprise' => $pro['name'],
+                    'activite' => '',
+                    'telephone' => '0559',
+                    'email' => 'email@email.com',
+                    'adresse' => '4 impass',
+                    'commentaires' => null,
+                    'status' => $status,
+                ];
+        }
             }
         return $tabPro;
     }
