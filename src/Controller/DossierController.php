@@ -30,7 +30,7 @@ class DossierController extends AbstractController
 {
 
     #[Route('/dossier/nouveau', name: 'app_dossier_nouveau')]
-    public function nouveauDossier(Request $request, EntityManagerInterface $em, DolibarrController $crm): Response
+    public function nouveauDossier(Request $request, EntityManagerInterface $em, OdooController $crm): Response
     {
 
         if($request->isMethod('post')){
@@ -546,7 +546,7 @@ class DossierController extends AbstractController
      * Permet de récupérer la liste des catégories de l'annuaire + eskuz esku
      * Mettre à jour les libellés ou créer les nouvelles catégories
      */
-    public function synchroCategories(DolibarrController $crm, EntityManagerInterface $em): bool
+    public function synchroCategories(OdooController $crm, EntityManagerInterface $em): bool
     {
 
         $categories = $crm->getCategoriesAnnuaire();

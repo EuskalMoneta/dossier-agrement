@@ -10,18 +10,20 @@ use App\Entity\DossierAgrement;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Ripcord\Ripcord;
 
 
-class DolibarrController extends AbstractController implements CRMInterface
+class OdooController extends AbstractController implements CRMInterface
 {
 
-    private $dolibarr_url;
-    private $api_token_dolibarr;
+    private $odoo_url;
+    private $api_token_odoo;
     private $logger;
 
-    private $dolibarr_user;
-    private $dolibarr_pass;
+    private $odoo_user;
+    private $odoo_pass;
 
+    private $odoo_db_name;
 
     private $cyclos_url;
     private $cyclos_user;
@@ -29,10 +31,11 @@ class DolibarrController extends AbstractController implements CRMInterface
 
     public function __construct(LoggerInterface $logger)
     {
-        $this->dolibarr_url = $_ENV['API_DOLIBARR_URL'];
+        $this->odoo_url = $_ENV['API_ODOO_URL'];
 
-        $this->dolibarr_user = $_ENV['API_DOLIBARR_USER'];
-        $this->dolibarr_pass = $_ENV['API_DOLIBARR_PASS'];
+        $this->odoo_user = $_ENV['API_ODOO_USER'];
+        $this->odoo_pass = $_ENV['API_ODOO_PASS'];
+        $this->odoo_db_name = $_ENV['API_ODOO_DB_NAME'];
 
         $this->cyclos_url = $_ENV['API_CYCLOS_URL'];
         $this->cyclos_user = $_ENV['API_CYCLOS_USER'];
@@ -40,33 +43,18 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         $this->logger = $logger;
 
-        $this->api_token_dolibarr = $this->loginRequestDolibarr();
+        /*$this->api_token_odoo = $this->loginRequestOdoo();*/
     }
 
-    private function loginRequestDolibarr()
+    private function loginRequestOdoo()
     {
-        $data = ['login' => $this->dolibarr_user, 'password' => $this->dolibarr_pass];
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->dolibarr_url.'login');
-        curl_setopt($curl, CURLOPT_COOKIESESSION, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
 
-        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen(json_encode($data)))
-        );
-        $return = curl_exec($curl);
-        $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-
-        if($http_status == 200) {
-            return json_decode($return)->success->token;
+        $common = ripcord::client("$this->odoo_url/xmlrpc/2/common");
+        $uid = $common->authenticate($this->odoo_db_name, $this->odoo_user, $this->odoo_pass, array());
+        if(!is_bool($uid)) {
+            return $uid;
         } else {
-            $this->addFlash("danger","Erreur lors de la connexion à Dolibarr");
+            $this->addFlash("danger","Erreur lors de la connexion à Odoo");
             return false;
         }
 
@@ -83,12 +71,12 @@ class DolibarrController extends AbstractController implements CRMInterface
     private function curlRequestDolibarr($method, $link,  $data = '', $token ='')
     {
 
-        if($this->api_token_dolibarr) {
-            $token = $this->api_token_dolibarr;
+        if($this->api_token_odoo) {
+            $token = $this->api_token_odoo;
         }
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->dolibarr_url.$link);
+        curl_setopt($curl, CURLOPT_URL, $this->odoo_url.$link);
         curl_setopt($curl, CURLOPT_COOKIESESSION, true);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -114,6 +102,22 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         return ['data' => json_decode($return), 'httpcode' => $http_status];
     }
+    private function RequestOdoo($method, $model, $domain, $field): array
+    {
+        $common = ripcord::client("$this->odoo_url/xmlrpc/2/common");
+        $uid = $common->authenticate($this->odoo_db_name, $this->odoo_user, $this->odoo_pass, array());
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        if ($method = "search_read"){
+            $result = $models->execute_kw($_ENV['API_ODOO_DB_NAME'], $uid,$_ENV['API_ODOO_PASS'] , $model, $method, $domain, $field);
+
+            return ['data' => (object)$result];
+        }
+        $result = $models->execute_kw($this->odoo_db_name, $uid, $this->odoo_pass, $model, $method, $domain);
+
+        return ['data' => (object)$result];
+
+    }
+
 
 
 
@@ -242,28 +246,43 @@ class DolibarrController extends AbstractController implements CRMInterface
 
     public function searchActiveUser(string $email):int
     {
-        $url = "users?sqlfilters=" . urlencode("(t.email:like:'" . $email . "')");
-        $responseUser = $this->curlRequestDolibarr('GET', $url);
+        $model = "res_users";
+        $method = "search";
+        $domain = array(array(array('active', '=', true),array('email', 'like', $email)));
+        $responseUser = $this->RequestOdoo($method,$model,$domain,[]);
 
-        if ($responseUser['httpcode'] == 200) {
-            foreach ($responseUser['data'] as $user){
+        foreach ($responseUser['data'] as $user){
                 return $user->id;
             }
-        }
         return 0;
     }
 
     public function searchProfessionnel($term):array
     {
         $tabPro = [];
+        $tab1 = [];
+        $tab2= [];
+        $domain = array(array(array('name', '!=', 'Particulier'),array('name', '!=', 'Touriste'),array('name', '!=', 'Adhérent fictif')));
+        $field =  array('fields'=>array('id','name'));
+        $id_member_type= $this->RequestOdoo('search_read','member.type',$domain,$field);
+        foreach ($id_member_type['data'] as $pro)
+        {
+            $tab1[]=$pro['id'];
+        }
+        $field =  array('fields'=>array('public_profile_id'));
+        $domain2 = array(array(array('membership_state', 'not in', ['none', 'canceled']),array('member_type_id','in',$tab1),array('is_main_profile', '=', True)));
+        $profils_principaux = $this->RequestOdoo('search_read','res.partner',$domain2,$field);
+        foreach ($profils_principaux['data'] as $pro)
+        {
+            $tab2[]=$pro['id'];
+        }
+        $field3 =  array('fields'=>array('name', 'website_description', 'street', 'city','zip', 'phone', 'secondary_industry_ids','email'));
+        $domain3 = array(array(array('id','in',$tab2),array('in_gogocarto', '=', True)));
+        $responsePro = $this->RequestOdoo('search_read','res.partner',$domain3,$field3);
+        foreach ($responsePro['data'] as $pro){
 
-        $url = "thirdparties?sortfield=t.nom&sqlfilters=".urlencode("(t.status:=:1) and (t.nom:like:'%".$term."%')");
-        $responsePro = $this->curlRequestDolibarr('GET', $url);
-
-        if($responsePro['httpcode'] == 200){
-            foreach ($responsePro['data'] as $pro){
                 $status = '';
-                switch ($pro->client){
+                /*switch ($pro->client){
                     case 0:
                         $status = 'Ni prestataire agréé, ni prospect';
                         break;
@@ -276,34 +295,31 @@ class DolibarrController extends AbstractController implements CRMInterface
                     case 3:
                         $status = 'Prospect / Prestataire agréé';
                         break;
-                }
+                }*/
 
                 $adresse = $this->transformAdresseIntoJSON(
-                    $pro->address.' '.$pro->zip.' '.$pro->town,
-                    $pro->town,
+                    $pro['street'].' '.$pro['zip'].' '.$pro['city'],
+                    $pro['city'],
                     '',
                     '',
-                    $pro->address,
-                    $pro->zip,
+                    $pro['street'],
+                    $pro['zip'],
                     ''
                 );
-
-                if($pro->client)
                     $tabPro[] = [
-                        'id' => 'CRM'.$pro->id,
-                        'text' => $pro->name,
-                        'prenom' => $pro->firstname,
-                        'nom' => $pro->lastname,
-                        'entreprise' => $pro->name,
+                        'id' => 'CRM'.$pro['id'],
+                        'text' => $pro['name'],
+                        /*'prenom' => $pro->firstname,
+                        'nom' => $pro->lastname,*/
+                        'entreprise' => $pro['name'],
                         'activite' => '',
-                        'telephone' => $pro->phone,
-                        'email' => $pro->email,
-                        'adresse' => $adresse,
+                        'telephone' => $pro['phone'],
+                        'email' => $pro['email'],
+                        /*'adresse' => $adresse,
                         'commentaires' => $pro->note_private,
-                        'status' => $status,
+                        'status' => $status,*/
                     ];
             }
-        }
         return $tabPro;
     }
 

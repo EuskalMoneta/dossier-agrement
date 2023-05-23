@@ -33,7 +33,7 @@ class GestionController extends AbstractController
     *  renvoi une liste de pros
     */
     #[Route('/searchPro', name: 'app_search_pro')]
-    public function search(DolibarrController $crm, EntityManagerInterface $em, Request $request): JsonResponse
+    public function search(OdooController $crm, EntityManagerInterface $em, Request $request): JsonResponse
     {
         $term = $request->get('q');
         $pros = $crm->searchProfessionnel($term);
@@ -79,7 +79,7 @@ class GestionController extends AbstractController
      */
     #[Route('/admin/dossier/check/{id}', name: 'app_admin_dossier_check')]
     #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function checkDossier(DossierAgrement $dossierAgrement,Pool $pool, DolibarrController $crm, Request $request): Response
+    public function checkDossier(DossierAgrement $dossierAgrement, Pool $pool, OdooController $crm, Request $request): Response
     {
         $pros =[];
         $method = $request->isMethod('POST');
@@ -98,12 +98,12 @@ class GestionController extends AbstractController
      */
     #[Route('/admin/dossier/envoi/{id}/{idExterne}', name: 'app_admin_dossier_envoi')]
     #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function envoiDossierCRM(DossierAgrement $dossierAgrement,
-                                    Pool $pool,
-                                    DolibarrController $crm,
+    public function envoiDossierCRM(DossierAgrement        $dossierAgrement,
+                                    Pool                   $pool,
+                                    OdooController         $crm,
                                     EntityManagerInterface $em,
-                                    Request $request,
-                                    $idExterne = '0'): Response
+                                    Request                $request,
+                                                           $idExterne = '0'): Response
     {
         if($idExterne == '0'){
             $idExterne = 0;
@@ -210,7 +210,7 @@ class GestionController extends AbstractController
     /*
      * Groupe puis envoi les défis sur le CRM
      */
-    private function envoiDefi(EntityManagerInterface $em, DolibarrController $crm, DossierAgrement $dossierAgrement){
+    private function envoiDefi(EntityManagerInterface $em, OdooController $crm, DossierAgrement $dossierAgrement){
 
         //***** Défi "Trois produits locaux"
         $defisProduits = $em->getRepository(Defi::class)->findBy([
