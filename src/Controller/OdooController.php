@@ -109,11 +109,12 @@ class OdooController extends AbstractController implements CRMInterface
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         if ($method = "search_read"){
             $result = $models->execute_kw($_ENV['API_ODOO_DB_NAME'], $uid,$_ENV['API_ODOO_PASS'] , $model, $method, $domain, $field);
-            return ['data' => (object)$result];
+            return ['data' => $result];
         }
+
         $result = $models->execute_kw($this->odoo_db_name, $uid, $this->odoo_pass, $model, $method, $domain);
 
-        return ['data' => (object)$result];
+        return ['data' => $result];
 
     }
 
@@ -259,25 +260,16 @@ class OdooController extends AbstractController implements CRMInterface
     public function searchProfessionnel($term):array
     {
         $tabPro = [];
-        $tab1 = [];
-        $tab2= [];
-        $domain = array(array(array('name', '!=', 'Particulier'),array('name', '!=', 'Touriste'),array('name', '!=', 'Adhérent fictif')));
-        $field =  array('fields'=>array('id','name'));
-        $id_member_type= $this->RequestOdoo('search_read','member.type',$domain,$field);
-        foreach ($id_member_type['data'] as $pro)
-        {
-            $tab1[]=$pro['id'];
-        }
-        $field =  array('fields'=>array('public_profile_id'));
-        $domain2 = array(array(array('membership_state', 'not in', ['none', 'canceled']),array('member_type_id','in',$tab1),array('is_main_profile', '=', True)));
-        $profils_principaux = $this->RequestOdoo('search_read','res.partner',$domain2,$field);
-        foreach ($profils_principaux['data'] as $pro)
-        {
-            $tab2[]=$pro['id'];
-        }
-        $field3 =  array('fields'=>array('name', 'website_description', 'street', 'city','zip', 'phone', 'secondary_industry_ids','email'));
-        $domain3 = array(array(array('id','in',$tab2),array('in_gogocarto', '=', True),array('name', 'like', $term)));
-        $responsePro = $this->RequestOdoo('search_read','res.partner',$domain3,$field3);
+        $id_member_type= $this->RequestOdoo('search_read','member.type',array(array(array('name', '!=', 'Particulier'),array('name', '!=', 'Touriste'),array('name', '!=', 'Adhérent fictif')))//
+        ,array('fields'=>array('id','name')));
+        $id_member_type = array_column($id_member_type['data'], 'id');
+
+        $profils_principaux = $this->RequestOdoo('search_read','res.partner',array(array(array('membership_state', 'not in', ['none', 'canceled']),array('member_type_id','in',$id_member_type),array('is_main_profile', '=', True)))//
+        ,array('fields'=>array('public_profile_id')));
+        $profils_principaux = array_column($profils_principaux['data'], 'id');
+
+        $responsePro = $this->RequestOdoo('search_read','res.partner',array(array(array('id','in',$profils_principaux),array('in_gogocarto', '=', True),array('name', 'like', $term)))//,
+        ,array('fields'=>array('name', 'website_description', 'street', 'city','zip', 'phone', 'secondary_industry_ids','email')));
         if (!empty($responsePro))
         {
             foreach ($responsePro['data'] as $pro){
@@ -310,14 +302,14 @@ class OdooController extends AbstractController implements CRMInterface
                 $tabPro[] = [
                     'id' => 'CRM'.$pro['id'],
                     'text' => $pro['name'],
-                    'prenom' => null,
-                    'nom' => null,
+                    'prenom' => '',
+                    'nom' => '',
                     'entreprise' => $pro['name'],
                     'activite' => '',
-                    'telephone' => '0559',
-                    'email' => 'email@email.com',
-                    'adresse' => '4 impass',
-                    'commentaires' => null,
+                    'telephone' => $pro['phone'],
+                    'email' =>  $pro['email'],
+                    'adresse' => $adresse,
+                    'commentaires' => '',
                     'status' => $status,
                 ];
         }
@@ -342,6 +334,13 @@ class OdooController extends AbstractController implements CRMInterface
     public function getCategoriesEskuzEsku():array
     {
         $tabCategoriesEskuzEsku = [];
+        /*$id_EskuzEsku = $this->RequestOdoo('search_read','res.partner.industry',[],array('fields'=>array('id','name')));
+        $id_EskuzEsku = array_column($id_EskuzEsku['data'], 'id');
+        $search_string = "'" .strval($id_EskuzEsku) ."/%'";
+        $search_string = preg_match("/'([^']+)'/", $search_string, $matches);
+        $domain =array(array(array('parent_path', 'like', $matches)));
+        $fields = array('fields'=>array('id', 'name', 'parent_path', 'parent_id'));
+        $tabCategoriesEskuzEsku = $this->RequestOdoo('search_read','res.partner.industry',$domain,$fields);*/
         $this->getCategoriesChildren('376', $tabCategoriesEskuzEsku);
         return $tabCategoriesEskuzEsku;
     }
