@@ -643,15 +643,9 @@ class DolibarrController extends AbstractController implements CRMInterface
             $array_options["options_euskara"] = "1";
         }
 
-        $adresseRue = '';
-        if($adresseActivite->getComplementAdresse()!=''){
-            $adresseRue = $adresseActivite->getComplementAdresse();
-        } else if (!str_contains($adresse->address, 'undefined')) {
-            $adresseRue = $adresse->address;
-        }
         $data =
             [
-                'address' => $adresseRue,
+                'address' => $adresseActivite->getAdresseComplete(),
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
@@ -681,16 +675,9 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier()
         ];
 
-        $adresseRue = '';
-        if($dossierAgrement->getComplementAdresse()!=''){
-            $adresseRue = $dossierAgrement->getComplementAdresse();
-        } else if (!str_contains($adresse->address, 'undefined')) {
-            $adresseRue = $adresse->address;
-        }
-
         $data =
             [
-                'address' => $adresseRue,
+                'address' => $dossierAgrement->getAdresseComplete(),
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
@@ -716,12 +703,6 @@ class DolibarrController extends AbstractController implements CRMInterface
      */
     private function transformAdherent(DossierAgrement $dossierAgrement){
         $adresse = json_decode($dossierAgrement->getAdressePrincipale());
-        $adresseRue = '';
-        if($dossierAgrement->getComplementAdresse()!=''){
-            $adresseRue = $dossierAgrement->getComplementAdresse();
-        } else if (!str_contains($adresse->address, 'undefined')) {
-            $adresseRue = $adresse->address;
-        }
 
         //Parcours des réduction, si il y en a au moins une => c'est la valeur 1 (25%) dans dolibarr
         //Si une seule des réductions cochée est > 26 donc c'est la valeur 2 (50%) qui l'emporte dans dolibarr
@@ -761,7 +742,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
                 "civility_id"=> $dossierAgrement->getCiviliteDirigeant(),
                 "email"=> $dossierAgrement->getCompteNumerique(),
-                'address' => $adresseRue,
+                'address' => $dossierAgrement->getAdresseComplete(),
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
