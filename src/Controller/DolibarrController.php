@@ -697,10 +697,11 @@ class DolibarrController extends AbstractController implements CRMInterface
                 'url' => $dossierAgrement->getSiteWeb(),
                 "email"=> $dossierAgrement->getEmailPrincipal(),
                 "phone_pro"=> $dossierAgrement->getTelephone(),
-                "name_alias"=> $dossierAgrement->getDenominationCommerciale(),
+                "name_alias"=> "",
                 "name"=> $dossierAgrement->getDenominationCommerciale(),
                 "client"=> "1",
                 "code_client"=> $dossierAgrement->getCodePrestataire(),
+                "note_private"=> $dossierAgrement->getNote(),
                 'array_options' => $array_options
             ];
 
@@ -743,8 +744,8 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
             "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
             "options_prelevement_cotisation_periodicite"=> '12',
-            "options_documents_pour_ouverture_du_compte_valides" => '1',
-            "options_accord_pour_ouverture_de_compte" => 'oui',
+            "options_documents_pour_ouverture_du_compte_valides" => $dossierAgrement->isCompteNumeriqueBool() ? '1' : '0',
+            "options_accord_pour_ouverture_de_compte" => $dossierAgrement->isCompteNumeriqueBool() ? 'oui' : 'non',
             "options_notifications_validation_mandat_prelevement"=> '1',
             "options_notifications_refus_ou_annulation_mandat_prelevement"=> '1',
             "options_notifications_prelevements"=> '1',
@@ -758,6 +759,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "morphy"=> "mor",
                 "lastname"=>  $dossierAgrement->getNomDirigeant(),
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
+                "civility_id"=> $dossierAgrement->getCiviliteDirigeant(),
                 "email"=> $dossierAgrement->getCompteNumerique(),
                 'address' => $adresseRue,
                 'zip' => $adresse->postcode,
@@ -765,8 +767,8 @@ class DolibarrController extends AbstractController implements CRMInterface
                 'country_id' => 1,
                 "phone"=> $dossierAgrement->getTelephone(),
                 "fk_soc"=> $dossierAgrement->getIdExterne(),
-                "societe"=> $dossierAgrement->getLibelle(),
-                "company"=> $dossierAgrement->getLibelle(),
+                "societe"=> $dossierAgrement->getDenominationCommerciale(),
+                "company"=> $dossierAgrement->getDenominationCommerciale(),
                 "public"=> "0",
                 "statut"=> "1",
                 'array_options' => $array_options
