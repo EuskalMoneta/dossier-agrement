@@ -38,9 +38,6 @@ class CoordonneesFormType extends AbstractType
                 'choices'  => [
                     'Monsieur' => 'MR',
                     'Madame' => 'MME',
-                    'Docteur' => 'DR',
-                    'Maître' => 'MTRE',
-                    'M.' => 'M'
                 ]
             ])
             ->add('telephone', null, ['label' => 'Téléphone'])

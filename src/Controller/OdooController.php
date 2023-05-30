@@ -641,15 +641,9 @@ class OdooController extends AbstractController implements CRMInterface
             $array_options["options_euskara"] = "1";
         }
 
-        $adresseRue = '';
-        if($adresseActivite->getComplementAdresse()!=''){
-            $adresseRue = $adresseActivite->getComplementAdresse();
-        } else if (!str_contains($adresse->address, 'undefined')) {
-            $adresseRue = $adresse->address;
-        }
         $data =
             [
-                'address' => $adresseRue,
+                'address' => $adresseActivite->getAdresseComplete(),
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
@@ -679,26 +673,20 @@ class OdooController extends AbstractController implements CRMInterface
             "options_montant_frais_de_dossier"=> $dossierAgrement->getFraisDeDossier()
         ];
 
-        $adresseRue = '';
-        if($dossierAgrement->getComplementAdresse()!=''){
-            $adresseRue = $dossierAgrement->getComplementAdresse();
-        } else if (!str_contains($adresse->address, 'undefined')) {
-            $adresseRue = $adresse->address;
-        }
-
         $data =
             [
-                'address' => $adresseRue,
+                'address' => $dossierAgrement->getAdresseComplete(),
                 'zip' => $adresse->postcode,
                 'town' => $adresse->id,
                 'country_id' => 1,
                 'url' => $dossierAgrement->getSiteWeb(),
-                "email"=> $dossierAgrement->getEmailPrincipal(),
+                "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
                 "phone_pro"=> $dossierAgrement->getTelephone(),
-                "name_alias"=> $dossierAgrement->getDenominationCommerciale(),
+                "name_alias"=> "",
                 "name"=> $dossierAgrement->getDenominationCommerciale(),
                 "client"=> "1",
                 "code_client"=> $dossierAgrement->getCodePrestataire(),
+                "note_private"=> $dossierAgrement->getNote(),
                 'array_options' => $array_options
             ];
 
@@ -713,12 +701,6 @@ class OdooController extends AbstractController implements CRMInterface
      */
     private function transformAdherent(DossierAgrement $dossierAgrement){
         $adresse = json_decode($dossierAgrement->getAdressePrincipale());
-        $adresseRue = '';
-        if($dossierAgrement->getComplementAdresse()!=''){
-            $adresseRue = $dossierAgrement->getComplementAdresse();
-        } else if (!str_contains($adresse->address, 'undefined')) {
-            $adresseRue = $adresse->address;
-        }
 
         //Parcours des réduction, si il y en a au moins une => c'est la valeur 1 (25%) dans dolibarr
         //Si une seule des réductions cochée est > 26 donc c'est la valeur 2 (50%) qui l'emporte dans dolibarr
@@ -729,6 +711,29 @@ class OdooController extends AbstractController implements CRMInterface
                 $options_reduction_cotisation = '2';
             }
         }
+<<<<<<< HEAD:src/Controller/OdooController.php
+=======
+
+        $array_options = [
+            "options_recevoir_actus"=> $dossierAgrement->isRecevoirNewsletter(),
+            "options_iban"=> $dossierAgrement->getIban(),
+            "options_bic"=> $dossierAgrement->getBic(),
+            "options_prelevement_auto_cotisation"=> '1',
+            //"options_prelevement_auto_cotisation_eusko"=> '1',
+            "options_nb_salaries"=> (string) $dossierAgrement->getNbSalarie(),
+            "options_reduction_cotisation"=> $options_reduction_cotisation,
+            "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
+            "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
+            "options_prelevement_cotisation_periodicite"=> '12',
+            "options_documents_pour_ouverture_du_compte_valides" => $dossierAgrement->isCompteNumeriqueBool() ? '1' : '0',
+            "options_accord_pour_ouverture_de_compte" => $dossierAgrement->isCompteNumeriqueBool() ? 'oui' : 'non',
+            "options_notifications_validation_mandat_prelevement"=> '1',
+            "options_notifications_refus_ou_annulation_mandat_prelevement"=> '1',
+            "options_notifications_prelevements"=> '1',
+            "options_notifications_virements"=> '1',
+            "options_recevoir_bons_plans"=> '1',
+        ];
+>>>>>>> c8dfe07c1ea399b130c4cb396c96285f2023decd:src/Controller/DolibarrController.php
         $data =
             [
                 "ref"=> $dossierAgrement->getCodePrestataire(),
@@ -736,6 +741,7 @@ class OdooController extends AbstractController implements CRMInterface
                 "morphy"=> "mor",//todo
                 "lastname"=>  $dossierAgrement->getNomDirigeant(),
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
+<<<<<<< HEAD:src/Controller/OdooController.php
                 "email"=> $dossierAgrement->getCompteNumerique(),
                 "street" => $adresseRue,
                 "zip" => $adresse->postcode,
@@ -764,6 +770,21 @@ class OdooController extends AbstractController implements CRMInterface
                 "direct_debit_execution_notifications"=> '1',
                 "transfer_receipt_notification"=> '1',
                 "receive_good_plans"=> '1',
+=======
+                "civility_id"=> $dossierAgrement->getCiviliteDirigeant(),
+                "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
+                'address' => $dossierAgrement->getAdresseComplete(),
+                'zip' => $adresse->postcode,
+                'town' => $adresse->id,
+                'country_id' => 1,
+                "phone"=> $dossierAgrement->getTelephone(),
+                "fk_soc"=> $dossierAgrement->getIdExterne(),
+                "societe"=> $dossierAgrement->getDenominationCommerciale(),
+                "company"=> $dossierAgrement->getDenominationCommerciale(),
+                "public"=> "0",
+                "statut"=> "1",
+                'array_options' => $array_options
+>>>>>>> c8dfe07c1ea399b130c4cb396c96285f2023decd:src/Controller/DolibarrController.php
             ];
 
 

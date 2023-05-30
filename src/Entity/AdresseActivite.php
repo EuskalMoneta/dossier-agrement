@@ -340,4 +340,17 @@ class AdresseActivite
         return $this;
     }
 
+    public function getAdresseComplete(): ?string
+    {
+        $adresseComplete = '';
+        $adresse = json_decode($this->getAdresse());
+        if (!str_contains($adresse->address, 'undefined')) {
+            $adresseComplete = $adresse->address;
+        }
+        if ($this->getComplementAdresse()!='') {
+            $adresseComplete .= ' '.$this->getComplementAdresse();
+        }
+        return $adresseComplete;
+    }
+
 }
