@@ -54,10 +54,11 @@ class DossierController extends AbstractController
 
     #[Route('/dossier/coordonnees/{id}', name: 'app_dossier_coordonnees')]
     #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function coordonnees(DossierAgrement $dossierAgrement, Request $request, EntityManagerInterface $em): Response
+    public function coordonnees(DossierAgrement $dossierAgrement, Request $request, CRMInterface $crm, EntityManagerInterface $em): Response
     {
         $form = $this->createForm(CoordonneesFormType::class, $dossierAgrement);
 
+        $this->synchroCategories($crm, $em);//A SUPPRIMER
         $categoriesAnnuaire = $em->getRepository(CategorieAnnuaire::class)->findBy(['type' => 'eusko']);
         $categoriesAnnuaireEskuz = $em->getRepository(CategorieAnnuaire::class)->findBy(['type' => 'eskuz']);
 

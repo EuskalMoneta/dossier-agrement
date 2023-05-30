@@ -43,12 +43,11 @@ class OdooController extends AbstractController implements CRMInterface
 
         $this->logger = $logger;
 
-        /*$this->api_token_odoo = $this->loginRequestOdoo();*/
+        $this->api_token_odoo = $this->loginRequestOdoo();
     }
 
     private function loginRequestOdoo()
     {
-
         $common = ripcord::client("$this->odoo_url/xmlrpc/2/common");
         $uid = $common->authenticate($this->odoo_db_name, $this->odoo_user, $this->odoo_pass, array());
         if(!is_bool($uid)) {
@@ -57,8 +56,8 @@ class OdooController extends AbstractController implements CRMInterface
             $this->addFlash("danger","Erreur lors de la connexion à Odoo");
             return false;
         }
-
     }
+
     /**
      * Makes a cUrl request
      *
@@ -102,25 +101,6 @@ class OdooController extends AbstractController implements CRMInterface
 
         return ['data' => json_decode($return), 'httpcode' => $http_status];
     }
-    private function RequestOdoo($method, $model, $domain, $field): array
-    {
-        $common = ripcord::client("$this->odoo_url/xmlrpc/2/common");
-        $uid = $common->authenticate($this->odoo_db_name, $this->odoo_user, $this->odoo_pass, array());
-        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
-        if ($method = "search_read"){
-            $result = $models->execute_kw($_ENV['API_ODOO_DB_NAME'], $uid,$_ENV['API_ODOO_PASS'] , $model, $method, $domain, $field);
-            return ['data' => $result];
-        }
-
-        $result = $models->execute_kw($this->odoo_db_name, $uid, $this->odoo_pass, $model, $method, $domain);
-
-        return ['data' => $result];
-
-    }
-
-
-
-
     /**
      * Makes a cUrl request for cyclos
      *
@@ -234,25 +214,53 @@ class OdooController extends AbstractController implements CRMInterface
         return true;
     }
 
-
     public function getCategoriesAnnuaire():array
     {
-        $tabCategoriesAnnuaire = [];
-        $this->getCategoriesChildren('444', $tabCategoriesAnnuaire);
-        return $tabCategoriesAnnuaire;
+        $tabCategoriesAnnuaire =[];
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        $res = array();
+        $id_categorieAnnuaire['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner.industry','search_read',
+            array(array(
+                array('name', '=', 'Annuaire général'),
+            )),
+            array('fields'=>array('id','name')));
+        $id_categorieAnnuaire= array_column($id_categorieAnnuaire['data'], 'id');
+        $test = $id_categorieAnnuaire[0];
+        $search_string = "'" .strval($test) ."/%'";
+        $search_string = preg_match("/([^']+)/", $search_string, $matches);
+        $domain = array(array(
+            array('parent_path', 'like',  $matches[0]),
+            array('parent_id', '!=',  false),
+            array('child_ids', '=',  false)
+        ));
+        $fields = array('fields'=>array('id', 'name', 'parent_path', 'parent_id'));
+        $tabCategoriesAnnuaire ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+            'res.partner.industry','search_read', $domain, $fields);
+        foreach ($tabCategoriesAnnuaire['data'] as $categorie) {
+            $domain = array(array(
+                array('src', '=', $categorie['name']),
+                array('lang', '=',  'fr_FR'),
+                array('state', '=',  'translated')
+            ));
+            $result = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'ir.translation', 'search_read', $domain, array('fields'=>array('value')));
+            $res[]= [
+                'idExterne' => $categorie['id'],
+                'libelle' => $categorie['parent_id'][1] . ' > ' .$result[0]['value']
+            ];
+        }
+        return $res;
     }
-
-
 
     public function searchActiveUser(string $email):int
     {
-        $model = "res_users";
-        $method = "search";
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         $domain = array(array(array('active', '=', true),array('email', 'like', $email)));
-        $responseUser = $this->RequestOdoo($method,$model,$domain,[]);
-
+        $responseUser['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res_users', 'search_read', $domain, array('fields'=>array('id')));
         foreach ($responseUser['data'] as $user){
-                return $user->id;
+                return $user['id'];
             }
         return 0;
     }
@@ -260,35 +268,28 @@ class OdooController extends AbstractController implements CRMInterface
     public function searchProfessionnel($term):array
     {
         $tabPro = [];
-        $id_member_type= $this->RequestOdoo('search_read','member.type',array(array(array('name', '!=', 'Particulier'),array('name', '!=', 'Touriste'),array('name', '!=', 'Adhérent fictif')))//
-        ,array('fields'=>array('id','name')));
-        $id_member_type = array_column($id_member_type['data'], 'id');
-
-        $profils_principaux = $this->RequestOdoo('search_read','res.partner',array(array(array('membership_state', 'not in', ['none', 'canceled']),array('member_type_id','in',$id_member_type),array('is_main_profile', '=', True)))//
-        ,array('fields'=>array('public_profile_id')));
-        $profils_principaux = array_column($profils_principaux['data'], 'id');
-
-        $responsePro = $this->RequestOdoo('search_read','res.partner',array(array(array('id','in',$profils_principaux),array('in_gogocarto', '=', True),array('name', 'like', $term)))//,
-        ,array('fields'=>array('name', 'website_description', 'street', 'city','zip', 'phone', 'secondary_industry_ids','email')));
-        if (!empty($responsePro))
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        $result ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+            'member.type', 'search_read',
+            array(array(
+            array('name', '!=', 'Particulier'),
+            array('name', '!=', 'Touriste'),
+            array('name', '!=', 'Adhérent fictif'))),
+            array('fields' => array('id', 'name')));
+        $id_member_type = array_column($result['data'], 'id');
+        $profils_principaux['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+            'res.partner','search_read',
+            array(array(
+                array('membership_state', 'not in', ['none', 'canceled']),
+                array('member_type_id','in',$id_member_type),
+                array('is_main_profile', '=', True),
+                array('associate_member','=',False),
+                array('name', 'like', $term),
+                )),
+            array('fields'=>array('name', 'website_description', 'street', 'city','zip', 'phone', 'secondary_industry_ids','email')));
+        if (!empty($profils_principaux))
         {
-            foreach ($responsePro['data'] as $pro){
-
-                $status = 'Prestataire agréé';
-                /*switch ($pro->client){
-                    case 0:
-                        $status = 'Ni prestataire agréé, ni prospect';
-                        break;
-                    case 1:
-                        $status = 'Prestataire agréé';
-                        break;
-                    case 2:
-                        $status = 'Prospect';
-                        break;
-                    case 3:
-                        $status = 'Prospect / Prestataire agréé';
-                        break;
-                }*/
+            foreach ($profils_principaux['data'] as $pro){
 
                 $adresse = $this->transformAdresseIntoJSON(
                     $pro['street'].' '.$pro['zip'].' '.$pro['city'],
@@ -310,7 +311,7 @@ class OdooController extends AbstractController implements CRMInterface
                     'email' =>  $pro['email'],
                     'adresse' => $adresse,
                     'commentaires' => '',
-                    'status' => $status,
+                    'status' => "Prestataire agréé",
                 ];
         }
             }
@@ -330,72 +331,50 @@ class OdooController extends AbstractController implements CRMInterface
         ]);
     }
 
-
     public function getCategoriesEskuzEsku():array
     {
-        $tabCategoriesEskuzEsku = [];
-        /*$id_EskuzEsku = $this->RequestOdoo('search_read','res.partner.industry',[],array('fields'=>array('id','name')));
+        $tabCategoriesEskuzEsku =[];
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        $res = array();
+        $domain =array(array(array('name', '=', 'Eskuz Esku')));
+        $id_EskuzEsku['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+            'res.partner.industry','search_read',
+            array(array(
+                array('name', '=', 'Eskuz Esku'),
+            )),
+            array('fields'=>array('id','name')));
         $id_EskuzEsku = array_column($id_EskuzEsku['data'], 'id');
-        $search_string = "'" .strval($id_EskuzEsku) ."/%'";
-        $search_string = preg_match("/'([^']+)'/", $search_string, $matches);
-        $domain =array(array(array('parent_path', 'like', $matches)));
+        $test = $id_EskuzEsku[0];
+        $search_string = "'" .strval($test) ."/%'";
+        $search_string = preg_match("/([^']+)/", $search_string, $matches);
+        $domain =array(array(
+            array('parent_path', 'like',  $matches[0]),
+            array('parent_id', '!=',  false),
+            array('child_ids', '=',  false)
+        ));
         $fields = array('fields'=>array('id', 'name', 'parent_path', 'parent_id'));
-        $tabCategoriesEskuzEsku = $this->RequestOdoo('search_read','res.partner.industry',$domain,$fields);*/
-        $this->getCategoriesChildren('376', $tabCategoriesEskuzEsku);
-        return $tabCategoriesEskuzEsku;
+        $tabCategoriesEskuzEsku ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+            'res.partner.industry','search_read', $domain, $fields);
+        /*$tabCategoriesEskuzEsku = $this->RequestOdoo('search_read','res.partner.industry',$domain,$fields);*/
+        foreach ($tabCategoriesEskuzEsku['data'] as $categorie) {
+            $domain = array(array(
+                array('src', '=', $categorie['name']),
+                array('lang', '=',  'fr_FR'),
+                array('state', '=',  'translated')
+            ));
+            $result = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'ir.translation', 'search_read', $domain, array('fields'=>array('value')));
+            $res[]= [
+                'idExterne' => $categorie['id'],
+                'libelle' => $categorie['parent_id'][1] . ' > ' .$result[0]['value']
+            ];
+        }
+        return $res;
     }
-
     /*
      * Fonction récursive qui récupère l'ensemble des sous catégories d'un index donné.
      * Prend l'index et un tableau par référence pour les résultats
      */
-    private function getCategoriesChildren($id_parent, &$tabCategories): bool
-    {
-        /**
-         * $tabCategories[] = [
-        'idExterne' => $categorie2->id,
-        'libelle' => $libelleArbo.explode('/', $categorie2->label)[1]
-        ];
-         */
-        $libelleArbo = '';
-        $reponseCategoriesNiv1 = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$id_parent.')');
-        if($reponseCategoriesNiv1['httpcode'] == 200) {
-            if(count($reponseCategoriesNiv1['data']) != 0) {
-                foreach ($reponseCategoriesNiv1['data'] as $categorie) {
-
-                    $reponseCategoriesNiv2 = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$categorie->id.')');
-                    if($reponseCategoriesNiv2['httpcode'] == 200) {
-                        if (count($reponseCategoriesNiv2['data']) != 0) {
-                            foreach ($reponseCategoriesNiv2['data'] as $categorie2) {
-
-                                $libelleArbo = explode('/', $categorie->label)[1].' >'.explode('/', $categorie2->label)[1];
-                                $reponseCategoriesNiv3 = $this->curlRequestDolibarr('GET', 'categories?limit=200&type=contact&sqlfilters=(t.fk_parent:=:'.$categorie2->id.')');
-                                if($reponseCategoriesNiv3['httpcode'] == 200) {
-                                    if (count($reponseCategoriesNiv3['data']) != 0) {
-                                        foreach ($reponseCategoriesNiv3['data'] as $categorie3) {
-                                            $tabCategories[] = [
-                                                'idExterne' => $categorie3->id,
-                                                'libelle' => $libelleArbo.' >'.explode('/', $categorie3->label)[1]
-                                            ];
-                                        }
-                                    }
-                                } else{
-                                    $tabCategories[] = [
-                                        'idExterne' => $categorie2->id,
-                                        'libelle' => $libelleArbo
-                                    ];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        return false;
-    }
-
     public function updateTier($id): bool
     {
         return true;
@@ -516,12 +495,14 @@ class OdooController extends AbstractController implements CRMInterface
 
     public function postAdherent(DossierAgrement $dossierAgrement):int
     {
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         if($dossierAgrement->getIdAdherent() > 0){
             $this->addFlash("warning","L'adhérent existe déjà, impossible d'en créer un nouveau");
         } else {
             $data = $this->transformAdherent($dossierAgrement);
-            $reponse = $this->curlRequestDolibarr('POST', 'members', $data);
-            if($reponse['httpcode'] != 200) {
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
+
+            if($reponse['data']['id']== []) {
                 $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
                 $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : ".$reponse['data']->error->message);
                 return false;
@@ -748,46 +729,43 @@ class OdooController extends AbstractController implements CRMInterface
                 $options_reduction_cotisation = '2';
             }
         }
-
-        $array_options = [
-            "options_recevoir_actus"=> $dossierAgrement->isRecevoirNewsletter(),
-            "options_iban"=> $dossierAgrement->getIban(),
-            "options_bic"=> $dossierAgrement->getBic(),
-            "options_prelevement_auto_cotisation"=> '1',
-            //"options_prelevement_auto_cotisation_eusko"=> '1',
-            "options_nb_salaries"=> (string) $dossierAgrement->getNbSalarie(),
-            "options_reduction_cotisation"=> $options_reduction_cotisation,
-            "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
-            "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
-            "options_prelevement_cotisation_periodicite"=> '12',
-            "options_documents_pour_ouverture_du_compte_valides" => '1',
-            "options_accord_pour_ouverture_de_compte" => 'oui',
-            "options_notifications_validation_mandat_prelevement"=> '1',
-            "options_notifications_refus_ou_annulation_mandat_prelevement"=> '1',
-            "options_notifications_prelevements"=> '1',
-            "options_notifications_virements"=> '1',
-            "options_recevoir_bons_plans"=> '1',
-        ];
         $data =
             [
-                "login"=> $dossierAgrement->getCodePrestataire(),
-                "typeid"=> $dossierAgrement->getType() == 'entreprise'?"2":"1",
-                "morphy"=> "mor",
+                "ref"=> $dossierAgrement->getCodePrestataire(),
+                "member_type_id"=> $dossierAgrement->getType() == 'entreprise'?"2":"1",
+                "morphy"=> "mor",//todo
                 "lastname"=>  $dossierAgrement->getNomDirigeant(),
                 "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
                 "email"=> $dossierAgrement->getCompteNumerique(),
-                'address' => $adresseRue,
-                'zip' => $adresse->postcode,
-                'town' => $adresse->id,
-                'country_id' => 1,
+                "street" => $adresseRue,
+                "zip" => $adresse->postcode,
+                "city" => $adresse->id,
+                "country_id" => 1,
                 "phone"=> $dossierAgrement->getTelephone(),
-                "fk_soc"=> $dossierAgrement->getIdExterne(),
-                "societe"=> $dossierAgrement->getLibelle(),
-                "company"=> $dossierAgrement->getLibelle(),
-                "public"=> "0",
-                "statut"=> "1",
-                'array_options' => $array_options
+                /*"fk_soc"=> $dossierAgrement->getIdExterne(),//todo*/
+                "name"=> $dossierAgrement->getLibelle(),
+                /*"company"=> $dossierAgrement->getLibelle(),//todo*/
+                /*"public"=> "0",//todo*/
+                "membership_state"=> "waiting",//todo
+                "receive_actus"=> $dossierAgrement->isRecevoirNewsletter(),
+                "iban"=> $dossierAgrement->getIban(),
+                "bic"=> $dossierAgrement->getBic(),
+                "direct_debit_auto_contribution"=> '1',
+                //"options_prelevement_auto_cotisation_eusko"=> '1',
+                "nb_salaried"=> (string) $dossierAgrement->getNbSalarie(),
+                "discount_contribution"=> $options_reduction_cotisation,
+                "support_contribution"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
+                "direct_debit_contribution_amount"=> $dossierAgrement->getMontant(),
+                "direct_debit_contribution_periodicity"=> '12',
+                "numeric_wallet_document_valid" => '1',
+                "options_accord_pour_ouverture_de_compte" => 'oui',
+                "notification_validation_mandat_prelevement"=> '1',
+                "notification_refusal_or_cancellation_direct_debit"=> '1',
+                "direct_debit_execution_notifications"=> '1',
+                "transfer_receipt_notification"=> '1',
+                "receive_good_plans"=> '1',
             ];
+
 
         return $data;
     }
