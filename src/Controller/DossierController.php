@@ -467,6 +467,8 @@ class DossierController extends AbstractController
 
             $em->persist($dossierAgrement);
             $em->flush();
+
+            $session->remove('idWebHookEvent');
         }
 
         return $this->render('dossier/fin.html.twig', [ 'dossierAgrement' => $dossierAgrement ]);
