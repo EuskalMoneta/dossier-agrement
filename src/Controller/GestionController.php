@@ -263,7 +263,7 @@ class GestionController extends AbstractController
             'dossierAgrement' => $dossierAgrement->getId(),
             'type' => 'reutiliser'
         ]);
-        if($defiReutiliser){
+        if($defiReutiliser && $defiReutiliser->getValeur() !== 'Non renseigné'){
             $crm->postDefi($defiReutiliser);
         }
 

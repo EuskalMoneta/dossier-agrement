@@ -198,6 +198,7 @@ class DossierAgrement
 
         $defi = new Defi();
         $defi->setType('reutiliser');
+        $defi->setValeur('Non renseigné');
         $this->addDefi($defi);
 
         $defi = new Defi();
