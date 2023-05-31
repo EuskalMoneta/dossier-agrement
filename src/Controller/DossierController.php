@@ -184,35 +184,40 @@ class DossierController extends AbstractController
 
             //Enregistrer les défis professionnels
             if($request->get('professionnels')) {
-                foreach ($request->get('professionnels') as $key => $produit) {
-                    $selectValue = json_decode($produit, true);
-                    $selectValue['note'] = $request->get('professionnels-note'.$key);
-                    $produit = json_encode($selectValue);
+                foreach ($request->get('professionnels') as $key => $value) {
+                    $selectValue = json_decode($value, true);
 
-                    $this->enregistrerDefi($key, $produit, 'professionnel', $request->get('professionnels-etat'.$key),  $dossierAgrement, $em);
+                    //on vérifie que le pro a un ID sinon c'est une suppression
+                    if(isset($selectValue['id'])){
+                        $selectValue['note'] = $request->get('professionnels-note'.$key);
+                        $value = json_encode($selectValue);
+                    } else {
+                        $value = '';
+                    }
+                    $this->enregistrerDefi($key, $value, 'professionnel', $request->get('professionnels-etat'.$key),  $dossierAgrement, $em);
                 }
             }
 
             //Enregistrer les défis produits
             if($request->get('produits')) {
-                foreach ($request->get('produits') as $key => $produit) {
-                    $this->enregistrerDefi($key, $produit, 'produit', $request->get('produits-etat'.$key),  $dossierAgrement, $em);
+                foreach ($request->get('produits') as $key => $value) {
+                    $this->enregistrerDefi($key, $value, 'produit', $request->get('produits-etat'.$key),  $dossierAgrement, $em);
                 }
             }
 
             //Enregistrer le défi reutiliser
-            foreach ($request->get('reutiliser') as $key => $produit) {
-                $this->enregistrerDefi($key, $produit, 'reutiliser', $request->get('reutiliser-etat'.$key),  $dossierAgrement, $em);
+            foreach ($request->get('reutiliser') as $key => $value) {
+                $this->enregistrerDefi($key, $value, 'reutiliser', $request->get('reutiliser-etat'.$key),  $dossierAgrement, $em);
             }
 
             //Enregistrer le défi promotion euskara
-            foreach ($request->get('promotionEuskara') as $key => $produit) {
-                $this->enregistrerDefi($key, $produit, 'promotionEuskara', $request->get('promotionEuskara-etat'.$key),  $dossierAgrement, $em);
+            foreach ($request->get('promotionEuskara') as $key => $value) {
+                $this->enregistrerDefi($key, $value, 'promotionEuskara', $request->get('promotionEuskara-etat'.$key),  $dossierAgrement, $em);
             }
 
             //Enregistrer le défi accueil euskara
-            foreach ($request->get('accueilEuskara') as $key => $produit) {
-                $this->enregistrerDefi($key, $produit, 'accueilEuskara', $request->get('accueilEuskara-etat'.$key),  $dossierAgrement, $em);
+            foreach ($request->get('accueilEuskara') as $key => $value) {
+                $this->enregistrerDefi($key, $value, 'accueilEuskara', $request->get('accueilEuskara-etat'.$key),  $dossierAgrement, $em);
             }
 
             /**************    ENREGISTREMENT   *******************/
@@ -278,15 +283,15 @@ class DossierController extends AbstractController
             /******************************************************/
             /*****************  ECO-SYSTEME  **********************/
 
-            foreach ($request->get('enargia') as $key => $produit) {
+            foreach ($request->get('enargia') as $key => $value) {
                 $this->enregistrerDefi($key, $request->get('defi'.$key), 'enargia', 1,  $dossierAgrement, $em);
             }
 
-            foreach ($request->get('paysBasqueAuCoeur') as $key => $produit) {
+            foreach ($request->get('paysBasqueAuCoeur') as $key => $value) {
                 $this->enregistrerDefi($key, $request->get('defi'.$key), 'paysBasqueAuCoeur', 1,  $dossierAgrement, $em);
             }
 
-            foreach ($request->get('lantegiak') as $key => $produit) {
+            foreach ($request->get('lantegiak') as $key => $value) {
                 $this->enregistrerDefi($key, $request->get('defi'.$key), 'lantegiak', 1,  $dossierAgrement, $em);
             }
 
@@ -509,7 +514,7 @@ class DossierController extends AbstractController
      * Enregistre/met à jour les défis en base de données
      *
      * @param $key integer identifiant du défi s'il existe déjà en base
-     * @param $produit
+     * @param $value
      * @param $type
      * @param $etat
      * @param DossierAgrement $dossierAgrement
@@ -517,15 +522,15 @@ class DossierController extends AbstractController
      *
      * @return bool
      */
-    public function enregistrerDefi($key, $produit, $type, $etat, DossierAgrement &$dossierAgrement, EntityManagerInterface $em){
+    public function enregistrerDefi($key, $value, $type, $etat, DossierAgrement &$dossierAgrement, EntityManagerInterface $em){
         $defi = $em->getRepository(Defi::class)->find($key);
         if(!$defi){
             $defi = new Defi();
         }
         if($type == 'produit' or $type == 'professionnel'){
-            if($produit != ''){
+            if($value != ''){
                 $defi->setType($type);
-                $defi->setValeur($produit);
+                $defi->setValeur($value);
                 $defi->setEtat($etat);
                 $dossierAgrement->addDefi($defi);
             } else {
@@ -534,7 +539,7 @@ class DossierController extends AbstractController
 
         } else {
             $defi->setType($type);
-            $defi->setValeur($produit);
+            $defi->setValeur($value);
             $defi->setEtat($etat);
             $dossierAgrement->addDefi($defi);
         }

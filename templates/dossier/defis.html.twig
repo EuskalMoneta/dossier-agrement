@@ -340,8 +340,12 @@
                 <div class="d-flex mt-3 align-items-center">
                     <div class="flex-grow-1">
                     <div class="d-flex ">
+                    <div class="flex-grow-1 me-3">
                     <select name="professionnels[${id}]" class="form-control pro-select form-adresse" style="">
                      </select>
+                     <br />
+                     <textarea name="professionnels-note${id}" class="form-control" placeholder="Notes supplémentaires ..."></textarea>
+                     </div>
                      <input type="button" class="btn btn-outline-dark delSelect" value="X" />
                      </div>
                     </div>
@@ -365,9 +369,13 @@
         initailizeSelect2();
     });
 
+    //Suppression d'un pro, reset de la vue et suppression effective lors du post de la page
     $('.delSelect').on('click', function (){
-        $(this).prev().prev().val(" ").trigger('change');
-        $(this).prev().prev().html('<option value =""></option>');
+        //reset select2
+        $(this).prev().children().first().val(" ").trigger('change');
+        $(this).prev().children().first().html('<option value =""></option>');
+        //reset champ note
+        $(this).prev().children().first().next().next().next().html('');
     });
 
     function initailizeSelect2(){
