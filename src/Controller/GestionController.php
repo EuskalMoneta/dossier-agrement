@@ -111,13 +111,15 @@ class GestionController extends AbstractController
             //sinon on récupère l'id du tier
             $dossierAgrement->setIdExterne(explode('CRM', $idExterne)[1]);
         }
-
         //**** Enregistrer le tier dans le CRM, récupérer son ID
-        $idExterne = $crm->postTier($dossierAgrement);
+        $idExterne = $crm->postAdherent($dossierAgrement);
+
+
         $dossierAgrement->setIdExterne($idExterne);
 
         $em->persist($dossierAgrement);
         $em->flush();
+
 
         //**** Enregistrer le dirigeant en tant que contact
         $contactDirigeant = new Contact();
@@ -145,7 +147,7 @@ class GestionController extends AbstractController
         $this->envoiDefi($em, $crm, $dossierAgrement);
 
         //***** Adhérent
-        $idAdherent = $crm->postAdherent($dossierAgrement);
+        /*$idAdherent = $crm->postAdherent($dossierAgrement);
         if ($idAdherent) {
             $dossierAgrement->setIdAdherent($idAdherent);
 
@@ -156,7 +158,7 @@ class GestionController extends AbstractController
             foreach ($dossierAgrement->getDocuments() as $document){
                 $crm->postDocument($document);
             }
-        }
+        }*/
 
         //***** Compte numérique
         $crm->postBankUser($dossierAgrement);

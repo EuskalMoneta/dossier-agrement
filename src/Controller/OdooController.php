@@ -423,13 +423,25 @@ class OdooController extends AbstractController implements CRMInterface
 
     public function postContact(Contact $contact): int
     {
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+
         $data = $this->transformContact($contact);
-        $reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
+
+        $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
+        var_dump($reponse ['data']);
+        $test = $this->transformPostion($contact,$reponse ['data']);
+        $postion = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($test));
+        return true;
+        //adresse activité / multi établissement
+
+
+
+        /*$reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
         if($reponseCategories['httpcode'] != 200) {
             $this->addFlash("danger","Erreur lors de l'ajout du contact : ".$contact->getNom());
             return false;
         }
-        return true;
+        return true;*/
     }
 
 
@@ -437,7 +449,6 @@ class OdooController extends AbstractController implements CRMInterface
     {
         //Préparer les données de la requête
         $data = $this->transformTier($dossierAgrement);
-
         if($dossierAgrement->getIdExterne() > 0){
             //Si le tier existe déjà, on fait une mise à jour
             $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
@@ -495,22 +506,42 @@ class OdooController extends AbstractController implements CRMInterface
 
     public function postAdherent(DossierAgrement $dossierAgrement):int
     {
-        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
-        if($dossierAgrement->getIdAdherent() > 0){
-            $this->addFlash("warning","L'adhérent existe déjà, impossible d'en créer un nouveau");
-        } else {
-            $data = $this->transformAdherent($dossierAgrement);
-            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
 
-            if($reponse['data']['id']== []) {
-                $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
-                $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : ".$reponse['data']->error->message);
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        $data = $this->transformAdherent($dossierAgrement);
+
+        var_dump($dossierAgrement->getIdExterne());
+        if ($dossierAgrement->getIdExterne() > 0) {
+            //Si le tier existe déjà, on fait une mise à jour
+            /*$reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);*/
+            $dat = $this->transformTier($dossierAgrement);
+            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'write', array(array($dossierAgrement->getIdExterne()), $dat));
+            return true;
+        } else {
+            //sinon on ajoute un nouveau tier
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
+            if (!is_int($reponse ['data'])) {
+                $this->addFlash("danger", "Erreur lors de l'ajout de l'adhérent : " . $dossierAgrement->getCodePrestataire());
+                $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : " . $reponse['data']->error->message);
                 return false;
             }
             return $reponse['data'];
         }
-        return false;
     }
+        /*if($dossierAgrement->getIdAdherent() > 0){
+            $this->addFlash("warning","L'adhérent existe déjà, impossible d'en créer un nouveau");
+        } else {
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
+
+            if(!is_int($reponse ['data'])) {
+                $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
+                $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : ".$reponse['data']->error->message);
+
+            }
+            return $reponse['data'];
+        }
+
+    }*/
 
     public function postCotisation(DossierAgrement $dossierAgrement): int{
 
@@ -675,20 +706,19 @@ class OdooController extends AbstractController implements CRMInterface
 
         $data =
             [
-                'address' => $dossierAgrement->getAdresseComplete(),
-                'zip' => $adresse->postcode,
-                'town' => $adresse->id,
-                'country_id' => 1,
-                'url' => $dossierAgrement->getSiteWeb(),
+                "street" => $dossierAgrement->getAdresseComplete(),
+                "zip" => $adresse->postcode,
+                "city" => $adresse->id,
+                "country_id" => 5,
+                "website" => $dossierAgrement->getSiteWeb(),
                 "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
-                "phone_pro"=> $dossierAgrement->getTelephone(),
-                "name_alias"=> "",
-                "name"=> $dossierAgrement->getDenominationCommerciale(),
-                "client"=> "1",
-                "code_client"=> $dossierAgrement->getCodePrestataire(),
-                "note_private"=> $dossierAgrement->getNote(),
-                'array_options' => $array_options
+                "phone"=> $dossierAgrement->getTelephone(),
+                "name"=> $dossierAgrement->getLibelle(),
+                "ref"=> $dossierAgrement->getCodePrestataire(),
+                "comment"=> $dossierAgrement->getNote()
+                /*'array_options' => $array_options*/
             ];
+
 
         return $data;
     }
@@ -711,45 +741,21 @@ class OdooController extends AbstractController implements CRMInterface
                 $options_reduction_cotisation = '2';
             }
         }
-<<<<<<< HEAD:src/Controller/OdooController.php
-=======
 
-        $array_options = [
-            "options_recevoir_actus"=> $dossierAgrement->isRecevoirNewsletter(),
-            "options_iban"=> $dossierAgrement->getIban(),
-            "options_bic"=> $dossierAgrement->getBic(),
-            "options_prelevement_auto_cotisation"=> '1',
-            //"options_prelevement_auto_cotisation_eusko"=> '1',
-            "options_nb_salaries"=> (string) $dossierAgrement->getNbSalarie(),
-            "options_reduction_cotisation"=> $options_reduction_cotisation,
-            "options_cotisation_soutien"=> ($dossierAgrement->getTypeCotisation() == 'solidaire')?'1':'0',
-            "options_prelevement_cotisation_montant"=> $dossierAgrement->getMontant(),
-            "options_prelevement_cotisation_periodicite"=> '12',
-            "options_documents_pour_ouverture_du_compte_valides" => $dossierAgrement->isCompteNumeriqueBool() ? '1' : '0',
-            "options_accord_pour_ouverture_de_compte" => $dossierAgrement->isCompteNumeriqueBool() ? 'oui' : 'non',
-            "options_notifications_validation_mandat_prelevement"=> '1',
-            "options_notifications_refus_ou_annulation_mandat_prelevement"=> '1',
-            "options_notifications_prelevements"=> '1',
-            "options_notifications_virements"=> '1',
-            "options_recevoir_bons_plans"=> '1',
-        ];
->>>>>>> c8dfe07c1ea399b130c4cb396c96285f2023decd:src/Controller/DolibarrController.php
         $data =
             [
                 "ref"=> $dossierAgrement->getCodePrestataire(),
                 "member_type_id"=> $dossierAgrement->getType() == 'entreprise'?"2":"1",
                 "morphy"=> "mor",//todo
-                "lastname"=>  $dossierAgrement->getNomDirigeant(),
-                "firstname"=>  $dossierAgrement->getPrenomDirigeant(),
-<<<<<<< HEAD:src/Controller/OdooController.php
                 "email"=> $dossierAgrement->getCompteNumerique(),
-                "street" => $adresseRue,
+                "street" => $adresse->postcode,
                 "zip" => $adresse->postcode,
                 "city" => $adresse->id,
                 "country_id" => 1,
                 "phone"=> $dossierAgrement->getTelephone(),
                 /*"fk_soc"=> $dossierAgrement->getIdExterne(),//todo*/
                 "name"=> $dossierAgrement->getLibelle(),
+                "is_company"=>true,
                 /*"company"=> $dossierAgrement->getLibelle(),//todo*/
                 /*"public"=> "0",//todo*/
                 "membership_state"=> "waiting",//todo
@@ -770,24 +776,8 @@ class OdooController extends AbstractController implements CRMInterface
                 "direct_debit_execution_notifications"=> '1',
                 "transfer_receipt_notification"=> '1',
                 "receive_good_plans"=> '1',
-=======
-                "civility_id"=> $dossierAgrement->getCiviliteDirigeant(),
-                "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
-                'address' => $dossierAgrement->getAdresseComplete(),
-                'zip' => $adresse->postcode,
-                'town' => $adresse->id,
-                'country_id' => 1,
-                "phone"=> $dossierAgrement->getTelephone(),
-                "fk_soc"=> $dossierAgrement->getIdExterne(),
-                "societe"=> $dossierAgrement->getDenominationCommerciale(),
-                "company"=> $dossierAgrement->getDenominationCommerciale(),
-                "public"=> "0",
-                "statut"=> "1",
-                'array_options' => $array_options
->>>>>>> c8dfe07c1ea399b130c4cb396c96285f2023decd:src/Controller/DolibarrController.php
+
             ];
-
-
         return $data;
     }
 
@@ -801,6 +791,16 @@ class OdooController extends AbstractController implements CRMInterface
 
         $data =
             [
+                "lastname"=> $contact->getNom(),
+                "firstname"=> $contact->getPrenom(),
+                "phone"=> $contact->getTelephone(),
+                "email"=> $contact->getEmail()
+            ];
+
+
+        /*$data =
+            [
+
                 "socid"=> $contact->getDossierAgrement()->getIdExterne(),
                 "email"=> $contact->getEmail(),
                 "mail"=> $contact->getEmail(),
@@ -810,9 +810,23 @@ class OdooController extends AbstractController implements CRMInterface
                 "firstname"=> $contact->getPrenom(),
                 "poste"=> $contact->getFonction(),
                 "socname"=> $contact->getDossierAgrement()->getDenominationCommerciale()
-            ];
+            ];*/
 
         return $data;
     }
+
+    private function transformPostion(Contact $contact,int $id)
+    {
+        $data =
+            [
+                "name"=>$contact->getDossierAgrement()->getLibelle(),
+                "contact_id"=> $id,
+                "parent_id"=>$contact->getDossierAgrement()->getIdExterne(),
+                "is_position_profile"=>true,
+                "function"=>$contact->getFonction()
+            ];
+        return $data;
+    }
+
 
 }
