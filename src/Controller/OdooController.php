@@ -424,25 +424,34 @@ class OdooController extends AbstractController implements CRMInterface
     public function postContact(Contact $contact): int
     {
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
-
         $data = $this->transformContact($contact);
-
-        $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
-        var_dump($reponse ['data']);
-        $test = $this->transformPostion($contact,$reponse ['data']);
-        $postion = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($test));
-        return true;
-        //adresse activité / multi établissement
-
-
-
-        /*$reponseCategories = $this->curlRequestDolibarr('POST', 'contacts', $data);
-        if($reponseCategories['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de l'ajout du contact : ".$contact->getNom());
-            return false;
+        $res ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+            'res.partner','search_read', array(array(
+                array('id', '=',$contact->getDossierAgrement()->getIdExterne()),
+            )),array('fields' => array('child_ids')));
+        var_dump($res ['data']);
+        foreach ($res ['data'] as $u)
+        {
+            $res ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
+                'res.partner','search_read', array(array(
+                    array('id', '=',$contact->getDossierAgrement()->getIdExterne()),
+                )),array('fields' => array('child_ids')));
         }
-        return true;*/
+        /*if ($res['data'] == [])
+        {
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
+            $test = $this->transformPostion($contact,$reponse ['data']);
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($test));
+            return true;
+        }
+        else
+        {
+            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'write', array(array($res['id']), $data));
+
+        }*/
+        return false;
     }
+
 
 
     public function postTier(DossierAgrement $dossierAgrement): int
@@ -509,14 +518,12 @@ class OdooController extends AbstractController implements CRMInterface
 
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         $data = $this->transformAdherent($dossierAgrement);
-
-        var_dump($dossierAgrement->getIdExterne());
         if ($dossierAgrement->getIdExterne() > 0) {
             //Si le tier existe déjà, on fait une mise à jour
-            /*$reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);*/
-            $dat = $this->transformTier($dossierAgrement);
-            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'write', array(array($dossierAgrement->getIdExterne()), $dat));
-            return true;
+            $adh= $this->transformTier($dossierAgrement);
+            //update du pro
+            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'write', array(array($dossierAgrement->getIdExterne()), $adh));
+            return $dossierAgrement->getIdExterne();
         } else {
             //sinon on ajoute un nouveau tier
             $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
