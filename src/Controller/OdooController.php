@@ -25,10 +25,6 @@ class OdooController extends AbstractController implements CRMInterface
 
     private $odoo_db_name;
 
-    private $cyclos_url;
-    private $cyclos_user;
-    private $cyclos_pass;
-
     public function __construct(LoggerInterface $logger)
     {
         $this->odoo_url = $_ENV['API_ODOO_URL'];
@@ -57,50 +53,6 @@ class OdooController extends AbstractController implements CRMInterface
             return false;
         }
     }
-
-    /**
-     * Makes a cUrl request
-     *
-     * @param $method
-     * @param $link
-     * @param string $data
-     * @param string $token
-     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
-     */
-    private function curlRequestDolibarr($method, $link,  $data = '', $token ='')
-    {
-
-        if($this->api_token_odoo) {
-            $token = $this->api_token_odoo;
-        }
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->odoo_url.$link);
-        curl_setopt($curl, CURLOPT_COOKIESESSION, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
-
-        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'DOLAPIKEY: ' . $token,
-                    'Content-Length: ' . strlen(json_encode($data)))
-            );
-        } else {
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                    'DOLAPIKEY: ' . $token)
-            );
-        }
-
-        $return = curl_exec($curl);
-        $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-
-        return ['data' => json_decode($return), 'httpcode' => $http_status];
-    }
     /**
      * Makes a cUrl request for cyclos
      *
@@ -109,111 +61,6 @@ class OdooController extends AbstractController implements CRMInterface
      * @param string $data
      * @return array
      */
-    private function curlRequestCyclos($method, $link,  $data = '')
-    {
-        $curlCyclos = curl_init();
-        curl_setopt($curlCyclos, CURLOPT_URL, $this->cyclos_url.$link);
-        curl_setopt($curlCyclos, CURLOPT_COOKIESESSION, true);
-        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curlCyclos, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curlCyclos, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curlCyclos, CURLOPT_CUSTOMREQUEST, $method);
-
-        if($method == 'POST' or $method == 'PUT' or $method == 'PATCH'){
-            curl_setopt($curlCyclos, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
-                    'Content-Length: ' . strlen(json_encode($data)))
-            );
-        } else {
-            curl_setopt($curlCyclos, CURLOPT_HTTPHEADER, array(
-                    'Content-Type: application/json',
-                    'Authorization: Basic ' . base64_encode($this->cyclos_user.':'.$this->cyclos_pass),
-                )
-            );
-        }
-
-        $responseLogin = json_decode(curl_exec($curlCyclos));
-        $http_status = curl_getinfo($curlCyclos, CURLINFO_HTTP_CODE);
-        curl_close($curlCyclos);
-
-
-        $token = '';
-        if($http_status != 200){
-            $this->addFlash('danger', "Connexion à Cyclos impossible, vérifier vos paramètres user, pass et URL de l'API.");
-            return ['data' => 'bad credential', 'httpcode' =>'500'];
-        }
-
-        return ['data' => $responseLogin, 'httpcode' => $http_status];
-    }
-
-    public function postBankUser(DossierAgrement $dossierAgrement):int
-    {
-        //On vérifie si aucun utilisateur avec ce login existe.
-        $responseExist = $this->curlRequestCyclos('POST', '/user/search', [
-            'keywords'=> $dossierAgrement->getCodePrestataire(),
-            ['userStatus'=> ['ACTIVE', 'BLOCKED', 'DISABLED']]
-        ]);
-        if ($responseExist['httpcode'] != 200) {
-            $this->addFlash('warning', "Erreur lors de la recherche de l'utilisateur dans Cyclos.");
-        } else if ($responseExist['data']->result->totalCount > 0) {
-            $this->addFlash('warning', "Utilisateur déjà présent dans Cyclos, le compte cyclos n'a pas été créé.");
-        } else {
-            //Préparation et enregistrement de l'utilisateur
-            $group = $_ENV['ADHERENTS_SANS_COMPTE'];
-            if ($dossierAgrement->isCompteNumeriqueBool()) {
-                $group = $_ENV['ADHERENTS_PRESTATAIRES'];
-                if ($dossierAgrement->isPaiementViaEuskopay()) {
-                    $group = $_ENV['ADHERENTS_PRESTATAIRES_AVEC_PAIEMENT_SMARTPHONE'];
-                }
-            }
-
-            $data = [
-                'group'=> $group,
-                'name'=> $dossierAgrement->getDenominationCommerciale(),
-                'username'=> $dossierAgrement->getCodePrestataire(),
-                'skipActivationEmail'=> True,
-            ];
-            $responseUser = $this->curlRequestCyclos('POST', '/user/register', $data);
-            if ($responseUser['httpcode'] != 200) {
-                $this->addFlash('danger', "L'utilisateur Cyclos n'a pas été créé.");
-            } else {
-                $this->addFlash('success', "Utilisateur Cyclos ajouté avec succès.");
-
-                //si l'utilisateur a un compte numérique, changer son status
-                if ($dossierAgrement->isCompteNumeriqueBool()) {
-                    $data = [
-                        'user'=> $responseUser['data']->result->user->id,
-                        'status'=> 'ACTIVE',
-                    ];
-                    $responseActivation = $this->curlRequestCyclos('POST', '/userStatus/changeStatus', $data);
-                    if($responseActivation['httpcode'] != 200) {
-                        $this->addFlash('danger', "L'utilisateur Cyclos n'a pas pu être activé.");
-                    } else {
-                        // et créer un QR code pour cet utilisateur
-                        $data = [
-                            'user'=> $responseUser['data']->result->user->id,
-                            'type'=> 'qr_code',
-                            'value'=> $dossierAgrement->getCodePrestataire(),
-                        ];
-                        $responseQrCode = $this->curlRequestCyclos('POST', '/token/save', $data);
-                        if ($responseQrCode['httpcode'] != 200) {
-                            $this->addFlash('danger', "Le QR code n'a pas pu être créé.");
-                        } else {
-                            $responseActivationQrCode = $this->curlRequestCyclos('POST', '/token/activatePending', [$responseQrCode['data']->result]);
-                            if($responseActivationQrCode['httpcode'] != 200) {
-                                $this->addFlash('danger', "Le QR code n'a pas pu être activé.");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
     public function getCategoriesAnnuaire():array
     {
         $tabCategoriesAnnuaire =[];
@@ -371,53 +218,31 @@ class OdooController extends AbstractController implements CRMInterface
         }
         return $res;
     }
-    /*
-     * Fonction récursive qui récupère l'ensemble des sous catégories d'un index donné.
-     * Prend l'index et un tableau par référence pour les résultats
-     */
-    public function updateTier($id): bool
-    {
-        return true;
-    }
-
 
     public function postAdresseActivite(AdresseActivite $adresseActivite): bool
     {
-
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         $data = $this->transformAdresseActivite($adresseActivite);
-        $reponseAdresseActivite = $this->curlRequestDolibarr('POST', 'contacts', $data);
-        if ($reponseAdresseActivite['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de l'ajout de l'adresse d'activité : ".$adresseActivite->getNom());
-            return false;
-        }
-        $idAdresseActivite = $reponseAdresseActivite['data'];
+        //creer l'adresse activité
+        $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'create', array($data));
+        //creer fiche position
+        $fichposition = $this->transformPostionAdress($adresseActivite,$reponse ['data']);
 
-        // Ajouter l'étiquette "Adresse d'activité"
-        $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/370/objects/contact/'.$idAdresseActivite);
-        if ($reponseLiaison['httpcode'] != 200) {
-            $this->addFlash("danger", "Erreur lors de l'ajout de l'étiquette \"Adresse d'activité\" à l'adresse d'activité : ".$adresseActivite->getNom());
-            return false;
-        }
+        $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'create', array($fichposition));
 
         // Ajouter les étiquettes des catégories des annuaires
         $categories = array_merge($adresseActivite->getCategoriesAnnuaire()->toArray(), $adresseActivite->getCategoriesAnnuaireEskuz()->toArray());
-        foreach ($categories as $cat) {
-            $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/'.$cat->getIdExterne().'/objects/contact/'.$idAdresseActivite);
-            if ($reponseLiaison['httpcode'] != 200) {
-                $this->addFlash("danger", "Erreur lors de l'ajout de la catégorie '.$cat->getIdExterne().' à l'adresse d'activité : ".$adresseActivite->getNom());
-                return false;
-            }
-        }
+        $categoriess= $adresseActivite->getCategoriesAnnuaireEskuz();
+        var_dump($categoriess);
+        foreach ($categoriess as $cat) {
+            $test = ["secondary_industry_ids"=> $cat->getIdExterne()
+                ];
+            $res = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()),$test));
 
-        // Ajouter l'étiquette "Vacances en eusko"
-        if ($adresseActivite->isGuideVEE()) {
-            $reponseLiaison = $this->curlRequestDolibarr('POST', 'categories/489/objects/contact/'.$idAdresseActivite);
-            if ($reponseLiaison['httpcode'] != 200) {
-                $this->addFlash("danger", "Erreur lors de l'ajout de l'étiquette \"Vacances en eusko\" à l'adresse d'activité : ".$adresseActivite->getNom());
-                return false;
-            }
         }
-
         return true;
     }
 
@@ -425,108 +250,32 @@ class OdooController extends AbstractController implements CRMInterface
     {
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         $data = $this->transformContact($contact);
-        $res ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
-            'res.partner','search_read', array(array(
-                array('id', '=',$contact->getDossierAgrement()->getIdExterne()),
-            )),array('fields' => array('child_ids')));
-        var_dump($res ['data']);
-        foreach ($res ['data'] as $u)
-        {
-            $res ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
-                'res.partner','search_read', array(array(
-                    array('id', '=',$contact->getDossierAgrement()->getIdExterne()),
-                )),array('fields' => array('child_ids')));
-        }
-        /*if ($res['data'] == [])
-        {
-            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
-            $test = $this->transformPostion($contact,$reponse ['data']);
-            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($test));
-            return true;
-        }
-        else
-        {
-            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'write', array(array($res['id']), $data));
-
-        }*/
+        //Creation du partner (contact)
+        $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'create', array($data));
+        ////Creation de la position
+        $fichposition = $this->transformPostion($contact,$reponse ['data']);
+        $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'create', array($fichposition));
+        //email unique attention
         return false;
-    }
-
-
-
-    public function postTier(DossierAgrement $dossierAgrement): int
-    {
-        //Préparer les données de la requête
-        $data = $this->transformTier($dossierAgrement);
-        if($dossierAgrement->getIdExterne() > 0){
-            //Si le tier existe déjà, on fait une mise à jour
-            $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
-            if($reponseTier['httpcode'] != 200) {
-                $this->addFlash("danger", "Erreur lors de la mise à jour du tier dans dolibarr.");
-                $this->logger->error("Erreur lors de la mise à jour du tiers dans Dolibarr : ".$reponseTier['data']->error->message);
-                return false;
-            }
-            return $reponseTier['data']->id;
-        } else {
-            //sinon on ajoute un nouveau tier
-            $reponseTier = $this->curlRequestDolibarr('POST', 'thirdparties', $data);
-            if($reponseTier['httpcode'] != 200) {
-                $this->addFlash("danger", "Erreur lors de l'ajout du tier dans dolibarr.");
-                $this->logger->error("Erreur lors de l'ajout du tiers dans Dolibarr : ".$reponseTier['data']->error->message);
-                return false;
-            }
-            return $reponseTier['data'];
-        }
-
-    }
-
-    public function postDefi(Defi $defi): int
-    {
-        $idUser = $this->searchActiveUser($defi->getDossierAgrement()->getUtilisateur()->getEmail());
-
-        if($idUser > 0){
-            $data = $this->transformDefi($defi, $idUser);
-            $reponseCategories = $this->curlRequestDolibarr('POST', 'agendaevents', $data);
-            if($reponseCategories['httpcode'] != 200) {
-                $this->addFlash("danger","Erreur lors de l'ajout du defi : ".$defi->getValeur());
-                return false;
-            }
-        } else {
-            $this->addFlash("danger","Erreur lors de l'ajout du defi : utilisateur non trouvé");
-            return false;
-        }
-
-        return true;
-    }
-
-    public function postDocument(Document $document):int
-    {
-        $data = $this->transformDocument($document);
-        $reponse = $this->curlRequestDolibarr('POST', 'documents/upload', $data);
-
-        if($reponse['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de l'ajout du document : ".$document->getPath());
-            $this->logger->error("Erreur lors de l'ajout du document : ".$document->getPath()."\nErreur : ".$reponse['data']->error->message);
-            return false;
-        }
-
-        return true;
     }
 
     public function postAdherent(DossierAgrement $dossierAgrement):int
     {
-
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         $data = $this->transformAdherent($dossierAgrement);
         if ($dossierAgrement->getIdExterne() > 0) {
-            //Si le tier existe déjà, on fait une mise à jour
+            //Si le partner existe déjà, on fait une mise à jour
             $adh= $this->transformTier($dossierAgrement);
             //update du pro
-            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'write', array(array($dossierAgrement->getIdExterne()), $adh));
+            $reponse= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'res.partner', 'write', array(array($dossierAgrement->getIdExterne()), $adh));
             return $dossierAgrement->getIdExterne();
         } else {
             //sinon on ajoute un nouveau tier
-            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'res.partner', 'create', array($data));
             if (!is_int($reponse ['data'])) {
                 $this->addFlash("danger", "Erreur lors de l'ajout de l'adhérent : " . $dossierAgrement->getCodePrestataire());
                 $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : " . $reponse['data']->error->message);
@@ -535,121 +284,6 @@ class OdooController extends AbstractController implements CRMInterface
             return $reponse['data'];
         }
     }
-        /*if($dossierAgrement->getIdAdherent() > 0){
-            $this->addFlash("warning","L'adhérent existe déjà, impossible d'en créer un nouveau");
-        } else {
-            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass, 'res.partner', 'create', array($data));
-
-            if(!is_int($reponse ['data'])) {
-                $this->addFlash("danger","Erreur lors de l'ajout de l'adhérent : ".$dossierAgrement->getCodePrestataire());
-                $this->logger->error("Erreur lors de l'ajout de l'adhérent dans Dolibarr : ".$reponse['data']->error->message);
-
-            }
-            return $reponse['data'];
-        }
-
-    }*/
-
-    public function postCotisation(DossierAgrement $dossierAgrement): int{
-
-        // La cotisation est offerte pour le premier mois.
-        $cotisation = $this->transformCotisation(
-            $dossierAgrement->getDateAgrement(),
-            (new \DateTime())->modify("last day of this month"),
-            0,
-            "Adhésion/cotisation ".date('Y')
-        );
-        $reponse = $this->curlRequestDolibarr('POST', 'members/'.$dossierAgrement->getIdAdherent().'/subscriptions', $cotisation);
-        if ($reponse['httpcode'] != 200) {
-            $this->addFlash("danger","Erreur lors de la création de la cotisation.");
-            $this->logger->error("Erreur lors de la création de la cotisation dans Dolibarr : ".$reponse['data']->error->message);
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Transforme un objet Document vers un tableau compatible document dolibarr
-     *
-     * @param DossierAgrement $dossierAgrement
-     * @return array
-     */
-    private function transformCotisation(\DateTime $start, \DateTime $end, $montant, $label){
-
-        $data =
-            [
-                "start_date"=> $start->getTimestamp(),
-                "end_date"=> $end->getTimestamp(),
-                "amount"=> $montant,
-                "label"=> $label,
-            ];
-
-        return $data;
-
-    }
-
-    /**
-     * Transforme un objet Document vers un tableau compatible document dolibarr
-     *
-     * @param Document $document
-     * @return array
-     */
-    private function transformDocument(Document $document){
-        $file = file_get_contents($document->getAbsolutePath());
-
-        //$document->getPath()
-        $data =
-            [
-                "filename"=> $document->getFileNameFromType(),
-                "modulepart"=> "adherent",
-                "ref"=> $document->getDossierAgrement()->getIdAdherent(),
-                "subdir"=> "",
-                "filecontent"=> base64_encode($file),
-                "fileencoding"=> "base64",
-                "overwriteifexists"=> 0
-            ];
-
-        return $data;
-
-    }
-
-    /**
-     * Transforme un objet Defi vers un tableau compatible adresse dolibarr
-     *
-     * @param Defi $defi
-     * @param int $idUser
-     * @return array
-     */
-    private function transformDefi(Defi $defi,int $idUser){
-
-        $etat = '0';
-        $debut = (new \DateTime())->modify('first day of January this year 00:00')->getTimestamp();
-        $fin = (new \DateTime())->modify('last day of December next year 00:00')->getTimestamp();
-
-        if($defi->isEtat()){
-            $etat = '-1';
-            $fin = (new \DateTime())->modify('last day of December this year 00:00')->getTimestamp();
-        }
-
-        $data =
-            [
-                "type_code"=> "AC_DEFI",
-                'type' => "Défi",
-                'code' =>  "AC_DEFI",
-                "label"=> $defi->getLabelDefiCRM(),
-                "datep"=> $debut,
-                "datef"=> $fin,
-                "percentage" => $etat,
-                "userownerid"=> $idUser,
-                "socid"=> $defi->getDossierAgrement()->getIdExterne(),
-                "note" => $defi->getValeur()
-            ];
-
-        return $data;
-
-    }
-
     /**
      * Transforme un objet AdresseActivite vers un tableau compatible adresse dolibarr
      *
@@ -659,13 +293,13 @@ class OdooController extends AbstractController implements CRMInterface
     private function transformAdresseActivite(AdresseActivite $adresseActivite){
         $adresse = json_decode($adresseActivite->getAdresse());
         $array_options = [
-            "options_latitude"=> $adresse->lat,
-            "options_longitude"=> $adresse->lng,
-            "options_facebook"=> $adresseActivite->getFacebook(),
-            "options_instagram"=> $adresseActivite->getInstagram(),
-            "options_description_francais"=> $adresseActivite->getDescriptifActivite(),
-            "options_horaires_francais"=> $adresseActivite->getHoraires(),
-            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux()
+            "partner_latitude"=> $adresse->lat,
+            "partner_longitude"=> $adresse->lng,
+            "options_facebook"=> $adresseActivite->getFacebook(),//TODO
+            "options_instagram"=> $adresseActivite->getInstagram(),//TODO
+            "options_description_francais"=> $adresseActivite->getDescriptifActivite(),//TODO
+            "opening_time"=> $adresseActivite->getHoraires(),
+            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux()//TODO
             //"options_horaires_euskara"=> "Astelehenetik ostiralera 8=>00 – 12=>00 / 14=>00 – 18=>30 (astelehenetan=> 9=>00etatik)",
             //"options_autres_lieux_activite_euskara"=> null,
             //"options_bons_plans_euskara"=> null,
@@ -681,24 +315,21 @@ class OdooController extends AbstractController implements CRMInterface
 
         $data =
             [
-                'address' => $adresseActivite->getAdresseComplete(),
-                'zip' => $adresse->postcode,
-                'town' => $adresse->id,
-                'country_id' => 1,
-                "socid"=> $adresseActivite->getDossier()->getIdExterne(),
-                "email"=> $adresseActivite->getEmail(),
-                "mail"=> $adresseActivite->getEmail(),
-                "phone_pro"=> $adresseActivite->getTelephone(),
-                "lastname"=> $adresseActivite->getNom(),
-                "socname"=> $adresseActivite->getNom(),
-                'array_options' => $array_options
+                "street" => $adresseActivite->getAdresseComplete(),
+                "zip" => $adresse->postcode,
+                "city" => $adresse->id,
+                "country_id" => 1,
+                "is_company"=>true,
+                "phone"=> $adresseActivite->getTelephone(),
+                "name"=> $adresseActivite->getNom(),
+                /*'array_options' => $array_options*/
             ];
 
         return $data;
     }
 
     /**
-     * Transforme un objet DossierAgrement vers un tableau compatible tier dolibarr
+     * Transforme un objet DossierAgrement vers un tableau compatible partner Odoo
      *
      * @param DossierAgrement $dossierAgrement
      * @return array
@@ -731,7 +362,7 @@ class OdooController extends AbstractController implements CRMInterface
     }
 
     /**
-     * Transforme un objet DossierAgrement vers un tableau compatible adherent dolibarr
+     * Transforme un objet DossierAgrement vers un tableau compatible partner Odoo
      *
      * @param DossierAgrement $dossierAgrement
      * @return array
@@ -789,7 +420,7 @@ class OdooController extends AbstractController implements CRMInterface
     }
 
     /**
-     * Transforme un objet Contact vers un tableau compatible contact dolibarr
+     * Transforme un objet Contact vers un tableau compatible partner Odoo
      *
      * @param Contact $contact
      * @return array
@@ -798,30 +429,22 @@ class OdooController extends AbstractController implements CRMInterface
 
         $data =
             [
+
                 "lastname"=> $contact->getNom(),
                 "firstname"=> $contact->getPrenom(),
                 "phone"=> $contact->getTelephone(),
                 "email"=> $contact->getEmail()
             ];
-
-
-        /*$data =
-            [
-
-                "socid"=> $contact->getDossierAgrement()->getIdExterne(),
-                "email"=> $contact->getEmail(),
-                "mail"=> $contact->getEmail(),
-                "civility_id"=> $contact->getCivilite(),
-                "phone_pro"=> $contact->getTelephone(),
-                "lastname"=> $contact->getNom(),
-                "firstname"=> $contact->getPrenom(),
-                "poste"=> $contact->getFonction(),
-                "socname"=> $contact->getDossierAgrement()->getDenominationCommerciale()
-            ];*/
-
         return $data;
     }
 
+    /**
+     * transformation tableau vers un tableau pour une fiche position entre un contat (personne physique) et un partner Odoo
+     *
+     * @param Contact $contact
+     * @param int $id
+     * @return array
+     */
     private function transformPostion(Contact $contact,int $id)
     {
         $data =
@@ -834,6 +457,27 @@ class OdooController extends AbstractController implements CRMInterface
             ];
         return $data;
     }
+
+    /**
+     * transformation tableau vers un tableau pour une fiche position entre un contat (adresse d'un site) et un partner Odoo (Du siège)
+     *
+     * @param AdresseActivite $adresseActivite
+     * @param int $id
+     * @return array
+     */
+    private function transformPostionAdress(AdresseActivite $adresseActivite,int $id)
+    {
+        $data =
+            [
+                "name"=>$adresseActivite->getDossier()->getLibelle(),
+                "contact_id"=> $id,
+                "parent_id"=>$adresseActivite->getDossier()->getIdExterne(),
+                "is_position_profile"=>true,
+                /*"function"=>$adresseActivite->getFonction()*/
+            ];
+        return $data;
+    }
+
 
 
 }

@@ -45,19 +45,30 @@ interface CRMInterface
     /**
      * Rechercher un professionnel
      * retourne un tableau de résultats
+     * entrée : le nom du pro
+     * retourne:
+     * $tabPro[] = [
+     *'id' => $val,
+     *'text' => $val,
+     *'prenom' => $val,
+     *'nom' => $val,
+     *'entreprise' => $val,
+     *'activite' => $val,
+     *'telephone' => $val,
+     *'email' =>  $val,
+     *'adresse' => $val,
+     *'commentaires' => $val,
+     *'status' => $val,
+     *];
+     *
+     *
+     *
      *
      * @param string $term
      * @return array
      */
     public function searchProfessionnel(string $term):array;
 
-    /**
-     * Mettre à jour un tier existant
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function updateTier(int $id):bool;
 
     /**
      * Ajoute une adresse d'activité liée à un tier
@@ -69,39 +80,12 @@ interface CRMInterface
 
 
     /**
-     * Ajoute un nouveau tier
-     *
-     * @param DossierAgrement $dossierAgrement
-     * @return int
-     */
-    public function postTier(DossierAgrement $dossierAgrement): int;
-
-    /**
      * Ajoute un nouveau contact
      *
      * @param Contact $contact
      * @return int
      */
     public function postContact(Contact $contact): int;
-
-
-    /**
-     * Ajoute un nouveau defi
-     *
-     * @param Defi $defi
-     * @return int
-     */
-    public function postDefi(Defi $defi): int;
-
-
-    /**
-     * Ajoute un nouveau document
-     *
-     * @param Document $document
-     * @return int
-     */
-    public function postDocument(Document $document): int;
-
 
     /**
      * Ajoute un nouvel adhérent
@@ -110,22 +94,6 @@ interface CRMInterface
      * @return int Le numéro d'adhérent crée
      */
     public function postAdherent(DossierAgrement $dossierAgrement): int;
-
-    /**
-     * Ajoute une ou plusieurs cotisation(s)
-     *
-     * @param DossierAgrement $dossierAgrement
-     * @return int
-     */
-    public function postCotisation(DossierAgrement $dossierAgrement): int;
-
-    /**
-     * Ajoute un utilisateur pour la banque
-     *
-     * @param DossierAgrement $dossierAgrement
-     * @return int
-     */
-    public function postBankUser(DossierAgrement $dossierAgrement): int;
 
 
 }

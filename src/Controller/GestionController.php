@@ -114,7 +114,6 @@ class GestionController extends AbstractController
         //**** Enregistrer le tier dans le CRM, récupérer son ID
         $idExterne = $crm->postAdherent($dossierAgrement);
 
-
         $dossierAgrement->setIdExterne($idExterne);
 
         $em->persist($dossierAgrement);
