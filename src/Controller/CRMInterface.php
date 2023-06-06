@@ -69,7 +69,8 @@ interface CRMInterface
      */
     public function searchProfessionnel(string $term):array;
 
-
+    public function postDocument(Document $document): int;
+    public function postCotisation(DossierAgrement $dossierAgrement):int;
     /**
      * Ajoute une adresse d'activité liée à un tier
      *

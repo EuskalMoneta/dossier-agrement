@@ -228,21 +228,40 @@ class OdooController extends AbstractController implements CRMInterface
             'res.partner', 'create', array($data));
         //creer fiche position
         $fichposition = $this->transformPostionAdress($adresseActivite,$reponse ['data']);
-
         $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
             'res.partner', 'create', array($fichposition));
 
+        /*$partner = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'search_read', $domain, array('fields'=>array('id','secondary_industry_ids')));
+        var_dump($partner);
+        $r = [
+            'name' => 'Collec',
+            'secondary_industry_ids' => [207],
+        ];
+        $repons= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'write', array(array($partner[0]['id']), $r));
+        var_dump($repons);
+        $si= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()), $r));
+        var_dump($si);*/
+
         // Ajouter les étiquettes des catégories des annuaires
-        $categories = array_merge($adresseActivite->getCategoriesAnnuaire()->toArray(), $adresseActivite->getCategoriesAnnuaireEskuz()->toArray());
-        $categoriess= $adresseActivite->getCategoriesAnnuaireEskuz();
-        var_dump($categoriess);
-        foreach ($categoriess as $cat) {
-            $test = ["secondary_industry_ids"=> $cat->getIdExterne()
-                ];
+       /*$categories = array_merge($adresseActivite->getCategoriesAnnuaire()->toArray(), $adresseActivite->getCategoriesAnnuaireEskuz()->toArray());
+
+       var_dump($categories);*/
+
+        /*$test = ["secondary_industry_ids"=> 215];
+
+        $res = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'write', array(array(["id"=> 324]),$test));
+        var_dump($res);*/
+        /*foreach ($categories as $cat) {
+
+            $test = ["secondary_industry_ids"=> 215];
             $res = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
                 'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()),$test));
-
-        }
+            var_dump($res);
+        }*/
         return true;
     }
 
@@ -250,15 +269,51 @@ class OdooController extends AbstractController implements CRMInterface
     {
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         $data = $this->transformContact($contact);
-        //Creation du partner (contact)
-        $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-            'res.partner', 'create', array($data));
-        ////Creation de la position
-        $fichposition = $this->transformPostion($contact,$reponse ['data']);
-        $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-            'res.partner', 'create', array($fichposition));
-        //email unique attention
+        $domain = array(array(
+            array('email', '=',$contact->getEmail())
+        ));
+        $fields = array('fields'=>array('id', 'name'));
+        $r['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'search_read', $domain, array('fields'=>array('id')));
+        if ($r['data'] == [])
+        {
+            //Creation du partner (contact)
+            $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'res.partner', 'create', array($data));
+            ////Creation de la position
+            $fichposition = $this->transformPostion($contact,$reponse ['data']);
+            $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'res.partner', 'create', array($fichposition));
+            //email unique attention
+        }
         return false;
+    }
+    public function postDocument(Document $document): int
+    {
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        $data = $this->transformDocument($document);
+        $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'ir.attachment', 'create', array($data));
+        var_dump($resPos ['data']);
+        return true;
+    }
+    public function postCotisation(DossierAgrement $dossierAgrement): int{
+
+        $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
+        // La cotisation est offerte pour le premier mois.
+        /*\$dossierAgrement->getDateAgrement()*/
+        $date = date_create("2023-01-01");
+        $cotisation = $this->transformCotisation(
+            $date,
+            (new \DateTime())->modify("last day of this month"),
+            0,
+            "Adhésion/cotisation ".date('Y')
+        );
+        $reponse ['data']= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'membership.membership_line', 'create', array($cotisation));
+        var_dump($reponse ['data']);
+
+        return true;
     }
 
     public function postAdherent(DossierAgrement $dossierAgrement):int
@@ -327,6 +382,36 @@ class OdooController extends AbstractController implements CRMInterface
 
         return $data;
     }
+    private function transformDocument(Document $document)
+    {
+        $file = file_get_contents($document->getAbsolutePath());
+        $data = [
+            "datas_fname" =>$document->getFileNameFromType(),
+            "res_model_name" => "Contact",
+            "res_id" => $document->getDossierAgrement()->getIdExterne(),
+            "res_model" => "res.partner",
+            "res_name" => $document->getDossierAgrement()->getLibelle(),
+            "datas"=> base64_encode($file),
+            "store_fname" =>$document->getFileNameFromType(),
+            "name" =>$document->getFileNameFromType(),
+        ];
+        return $data;
+    }
+
+    private function transformCotisation(\DateTime $start, \DateTime $end, $montant, $label)
+    {
+        $data =[
+            "date" =>date_format($start, 'Y/m/d'),
+            "date_to" =>date_format($end, 'Y/m/d'),
+            "date_from"=>date_format($start, 'Y/m/d'),
+            "partner"=>324,
+            "member_price"=>$montant,
+            "membership_id"=>1,
+        ];
+        return $data;
+    }
+
+
 
     /**
      * Transforme un objet DossierAgrement vers un tableau compatible partner Odoo
@@ -385,7 +470,7 @@ class OdooController extends AbstractController implements CRMInterface
                 "ref"=> $dossierAgrement->getCodePrestataire(),
                 "member_type_id"=> $dossierAgrement->getType() == 'entreprise'?"2":"1",
                 "morphy"=> "mor",//todo
-                "email"=> $dossierAgrement->getCompteNumerique(),
+                "email"=> $dossierAgrement->getEmailPrincipal(),
                 "street" => $adresse->postcode,
                 "zip" => $adresse->postcode,
                 "city" => $adresse->id,
