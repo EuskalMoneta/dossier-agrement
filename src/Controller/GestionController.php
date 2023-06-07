@@ -141,12 +141,12 @@ class GestionController extends AbstractController
         }
         $crm->postCotisation($dossierAgrement);
         //***** Adresse(s) activité
-        /*foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
+        foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
         $crm->postAdresseActivite($adresseActivite);
         }
 
         //***** Défis
-        $this->envoiDefi($em, $crm, $dossierAgrement);*/
+        /*$this->envoiDefi($em, $crm, $dossierAgrement);*/
 
         //***** Adhérent
         /*$idAdherent = $crm->postAdherent($dossierAgrement);

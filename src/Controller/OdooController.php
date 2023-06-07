@@ -7,6 +7,7 @@ use App\Entity\Contact;
 use App\Entity\Defi;
 use App\Entity\Document;
 use App\Entity\DossierAgrement;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -73,8 +74,7 @@ class OdooController extends AbstractController implements CRMInterface
             )),
             array('fields'=>array('id','name')));
         $id_categorieAnnuaire= array_column($id_categorieAnnuaire['data'], 'id');
-        $test = $id_categorieAnnuaire[0];
-        $search_string = "'" .strval($test) ."/%'";
+        $search_string = "'" .strval($id_categorieAnnuaire[0]) ."/%'";
         $search_string = preg_match("/([^']+)/", $search_string, $matches);
         $domain = array(array(
             array('parent_path', 'like',  $matches[0]),
@@ -191,8 +191,7 @@ class OdooController extends AbstractController implements CRMInterface
             )),
             array('fields'=>array('id','name')));
         $id_EskuzEsku = array_column($id_EskuzEsku['data'], 'id');
-        $test = $id_EskuzEsku[0];
-        $search_string = "'" .strval($test) ."/%'";
+        $search_string = "'" .strval($id_EskuzEsku[0]) ."/%'";
         $search_string = preg_match("/([^']+)/", $search_string, $matches);
         $domain =array(array(
             array('parent_path', 'like',  $matches[0]),
@@ -202,7 +201,6 @@ class OdooController extends AbstractController implements CRMInterface
         $fields = array('fields'=>array('id', 'name', 'parent_path', 'parent_id'));
         $tabCategoriesEskuzEsku ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass ,
             'res.partner.industry','search_read', $domain, $fields);
-        /*$tabCategoriesEskuzEsku = $this->RequestOdoo('search_read','res.partner.industry',$domain,$fields);*/
         foreach ($tabCategoriesEskuzEsku['data'] as $categorie) {
             $domain = array(array(
                 array('src', '=', $categorie['name']),
@@ -231,37 +229,50 @@ class OdooController extends AbstractController implements CRMInterface
         $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
             'res.partner', 'create', array($fichposition));
 
-        /*$partner = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-            'res.partner', 'search_read', $domain, array('fields'=>array('id','secondary_industry_ids')));
-        var_dump($partner);
-        $r = [
-            'name' => 'Collec',
-            'secondary_industry_ids' => [207],
-        ];
-        $repons= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-            'res.partner', 'write', array(array($partner[0]['id']), $r));
-        var_dump($repons);
-        $si= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-            'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()), $r));
-        var_dump($si);*/
-
         // Ajouter les étiquettes des catégories des annuaires
-       /*$categories = array_merge($adresseActivite->getCategoriesAnnuaire()->toArray(), $adresseActivite->getCategoriesAnnuaireEskuz()->toArray());
-
-       var_dump($categories);*/
-
-        /*$test = ["secondary_industry_ids"=> 215];
-
+        $c_eskuz =[];
+        $categories_eskuz = $adresseActivite->getCategoriesAnnuaireEskuz()->toArray();
+        foreach ($categories_eskuz as $cat) {
+            $c_eskuz [] = $cat->getIdExterne();
+        }
+        $rec['activities_B2B'] = array (array(6,0,$c_eskuz));
         $res = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-            'res.partner', 'write', array(array(["id"=> 324]),$test));
-        var_dump($res);*/
-        /*foreach ($categories as $cat) {
+            'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()),$rec));
 
-            $test = ["secondary_industry_ids"=> 215];
-            $res = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
-                'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()),$test));
-            var_dump($res);
-        }*/
+        $c_gen = [];
+        $categories_general =$adresseActivite->getCategoriesAnnuaire()->toArray();
+       foreach ($categories_general as $cat) {
+            $c_gen [] = $cat->getIdExterne();
+        }
+        $field['activities_directory_general'] = array (array(6,0,$c_gen));
+        $r = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+            'res.partner', 'write', array(array($adresseActivite->getDossier()->getIdExterne()),$field));
+        //ajoutfacebook s'il existe
+        if (($adresseActivite->getFacebook())!="")
+        {
+            $facebook_info = [
+                'contact_info_type'=> 'fa-facebook-official',
+                'name' =>$adresseActivite->getFacebook(),
+                'url_type' => 'url',
+                'short_name'=>$adresseActivite->getFacebook(),
+                'partner_id' =>$adresseActivite->getDossier()->getIdExterne(),
+            ];
+            $f ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'extra.contact.info', 'create', array($facebook_info));
+        }
+        if($adresseActivite->getInstagram()!="")
+        {
+            $instagram_info = [
+                'contact_info_type'=> 'fa-instagram',
+                'name' =>$adresseActivite->getInstagram(),
+                'url_type' => 'url',
+                'short_name'=>$adresseActivite->getInstagram(),
+                'partner_id' =>$adresseActivite->getDossier()->getIdExterne(),
+            ];
+            $i ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
+                'extra.contact.info', 'create', array($instagram_info));
+        }
+        //Todo "Manque vacance en eusko"
         return true;
     }
 
@@ -272,7 +283,6 @@ class OdooController extends AbstractController implements CRMInterface
         $domain = array(array(
             array('email', '=',$contact->getEmail())
         ));
-        $fields = array('fields'=>array('id', 'name'));
         $r['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
             'res.partner', 'search_read', $domain, array('fields'=>array('id')));
         if ($r['data'] == [])
@@ -294,25 +304,22 @@ class OdooController extends AbstractController implements CRMInterface
         $data = $this->transformDocument($document);
         $resPos ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
             'ir.attachment', 'create', array($data));
-        var_dump($resPos ['data']);
         return true;
     }
     public function postCotisation(DossierAgrement $dossierAgrement): int{
 
         $models = ripcord::client("$this->odoo_url/xmlrpc/2/object");
         // La cotisation est offerte pour le premier mois.
-        /*\$dossierAgrement->getDateAgrement()*/
-        $date = date_create("2023-01-01");
+        //TODO Erreur sur /*\$dossierAgrement->getDateAgrement()*/
+        $date1= $dossierAgrement->getDateAgrement()->format('dY-m-d');
+        $t = date_create($date1);
         $cotisation = $this->transformCotisation(
-            $date,
+            $t,
             (new \DateTime())->modify("last day of this month"),
             0,
-            "Adhésion/cotisation ".date('Y')
-        );
+            "Adhésion/cotisation ".date('Y'),$dossierAgrement->getIdExterne());
         $reponse ['data']= $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
             'membership.membership_line', 'create', array($cotisation));
-        var_dump($reponse ['data']);
-
         return true;
     }
 
@@ -328,7 +335,7 @@ class OdooController extends AbstractController implements CRMInterface
                 'res.partner', 'write', array(array($dossierAgrement->getIdExterne()), $adh));
             return $dossierAgrement->getIdExterne();
         } else {
-            //sinon on ajoute un nouveau tier
+            //sinon on ajoute un nouveau partner
             $reponse ['data'] = $models->execute_kw($this->odoo_db_name, $this->api_token_odoo, $this->odoo_pass,
                 'res.partner', 'create', array($data));
             if (!is_int($reponse ['data'])) {
@@ -340,7 +347,7 @@ class OdooController extends AbstractController implements CRMInterface
         }
     }
     /**
-     * Transforme un objet AdresseActivite vers un tableau compatible adresse dolibarr
+     * Transforme un objet AdresseActivite vers un tableau compatible contact Odoo
      *
      * @param AdresseActivite $adresseActivite
      * @return array
@@ -350,8 +357,6 @@ class OdooController extends AbstractController implements CRMInterface
         $array_options = [
             "partner_latitude"=> $adresse->lat,
             "partner_longitude"=> $adresse->lng,
-            "options_facebook"=> $adresseActivite->getFacebook(),//TODO
-            "options_instagram"=> $adresseActivite->getInstagram(),//TODO
             "options_description_francais"=> $adresseActivite->getDescriptifActivite(),//TODO
             "opening_time"=> $adresseActivite->getHoraires(),
             "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux()//TODO
@@ -398,15 +403,16 @@ class OdooController extends AbstractController implements CRMInterface
         return $data;
     }
 
-    private function transformCotisation(\DateTime $start, \DateTime $end, $montant, $label)
+    private function transformCotisation(DateTime $start, \DateTime $end, $montant, $label,$partner_id)
     {
         $data =[
+
             "date" =>date_format($start, 'Y/m/d'),
             "date_to" =>date_format($end, 'Y/m/d'),
             "date_from"=>date_format($start, 'Y/m/d'),
-            "partner"=>324,
+            "partner"=>$partner_id,
             "member_price"=>$montant,
-            "membership_id"=>1,
+            "membership_id"=>1,//TODO à checker
         ];
         return $data;
     }
