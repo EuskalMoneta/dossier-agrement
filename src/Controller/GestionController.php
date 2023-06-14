@@ -86,7 +86,7 @@ class GestionController extends AbstractController
         if($method){
             $pros = $crm->searchProfessionnel($request->get('term'));
         }
-
+        
         return $this->render('admin/checkDossier.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement, 'pros' => $pros, 'method' => $method]);
     }
 
@@ -103,7 +103,7 @@ class GestionController extends AbstractController
                                     DolibarrController $crm,
                                     EntityManagerInterface $em,
                                     Request $request,
-                                    $idExterne = '0'): Response
+        $idExterne = '0'): Response
     {
         if($idExterne == '0'){
             $idExterne = 0;
@@ -133,12 +133,12 @@ class GestionController extends AbstractController
 
         //**** Enregistrer les autres contacts
         foreach ($dossierAgrement->getContacts() as $contact){
-        $crm->postContact($contact);
+            $crm->postContact($contact);
         }
 
         //***** Adresse(s) activité
         foreach ($dossierAgrement->getAdresseActivites() as $adresseActivite){
-        $crm->postAdresseActivite($adresseActivite);
+            $crm->postAdresseActivite($adresseActivite);
         }
 
         //***** Défis
@@ -155,6 +155,15 @@ class GestionController extends AbstractController
             //***** Documents
             foreach ($dossierAgrement->getDocuments() as $document){
                 $crm->postDocument($document);
+            }
+        }
+
+        //***** Fournisseurs / vie du réseau
+        foreach ($dossierAgrement->getFournisseurs() as $fournisseur){
+            $idExterneFournisseur = $crm->postLinkedTier($fournisseur);
+            if($idExterneFournisseur > 0){
+                $fournisseur->setIdExterne($idExterneFournisseur);
+                $em->persist($fournisseur);
             }
         }
 
@@ -467,7 +476,7 @@ class GestionController extends AbstractController
                             $paragraphFontStyle,
                             null,
                             $paragraphStyleName
-                            );
+                        );
 
                     }
                 }

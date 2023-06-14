@@ -64,6 +64,16 @@ class Fournisseur
         );
     }
 
+    public function __toString(): string
+    {
+        $name = '';
+        if($this->nom !== '' || $this->prenom !== '') {
+            $name = '('.$this->prenom.' '.$this->nom.')';
+        }
+        return $this->getNomEntreprise().$name;
+
+    }
+
     public function updateFormJsonObject($fournisseurObjet): self
     {
         $this->setNomEntreprise($fournisseurObjet->entreprise);
@@ -214,5 +224,15 @@ class Fournisseur
         $this->status = $status;
 
         return $this;
+    }
+
+    public function getAdresseComplete(): ?string
+    {
+        $adresseComplete = '';
+        $adresse = json_decode($this->getAdresse());
+        if ($adresse && !str_contains($adresse->address, 'undefined')) {
+            $adresseComplete = $adresse->address;
+        }
+        return $adresseComplete;
     }
 }

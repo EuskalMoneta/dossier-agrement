@@ -56,7 +56,7 @@
                             <h4>{{ pro.text }}</h4>
                             <p>{{ pro.email }}</p>
                             <p>{{ pro.telephone }}</p>
-                            <p>{{ pro.status }}</p>
+                            <p>{{ pro.status.value }}</p>
                             {% set adresseObj = pro.adresse | json_decode  %}
                             {% if adresseObj.text is defined %}
                                 <p style="font-weight: bolder"> {{ adresseObj.id }}</p>

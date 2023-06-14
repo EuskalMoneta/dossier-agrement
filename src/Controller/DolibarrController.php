@@ -7,6 +7,8 @@ use App\Entity\Contact;
 use App\Entity\Defi;
 use App\Entity\Document;
 use App\Entity\DossierAgrement;
+use App\Entity\Fournisseur;
+use App\Enum\TierStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -265,16 +267,16 @@ class DolibarrController extends AbstractController implements CRMInterface
                 $status = '';
                 switch ($pro->client){
                     case 0:
-                        $status = 'Ni prestataire agréé, ni prospect';
+                        $status = TierStatus::Nouveau;
                         break;
                     case 1:
-                        $status = 'Prestataire agréé';
+                        $status = TierStatus::Prestataire;
                         break;
                     case 2:
-                        $status = 'Prospect';
+                        $status = TierStatus::Prospect;
                         break;
                     case 3:
-                        $status = 'Prospect / Prestataire agréé';
+                        $status = TierStatus::ProspectPrestataire;
                         break;
                 }
 
@@ -446,7 +448,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             //Si le tier existe déjà, on fait une mise à jour
             $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$dossierAgrement->getIdExterne(), $data);
             if($reponseTier['httpcode'] != 200) {
-                $this->addFlash("danger", "Erreur lors de la mise à jour du tier dans dolibarr.");
+                $this->addFlash("danger", "Erreur lors de la mise à jour du tiers dans dolibarr.");
                 $this->logger->error("Erreur lors de la mise à jour du tiers dans Dolibarr : ".$reponseTier['data']->error->message);
                 return false;
             }
@@ -455,8 +457,38 @@ class DolibarrController extends AbstractController implements CRMInterface
             //sinon on ajoute un nouveau tier
             $reponseTier = $this->curlRequestDolibarr('POST', 'thirdparties', $data);
             if($reponseTier['httpcode'] != 200) {
-                $this->addFlash("danger", "Erreur lors de l'ajout du tier dans dolibarr.");
+                $this->addFlash("danger", "Erreur lors de l'ajout du tiers dans dolibarr.");
                 $this->logger->error("Erreur lors de l'ajout du tiers dans Dolibarr : ".$reponseTier['data']->error->message);
+                return false;
+            }
+            return $reponseTier['data'];
+        }
+
+    }
+
+    public function postLinkedTier(Fournisseur $fournisseur): int
+    {
+        //Préparer les données de la requête
+        $data = $this->transformLinkedTier($fournisseur);
+
+        if($fournisseur->getIdExterne() > 0){
+            //Si le tier existe déjà, et qu'il n'est pas agrée => on fait une mise à jour des infos
+            if($fournisseur->getStatus() !== TierStatus::Prestataire){
+                $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$fournisseur->getIdExterne(), $data);
+                if($reponseTier['httpcode'] != 200) {
+                    $this->addFlash("danger", "Erreur lors de la mise à jour du tiers fournisseur dans dolibarr.");
+                    $this->logger->error("Erreur lors de la mise à jour du tiers fournisseur dans Dolibarr : ".$reponseTier['data']->error->message);
+                    return false;
+                }
+            }
+            //On retourne 0 car on n'a pas besoin d'enregistrer le nouvel ID
+            return 0;
+        } else {
+            //sinon on ajoute un nouveau tier
+            $reponseTier = $this->curlRequestDolibarr('POST', 'thirdparties', $data);
+            if($reponseTier['httpcode'] != 200) {
+                $this->addFlash("danger", "Erreur lors de l'ajout du tiers fournisseur dans dolibarr.");
+                $this->logger->error("Erreur lors de l'ajout du tiers fournisseur dans Dolibarr : ".$reponseTier['data']->error->message);
                 return false;
             }
             return $reponseTier['data'];
@@ -683,7 +715,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                 'country_id' => 1,
                 'url' => $dossierAgrement->getSiteWeb(),
                 "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
-                "phone_pro"=> $dossierAgrement->getTelephone(),
+                "phone"=> $dossierAgrement->getTelephone(),
                 "name_alias"=> "",
                 "name"=> $dossierAgrement->getDenominationCommerciale(),
                 "client"=> "1",
@@ -691,6 +723,39 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "note_private"=> $dossierAgrement->getNote(),
                 'array_options' => $array_options
             ];
+
+        return $data;
+    }
+
+    /**
+     * Transforme un objet Fournisseur vers un tableau compatible tier dolibarr
+     *
+     * @param Fournisseur $fournisseur
+     * @return array
+     */
+    private function transformLinkedTier(Fournisseur $fournisseur){
+        $data =
+            [
+                'address' => $fournisseur->getAdresseComplete(),
+                'country_id' => 1,
+                "email"=> $fournisseur->getEmail(),
+                "phone"=> $fournisseur->getTelephone(),
+                "name_alias"=> "",
+                "name"=> (string) $fournisseur,
+                "note_private"=> $fournisseur->getCommentaires().' - Activité : '.$fournisseur->getActivite(),
+            ];
+
+        $adresse = json_decode($fournisseur->getAdresse());
+
+        if($adresse){
+            $data['zip'] = $adresse->postcode;
+            $data['town'] = $adresse->id;
+        }
+
+        //on rajoute le statut prospect uniquement si le tier a été rajouté via le dossier d'agrément.
+        if($fournisseur->getStatus() !== TierStatus::Prospect && $fournisseur->getStatus() !== TierStatus::ProspectPrestataire){
+            $data['client']= 2;
+        }
 
         return $data;
     }
