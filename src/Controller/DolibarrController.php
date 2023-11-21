@@ -473,7 +473,7 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         if($fournisseur->getIdExterne() > 0){
             //Si le tier existe déjà, et qu'il n'est pas agrée => on fait une mise à jour des infos
-            if($fournisseur->getStatus() !== TierStatus::Prestataire){
+            if($fournisseur->getStatus() !== TierStatus::Prestataire->value){
                 $reponseTier = $this->curlRequestDolibarr('PUT', 'thirdparties/'.$fournisseur->getIdExterne(), $data);
                 if($reponseTier['httpcode'] != 200) {
                     $this->addFlash("danger", "Erreur lors de la mise à jour du tiers fournisseur dans dolibarr.");
@@ -753,7 +753,10 @@ class DolibarrController extends AbstractController implements CRMInterface
         }
 
         //on rajoute le statut prospect uniquement si le tier a été rajouté via le dossier d'agrément.
-        if($fournisseur->getStatus() !== TierStatus::Prospect && $fournisseur->getStatus() !== TierStatus::ProspectPrestataire){
+        if($fournisseur->getStatus() !== TierStatus::Prospect->value
+            && $fournisseur->getStatus() !== TierStatus::ProspectPrestataire->value
+            && $fournisseur->getStatus() !== TierStatus::Prestataire->value)
+        {
             $data['client']= 2;
         }
 

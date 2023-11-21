@@ -60,8 +60,7 @@ class GestionController extends AbstractController
     }
 
     /*
-     * Stocke les fichiers envoyes par dropzone js
-     * Zone de depot sur la partie front
+     * Supprime le fichier dropzone
      */
     #[Route('/remove/ajax/file', name: 'app_remove_ajax_file')]
     public function removeFile(Request $request, EntityManagerInterface $em): Response
@@ -86,7 +85,7 @@ class GestionController extends AbstractController
         if($method){
             $pros = $crm->searchProfessionnel($request->get('term'));
         }
-        
+
         return $this->render('admin/checkDossier.html.twig', ['admin_pool' => $pool, 'dossier' => $dossierAgrement, 'pros' => $pros, 'method' => $method]);
     }
 
