@@ -38,7 +38,6 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/resetting/request, roles: PUBLIC_ACCESS }
         - { path: ^/reset_password, roles: PUBLIC_ACCESS }
-        - { path: ^/webhook, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: ROLE_USER }
 
 when@test:
