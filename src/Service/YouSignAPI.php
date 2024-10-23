@@ -126,6 +126,17 @@ class YouSignAPI
                               "locale":"fr",
                               "phone_number": "$phoneNumber"
                            },
+                           "fields":[
+                              {
+                                 "type":"signature",
+                                 "document_id": "$documentId",
+                                 "page":1,
+                                 "x":97,
+                                 "y":541,
+                                 "width": 280,
+                                 "height": 100
+                              }
+                           ],
                            "signature_level":"electronic_signature",
                            "signature_authentication_mode":"otp_sms"
                        }
