@@ -5,8 +5,10 @@ namespace App\Form;
 use App\Entity\DossierAgrement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class SignatureElectroniqueFormType extends AbstractType
 {
@@ -17,7 +19,17 @@ class SignatureElectroniqueFormType extends AbstractType
             ->add('bic',null, ['label' => 'BIC'])
             ->add('nomSignature',null, ['label' => 'Nom'])
             ->add('prenomSignature',null, ['label' => 'Prénom'])
-            ->add('telephoneSignature',null, ['label' => 'Téléphone'])
+            //->add('telephoneSignature',null, ['label' => 'Téléphone'])
+            ->add('telephoneSignature', TelType::class,[
+                'required' => false,
+                'label' => 'Téléphone',
+                'constraints' => [
+                    new Regex([
+                        'pattern' => '/^\+[0-9]{10,14}$/',
+                        'message' => 'Le numéro doit commencer par +33 ou un autre préfixe',
+                    ])
+                ],
+            ])
             ->add('statutChargesDeveloppement',ChoiceType::class,
                 [
                     'choices' => [

@@ -8,8 +8,10 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class CoordonneesFormType extends AbstractType
 {
@@ -40,7 +42,16 @@ class CoordonneesFormType extends AbstractType
                     'Madame' => 'MME',
                 ]
             ])
-            ->add('telephone', null, ['label' => 'Téléphone'])
+            ->add('telephone', TelType::class,[
+                'required' => false,
+                'label' => 'Téléphone',
+                'constraints' => [
+                    new Regex([
+                        'pattern' => '/^\+[0-9]{10,14}$/',
+                        'message' => 'Le numéro doit commencer par +33 ou un autre préfixe',
+                    ])
+                ],
+            ])
             ->add('prenomDirigeant', null, ['label' => 'Prénom'])
             ->add('telephoneDirigeant', null, ['label' => 'Téléphone'])
             ->add('emailDirigeant', null, ['label' => 'Email'])
