@@ -76,6 +76,9 @@ class DossierAgrement
     #[ORM\Column(nullable: true)]
     private ?bool $terminalPaiementBool = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $euskokartSurAppPro = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $terminalPaiement = null;
 
@@ -1044,6 +1047,18 @@ class DossierAgrement
             $adresseComplete .= ' '.$this->getComplementAdresse();
         }
         return $adresseComplete;
+    }
+
+    public function isEuskokartSurAppPro(): ?bool
+    {
+        return $this->euskokartSurAppPro;
+    }
+
+    public function setEuskokartSurAppPro(?bool $euskokartSurAppPro): static
+    {
+        $this->euskokartSurAppPro = $euskokartSurAppPro;
+
+        return $this;
     }
 
 }

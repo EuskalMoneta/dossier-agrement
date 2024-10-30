@@ -661,14 +661,28 @@ class DolibarrController extends AbstractController implements CRMInterface
             "options_instagram"=> $adresseActivite->getInstagram(),
             "options_description_francais"=> $adresseActivite->getDescriptifActivite(),
             "options_horaires_francais"=> $adresseActivite->getHoraires(),
-            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux()
+            "options_autres_lieux_activite_francais"=> $adresseActivite->getAutresLieux(),
             //"options_horaires_euskara"=> "Astelehenetik ostiralera 8=>00 – 12=>00 / 14=>00 – 18=>30 (astelehenetan=> 9=>00etatik)",
             //"options_autres_lieux_activite_euskara"=> null,
             //"options_bons_plans_euskara"=> null,
             //"options_bons_plans_francais"=> null,
             //"options_equipement_pour_euskokart"=> "oui_famoco",
+            //"options_equipement_pour_euskokart"=> "oui_smartphone_perso",
             //"options_euskopay"=> "1"
         ];
+        if($adresseActivite->getDossier()->getEuskopay() > 0){
+            $array_options["options_euskopay"] = "1";
+        }
+
+        if($adresseActivite->getDossier()->isTerminalPaiementBool() && $adresseActivite->getDossier()->getTerminalPaiement() > 0){
+            $array_options["options_equipement_pour_euskokart"] = "oui_famoco";
+        } elseif ($adresseActivite->getDossier()->isEuskokartSurAppPro()){
+            $array_options["options_equipement_pour_euskokart"] = "oui_smartphone_perso";
+        } else {
+            $array_options["options_equipement_pour_euskokart"] = "non";
+        }
+
+
         if($adresseActivite->getDossier()->getTypeAutocollant()=='Bilingue/euskaraz'){
             $array_options["options_euskara"] = "3";
         } elseif ($adresseActivite->getDossier()->getTypeAutocollant()=='Premiers mots en langue basque/lehen hitza euskaraz'){

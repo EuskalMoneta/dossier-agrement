@@ -27,7 +27,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('created', DatePickerType::class, [
                 'required' => false,
                 'label' => "Date de création",
-                'dp_language'=>'fr',
+                
             ])
             ->add('libelle')
             ->add('statutChargesDeveloppement', ChoiceType::class,
@@ -67,7 +67,7 @@ final class DossierAgrementAdmin extends AbstractAdmin
             ->add('dateAgrement', DatePickerType::class, [
                 'required' => false,
                 'label' => "Date d'Agrément",
-                'dp_language'=>'fr',
+                
             ])
             ->add('notesAdministratif')
             ->add('note', null, ['label' => 'Notes pour le dossier agrément'])
