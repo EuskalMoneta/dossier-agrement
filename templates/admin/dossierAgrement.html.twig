@@ -199,16 +199,18 @@
                             {% endif %}
 			    {% set complement = pro.note %}
                         {% endif %}
-			<li>{{ type }}  
-                        {% if sautDeLigne == 1 %}
-                            <br />
+			{% if defi.type != 'reutiliser' %}
+				<li>{{ type }}  
+				{% if sautDeLigne == 1 %}
+				    <br />
+				{% endif %}
+				{{ complement }}
+				{% if sautDeLigne == 1 %}
+				    <br />
+				{% endif %}
+				<i>{{ status }}</i>
+				</li>
                         {% endif %}
-                        {{ complement }}
-                        {% if sautDeLigne == 1 %}
-                            <br />
-                        {% endif %}
-			<i>{{ status }}</i>
-			</li>
 		{% endfor %}
 		</ul>
             <br />
