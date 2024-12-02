@@ -179,6 +179,26 @@ class GestionController extends AbstractController
     }
 
     /*
+     * Genere et envoie le dossier d'agrement en interne
+     */
+    #[Route('/admin/dossier/generer-dossier/{id}', name: 'app_admin_generer_dossier')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
+    public function genererDossier(MailerInterface $mailer, Pdf $pdf, DossierAgrement $dossierAgrement,Pool $pool, Request $request): Response
+    {
+            $pdfAttachDossier = $pdf->getOutputFromHtml(
+                $this->renderView('admin/dossierAgrement.html.twig', ['dossierAgrement' => $dossierAgrement]),[]
+            );
+            $email = (new TemplatedEmail())
+                ->from('gestion@euskalmoneta.org')
+                ->to('gestion@euskalmoneta.org')
+                ->subject('Agrément eusko à archiver')
+                ->attach($pdfAttachDossier, sprintf('dossier-%s-%s.pdf', $dossierAgrement->getId(),date('d-m-Y')))
+                ->html("<p>Dossier d'agrément à archiver
+                        </p>");
+            $mailer->send($email);
+        return $this->redirectToRoute('admin_app_dossieragrement_edit', ['id'=> $dossierAgrement->getId()]);
+    }
+    /*
      * Envoi un email pour le prestataire, avec les autocollant et un reçu.
      */
     #[Route('/admin/dossier/email-prestataire/{id}', name: 'app_admin_email_prestataire')]
@@ -191,7 +211,6 @@ class GestionController extends AbstractController
             $pdfAttach = $pdf->getOutputFromHtml(
                 $this->renderView('admin/recu.html.twig', ['dossierAgrement' => $dossierAgrement]),[]
             );
-
             $email = (new TemplatedEmail())
                 ->from('gestion@euskalmoneta.org')
                 ->to($dossierAgrement->getEmailPrincipal())
@@ -206,7 +225,6 @@ class GestionController extends AbstractController
                             Je vous informe que votre association a bien été agréée à l'eusko lors du dernier comité d'agrément. Vous trouverez ci-joint l'autocollant numérique et le reçu de frais de dossier.<br /> <br /> 
                                     Laster arte,
                         </p>");
-            ;
 
             $mailer->send($email);
 
