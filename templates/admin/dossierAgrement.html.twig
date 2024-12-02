@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <link rel="stylesheet" type="text/css" href="{{ absolute_url(asset('css/style.css')) }}">
+    <title>Eusko</title>
+    <style type="text/css">
+        p { font-size: 15px; }
+        .test td, .test tr {border: 1px solid black; border-collapse: collapse;}
+        @media screen {
+            div.divFooter {
+                display: none;
+            }
+        }
+        /* @media print {
+             div.divFooter {
+                 position: fixed;
+                 width: 500px;
+                 bottom: 0;
+                 left: 50%;
+                 margin-left: -250px;
+             }
+         }*/
+    </style>
+
+
+</head>
+<body>
+
+
+<table style="margin: 20px 10px 0px 10px; width:800px; ">
+    <tr>
+        <td style="width:400px;">
+            <img class="" src="{{absolute_url(asset('images/euskoa5.png'))}}" width="170" />
+            <p>
+
+
+
+
+
+
+
+
+            </p>
+        </td>
+        <td class="" style="width:400px; text-align: right">
+            <strong>EUSKAL MONETA</strong><br />
+            38 rue des Cordeliers<br />
+            64100 Baiona / Bayonne<br />
+            05-33-47-54-11<br />
+            www.euskalmoneta.org<br />
+            gestion@euskalmoneta.org<br />
+            info@euskalmoneta.org<br />
+
+        </td>
+    </tr>
+    <tr style="width:800px;">
+        <td COLSPAN=2>
+            <div class="">
+                <br/>
+                <br/>
+                <h3>{{ "now" |date('Y') }}ko Dosieraren gastu ordainagiria<br/>
+                    Dossier d'agrément {{ "now" |date('Y') }}</h3>
+            </div>
+            Numéro d'adhérent à Euskal Moneta :  {{ dossierAgrement.codePrestataire }}<br />
+            <br />
+	    L'ENTREPRISE<br />
+		&nbsp;&nbsp;Dénomination commerciale (pour annuaire):{{ dossierAgrement.denominationCommerciale }}<br />
+		&nbsp;&nbsp;Forme juridique:{{ dossierAgrement.formeJuridique }}<br />
+                {% set adresse = dossierAgrement.adressePrincipale | json_decode %}
+                &nbsp;&nbsp;Adresse : {{ adresse.text }}<br />
+		&nbsp;&nbsp;Tél.Fixe:{{ dossierAgrement.telephone }}<br />
+		&nbsp;&nbsp;E-mail:{{ dossierAgrement.emailPrincipal }}<br />
+		&nbsp;&nbsp;Site Internet:{{ dossierAgrement.siteWeb }}<br />
+                &nbsp;&nbsp;Dénomination sociale / Adresse du siège social:{{ dossierAgrement.libelle }}
+            <br />
+            <br />
+	    LE/LA DIRIGEANTE<br />
+		&nbsp;&nbsp;Nom :{{ dossierAgrement.nomDirigeant }} &nbsp;&nbsp;Prénom:{{ dossierAgrement.prenomDirigeant }}<br />
+		&nbsp;&nbsp;Tél.:{{ dossierAgrement.telephoneDirigeant }}<br />
+		&nbsp;&nbsp;E-mail:{{ dossierAgrement.emailDirigeant }}<br />
+            <br />
+            <br />
+	    LES CONTACTS<br />
+                {% for key, contact in dossierAgrement.contacts %}
+			{% set interlocuteur = contact.interlocuteur %}
+			{% if interlocuteur == 1 %}
+				&nbsp;&nbsp;<b>{{ contact.civilite }}&nbsp;{{ contact.nom }} &nbsp;&nbsp;{{ contact.prenom }} </b><br />
+				&nbsp;&nbsp;&nbsp;<b>{{ contact.telephone }} &nbsp;&nbsp;{{ contact.email }} 
+				{% if contact.fonction != "" %}
+					({{ contact.fonction }}) </b>
+				{% endif %}
+				<br />
+				{% else %}
+				&nbsp;&nbsp;{{ contact.civilite }}&nbsp;{{ contact.nom }} &nbsp;&nbsp;{{ contact.prenom }} <br />
+				&nbsp;&nbsp;&nbsp;{{ contact.telephone }} &nbsp;&nbsp;{{ contact.email }} 
+				{% if contact.fonction != "" %}
+					({{ contact.fonction }}) </b>
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+            <br />
+            <br />
+	    L'ACTIVIT&Eacute;<br />
+		<ul>
+                {% for key, adresse in dossierAgrement.adresseActivites %}
+			<li>{{ adresse.nom }}<br />
+			{% if adresse.descriptifActivite != "" %}
+				{{ adresse.descriptifActivite }}<br />
+			{% endif %}
+                        {% set texteAdresse = adresse.adresse | json_decode %}
+			{{ texteAdresse.text }}
+			{% if adresse.complementAdresse != "" %}
+				&nbsp;&nbsp;{{ adresse.complementAdresse }}
+			{% endif %}
+			<br />
+			{% if adresse.horaires != "" %}
+				{{ adresse.horaires }}<br />
+			{% endif %}
+			{% if adresse.telephone != "" or adresse.email != "" %}
+				{{ adresse.telephone }} &nbsp;&nbsp; {{ adresse.email }}<br>
+			{% endif %}
+			<br />
+			{% if adresse.autresLieux != "" %}
+				Autres lieux:{{ adresse.autresLieux }} </br>
+			{% endif %}
+			{% if adresse.instagram != "" or adresse.facebook != "" %}
+				{{ adresse.instagram }} &nbsp;&nbsp; {{ adresse.facebook }}<br>
+			{% endif %}
+			{% if adresse.guideVee != 0 %}
+				Guide vacances en Eusko<br>
+			{% endif %}
+	                Catégories annuaire de zone:
+	                {% if adresse.categoriesAnnuaire.count() > 0 %}
+			    <ul>
+			    {% for key, adresseGal in adresse.categoriesAnnuaire %}
+				<li>{{ adresseGal .libelle }} </li>
+			    {% endfor %}
+			    </ul>
+			{% endif %}
+	                Catégories Eskuz-Esku:
+	                {% if adresse.categoriesAnnuaireEskuz.count() > 0 %}
+			    <ul>
+			    {% for key, adresseEskuz in adresse.categoriesAnnuaireEskuz %}
+				<li>{{ adresseEskuz.libelle }} </li>
+			    {% endfor %}
+			    </ul>
+			<br />
+			{% endif %}
+			</li>
+		{% endfor %}
+		</ul>
+            <br />
+	    {% if dossierAgrement.reductionsAdhesion.count() > 0 %}
+	    Membre de: 
+                {% for key, reduction in dossierAgrement.reductionsAdhesion %}
+			{{ reduction.nom }} &nbsp;
+		{% endfor %}
+	    {% endif %}
+            <br />
+	    {% if (dossierAgrement.autocollantPanneau + dossierAgrement.autocollantVitrine) > 0 %}
+		    {% if dossierAgrement.autocollantVitrine > 0 %}
+			{% set autocollantVitrine = 'vitrine ' ~ dossierAgrement.autocollantVitrine %}
+		    {% endif %}
+		    {% if dossierAgrement.autocollantPanneau > 0 %}
+			{% set autocollantPanneau = 'panneau ' ~ dossierAgrement.autocollantPanneau %}
+		    {% endif %}
+            Nombre d'autocollants: {{ autocollantVitrine }} / {{ autocollantPanneau }} "{{ dossierAgrement.typeAutocollant }}"<br />
+	    {% endif %}
+	    {% if dossierAgrement.recevoirNewsletter > 0 %}
+                Recevoir la newsletter de l'eusko<br />
+	    {% endif %}
+            <br />
+	    LES D&Eacute;FIS<br />
+		<ul>
+                {% for key, defi in dossierAgrement.defis %}
+			{% set complement = '' %}
+                        {% set type = defi.type %}
+                        {% set status = defi.valeur %}
+                        {% set sautDeLigne = 0 %}
+			{% if defi.type == 'produit' %}
+                            {% set type = 'Produit local: ' ~ defi.valeur %}
+                            {% set sautDeLigne = 0 %}
+                            {% if defi.etat == 1 %}
+                                {% set status = 'Déjà réalisé' %}
+                            {% else %}
+                                {% set status = 'à réaliser' %}
+                            {% endif %}
+			{% elseif defi.type == 'professionnel' %}
+                            {% set sautDeLigne = 1 %}
+                            {% set pro = defi.valeur | json_decode %}
+                            {% set adressePro = pro.adresse | json_decode %}
+			    {% set type = 'Pro: ' ~ pro.text ~ ' / ' ~ adressePro.text %}
+                            {% if defi.etat == 1 %}
+                                {% set status = 'Déjà réalisé' %}
+                            {% else %}
+                                {% set status = 'à réaliser' %}
+                            {% endif %}
+			    {% set complement = pro.note %}
+                        {% endif %}
+			<li>{{ type }}  
+                        {% if sautDeLigne == 1 %}
+                            <br />
+                        {% endif %}
+                        {{ complement }}
+                        {% if sautDeLigne == 1 %}
+                            <br />
+                        {% endif %}
+			<i>{{ status }}</i>
+			</li>
+		{% endfor %}
+		</ul>
+            <br />
+            <br />
+	    ADH&Eacute;SION<br />
+            <ul>
+            <li>Type de cotisation: {{ dossierAgrement.typeCotisation }}</li>
+            <li>Cotisation  : {{ dossierAgrement.montant }} €</li>
+            <li>Frais de dossier  : {{ dossierAgrement.fraisDeDossier | round(2) }} €</li>
+            <li>Nombre de salari&eacute;s : {{ dossierAgrement.nbSalarie }}</li>
+            </ul>
+            <br />
+	    OPTIONS TECHNIQUES<br /> 
+            <ul>
+	    {% if dossierAgrement.compteNumeriqueBool > 0 %}
+                <li>Compte numérique professionnel {{ dossierAgrement.compteNumerique }}</li>
+	    {% endif %}
+	    {% if dossierAgrement.terminalPaiementBool > 0 %}
+                <li>Nombre de terminaux de paiement: {{ dossierAgrement.terminalPaiement }}</li>
+	    {% endif %}
+	    {% if dossierAgrement.euskopayBool > 0 %}
+                <li>Installation Esukopay: nombre de QR codes {{ dossierAgrement.euskopay }}</li>
+	    {% endif %}
+	    {% if dossierAgrement.paiementViaEuskopay > 0 %}
+            	<li>Paiement possible par le PRO depuis l'application Esukopay</li>
+	    {% endif %}
+            </ul>
+	        
+            <br />
+            <br />
+            Baionan, {{("now") |date('Y/m/d') }} an<br />
+            À Bayonne le {{("now") | date('d/m/Y') }}
+            <br />
+
+
+            <div style="text-align: right">
+            <img src="{{ absolute_url(asset('images/signature.png')) }}" alt="" width="200"/>
+            </div>
+            <br />
+            <br />
+            Association non assujettie à la TVA       ---       N° SIRET Zkia : 790 029 599 00012       ---       Code APE Kodea :  9499Z
+        </td>
+    </tr>
+</table>
+
+            Date d'agrément : {{ dossierAgrement.dateAgrement | date('d/m/Y') }}<br />
+
+<div class="divFooter center">
+    <br />
+
+</div>
+
+</body>
+
+</html>
