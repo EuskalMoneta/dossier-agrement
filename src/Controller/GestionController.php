@@ -190,7 +190,7 @@ class GestionController extends AbstractController
             );
             $email = (new TemplatedEmail())
                 ->from('gestion@euskalmoneta.org')
-		->to('gestion@euskalmoneta.org')
+		->to('support@euskalmoneta.org')
                 ->subject('Agrément eusko à archiver')
                 ->attach($pdfAttachDossier, sprintf('dossier-%s-%s.pdf', $dossierAgrement->getId(),date('d-m-Y')))
                 ->html("<p>Dossier d'agrément à archiver
