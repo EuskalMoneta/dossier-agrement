@@ -392,10 +392,13 @@ class DossierController extends AbstractController
 
         }
 
-        return $this->render('dossier/signatureCoordonnes.html.twig', [
+        $response = $this->render('dossier/signatureCoordonnes.html.twig', [
             'form' => $form,
             'dossierAgrement' => $dossierAgrement
         ]);
+        $response->headers->set('Referrer-Policy', 'origin-when-cross-origin');
+        
+        return $response;
 
     }
 
