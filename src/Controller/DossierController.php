@@ -379,7 +379,7 @@ class DossierController extends AbstractController
     }
 
     #[Route('/dossier/testsignature/{id}', name: 'app_dossier_test_signature')]
-    public function testSignature(YouSignAPI $youSignAPI, DossierAgrement $dossierAgrement): Response
+    public function testSignature(Pdf $pdf, YouSignAPI $youSignAPI, DossierAgrement $dossierAgrement): Response
     {
 
         ///etape 1 création de la signature request
