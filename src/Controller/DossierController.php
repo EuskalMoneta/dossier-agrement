@@ -359,36 +359,9 @@ class DossierController extends AbstractController
             $em->flush();
 
             if(!$request->get('sauvegardeSimple')){
-                ///etape 1 création de la signature request
-                $responseCreateSignature = $youSignAPI->createSignatureRequest(name: "Signature prélèvement SEPA");
 
-                //etape 2 ajout du fichier à signer
-                $filePath = '/tmp/sepa-'.uniqid('', true).'.pdf';
-                $pdf->generateFromHtml($this->renderView('sepa/modeleSepa.html.twig', ['dossierAgrement' => $dossierAgrement]), $filePath );
-                $responseUploadDocument = $youSignAPI->addDocumentToSignatureRequest(signatureRequestId: $responseCreateSignature->id, filePath: $filePath, fileName: 'sepa.pdf');
 
-                //etape 3 ajout signataire
-                $responseAddSigner = $youSignAPI->addSignerToSignatureRequest(
-                    signatureRequestId: $responseCreateSignature->id,
-                    documentId: $responseUploadDocument->id,
-                    firstName:  $dossierAgrement->getPrenomSignature(),
-                    lastName: $dossierAgrement->getNomSignature(),
-                    email: $dossierAgrement->getEmailPrincipal(),
-                    phoneNumber: $dossierAgrement->getTelephoneSignature()
-                );
-
-                //etape 4 lancement de la procedure
-                $responseActivateSignature = $youSignAPI->activateSignatureRequest(signatureRequestId: $responseCreateSignature->id);
-
-                $response = $this->render('dossier/signatureYousign.html.twig', [
-                    'signatureLink' => $responseActivateSignature->signers[0]->signature_link,
-                    'signatureRequestId' => $responseCreateSignature->id,
-                    'documentId' => $responseUploadDocument->id,
-                    'dossierAgrement' => $dossierAgrement
-                ]);
-                $response->headers->set('Referrer-Policy', 'origin-when-cross-origin');
-
-                return $response;
+                return $this->redirectToRoute('app_dossier_test_signature', ['id' => $dossierAgrement->getId()]);
             }
 
             return $this->redirectToRoute('app_dossier_fin', ['id' => $dossierAgrement->getId()]);
@@ -403,6 +376,43 @@ class DossierController extends AbstractController
         
         return $response;
 
+    }
+
+    #[Route('/dossier/testsignature/{id}', name: 'app_dossier_test_signature')]
+    public function testSignature(YouSignAPI $youSignAPI, DossierAgrement $dossierAgrement): Response
+    {
+
+        ///etape 1 création de la signature request
+        $responseCreateSignature = $youSignAPI->createSignatureRequest(name: "Signature prélèvement SEPA");
+
+        //etape 2 ajout du fichier à signer
+        $filePath = '/tmp/sepa-'.uniqid('', true).'.pdf';
+        $pdf->generateFromHtml($this->renderView('sepa/modeleSepa.html.twig', ['dossierAgrement' => $dossierAgrement]), $filePath );
+        $responseUploadDocument = $youSignAPI->addDocumentToSignatureRequest(signatureRequestId: $responseCreateSignature->id, filePath: $filePath, fileName: 'sepa.pdf');
+
+        //etape 3 ajout signataire
+        $responseAddSigner = $youSignAPI->addSignerToSignatureRequest(
+            signatureRequestId: $responseCreateSignature->id,
+            documentId: $responseUploadDocument->id,
+            firstName:  $dossierAgrement->getPrenomSignature(),
+            lastName: $dossierAgrement->getNomSignature(),
+            email: $dossierAgrement->getEmailPrincipal(),
+            phoneNumber: $dossierAgrement->getTelephoneSignature()
+        );
+
+        //etape 4 lancement de la procedure
+        $responseActivateSignature = $youSignAPI->activateSignatureRequest(signatureRequestId: $responseCreateSignature->id);
+
+        $response = $this->render('dossier/signatureYousign.html.twig', [
+            'signatureLink' => $responseActivateSignature->signers[0]->signature_link,
+            'signatureRequestId' => $responseCreateSignature->id,
+            'documentId' => $responseUploadDocument->id,
+            'dossierAgrement' => $dossierAgrement
+        ]);
+
+        $response->headers->set('Referrer-Policy', 'origin-when-cross-origin');
+
+        return $response;
     }
 
     #[Route('/dossier/fin/{id}', name: 'app_dossier_fin')]
