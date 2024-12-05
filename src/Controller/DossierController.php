@@ -380,12 +380,15 @@ class DossierController extends AbstractController
                 //etape 4 lancement de la procedure
                 $responseActivateSignature = $youSignAPI->activateSignatureRequest(signatureRequestId: $responseCreateSignature->id);
 
-                return $this->render('dossier/signatureYousign.html.twig', [
+                $response = $this->render('dossier/signatureYousign.html.twig', [
                     'signatureLink' => $responseActivateSignature->signers[0]->signature_link,
                     'signatureRequestId' => $responseCreateSignature->id,
                     'documentId' => $responseUploadDocument->id,
                     'dossierAgrement' => $dossierAgrement
                 ]);
+                $response->headers->set('Referrer-Policy', 'origin-when-cross-origin');
+
+                return $response;
             }
 
             return $this->redirectToRoute('app_dossier_fin', ['id' => $dossierAgrement->getId()]);
