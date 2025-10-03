@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieAnnuaire;
 use App\Entity\Contact;
 use App\Entity\Defi;
 use App\Entity\Document;
@@ -10,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Knp\Snappy\Pdf;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
@@ -17,11 +19,12 @@ use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 class GestionController extends AbstractController
 {
@@ -42,6 +45,7 @@ class GestionController extends AbstractController
      * Zone de depot sur la partie front
      */
     #[Route('/send/ajax/file/{id}/{type}', name: 'app_send_ajax_file')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function sendFile(DossierAgrement $dossierAgrement, $type, Request $request, EntityManagerInterface $em): Response
     {
         $document = new Document();
@@ -73,6 +77,7 @@ class GestionController extends AbstractController
      *  Vérifier le dossier et qu'un tier n'est pas déjà dans le CRM
      */
     #[Route('/admin/dossier/check/{id}', name: 'app_admin_dossier_check')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function checkDossier(DossierAgrement $dossierAgrement,Pool $pool, DolibarrController $crm, Request $request): Response
     {
         $pros =[];
@@ -91,11 +96,13 @@ class GestionController extends AbstractController
      *
      */
     #[Route('/admin/dossier/envoi/{id}/{idExterne}', name: 'app_admin_dossier_envoi')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function envoiDossierCRM(DossierAgrement $dossierAgrement,
                                     Pool $pool,
                                     DolibarrController $crm,
                                     EntityManagerInterface $em,
-                                    $idExterne = '0'): Response
+                                    Request $request,
+        $idExterne = '0'): Response
     {
         if($idExterne == '0'){
             $idExterne = 0;
@@ -175,14 +182,15 @@ class GestionController extends AbstractController
      * Genere et envoie le dossier d'agrement en interne
      */
     #[Route('/admin/dossier/generer-dossier/{id}', name: 'app_admin_generer_dossier')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function genererDossier(MailerInterface $mailer, Pdf $pdf, DossierAgrement $dossierAgrement,Pool $pool, Request $request): Response
     {
             $pdfAttachDossier = $pdf->getOutputFromHtml(
-                $this->renderView('admin/dossierAgrement.html.twig', ['dossierAgrement' => $dossierAgrement]),[]
+                $this->renderView('admin/dossierAgrement.html.twig', ['dossierAgrement' => $dossierAgrement,'typeInterne' => 'ARCHIVAGE']),[]
             );
             $email = (new TemplatedEmail())
                 ->from('gestion@euskalmoneta.org')
-		->to('support@euskalmoneta.org')
+		->to($_ENV["MAIL_DEST"])
                 ->subject('Agrément eusko à archiver')
                 ->attach($pdfAttachDossier, sprintf('dossier-%s-%s.pdf', $dossierAgrement->getId(),date('d-m-Y')))
                 ->html("<p>Dossier d'agrément à archiver
@@ -194,6 +202,7 @@ class GestionController extends AbstractController
      * Envoi un email pour le prestataire, avec les autocollant et un reçu.
      */
     #[Route('/admin/dossier/email-prestataire/{id}', name: 'app_admin_email_prestataire')]
+    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function emailPrestatire(MailerInterface $mailer, Pdf $pdf, DossierAgrement $dossierAgrement,Pool $pool, Request $request): Response
     {
         $method = $request->isMethod('POST');
@@ -202,11 +211,15 @@ class GestionController extends AbstractController
             $pdfAttach = $pdf->getOutputFromHtml(
                 $this->renderView('admin/recu.html.twig', ['dossierAgrement' => $dossierAgrement]),[]
             );
+            $pdfAttachDossier = $pdf->getOutputFromHtml(
+                $this->renderView('admin/dossierAgrement.html.twig', ['dossierAgrement' => $dossierAgrement,'typeInterne' => 'PRESTATAIRE']),[]
+            );
             $email = (new TemplatedEmail())
                 ->from('gestion@euskalmoneta.org')
                 ->to($dossierAgrement->getEmailPrincipal())
                 ->subject('Agrément eusko')
                 ->attach($pdfAttach, sprintf('recu-%s.pdf', date('d-m-Y')))
+                ->attach($pdfAttachDossier, sprintf('dossierAgrement-%s.pdf', date('d-m-Y')))
                 ->attachFromPath('../public/images/Autocollant-Eusko-Euskaraz.jpg')
                 ->html("<p>
                         Egun on,<br /><br />  
