@@ -10,6 +10,8 @@
 
 {% block content %}
 
+<!-- COMMENTAIRE XCA1 -->
+    <script src="{{ asset('js/jquery.mask.js') }}" type="text/javascript"></script>
     <div class="container">
         {{ form_start(form) }}
         <div class="row">
@@ -151,6 +153,16 @@
     });
 
 
+    $( document ).ready(function() {
+        $('#signature_electronique_form_iban').mask('SS00 AAAA AAAA AAAA AAAA AAAA AAA', {
+	    placeholder: '____ ____ ____ ____ ____ ____ ___' });
+        $('#signature_electronique_form_bic').mask('AAAAAAAAAAA', {
+	    placeholder: '___________' });
+        $('#signature_electronique_form_telephoneSignature').mask('+00 0 00 00 00 00', {
+	    placeholder: '+33 _ __ __ __ __' });
 
 
-    a{% endblock javascript %}
+});
+
+
+    {% endblock javascript %}
