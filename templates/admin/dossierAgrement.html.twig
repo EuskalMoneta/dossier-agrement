@@ -46,12 +46,14 @@
         </td>
         <td class="" style="width:400px; text-align: right">
             <strong>EUSKAL MONETA</strong><br />
-            38 rue des Cordeliers<br />
+            38, Cordeliers karrika / rue des Cordeliers<br />
             64100 Baiona / Bayonne<br />
             05-33-47-54-11<br />
             www.euskalmoneta.org<br />
             gestion@euskalmoneta.org<br />
             info@euskalmoneta.org<br />
+	    {{ dossierAgrement.utilisateur }}<br />
+	    {{ dossierAgrement.utilisateur.email }}<br />
 
         </td>
     </tr>
@@ -61,28 +63,43 @@
                 <br/>
                 <br/>
                 <h3>{{ "now" |date('Y') }}ko Dosieraren gastu ordainagiria<br/>
-                    Dossier d'agrément {{ "now" |date('Y') }}</h3>
+                    Dossier d'agrément {{ "now" |date('Y') }}
+		    {% if typeInterne == 'ARCHIVAGE' %}
+		    	<br><font color="green">BARNE ARTXIBOA</font> / ARCHIVAGE INTERNE<br />
+		    {% endif %}
+            	</h3>
             </div>
-            Numéro d'adhérent à Euskal Moneta :  {{ dossierAgrement.codePrestataire }}<br />
+
+            <font color="green">Euskal Monetaren kide-zenbakia </font>/ Numéro d'adhérent à Euskal Moneta : {{ dossierAgrement.codePrestataire }}<br />
             <br />
-	    L'ENTREPRISE<br />
-		&nbsp;&nbsp;Dénomination commerciale (pour annuaire):{{ dossierAgrement.denominationCommerciale }}<br />
-		&nbsp;&nbsp;Forme juridique:{{ dossierAgrement.formeJuridique }}<br />
+            {% if dossierAgrement.type == 'entreprise' %}
+	        <font color="green">ENPRESA</font> / L'ENTREPRISE<br />
+	    {% elseif dossierAgrement.type == 'association' %}
+	        <font color="green">ELKARTEA</font> / L'ASSOCIATION<br />
+	    {% endif %}
+		&nbsp;&nbsp;<font color="green">Izen komertziala  (aurkitegiarako)</font> / Dénomination commerciale (pour annuaire) : {{ dossierAgrement.denominationCommerciale }}<br />
+		&nbsp;&nbsp;<font color="green">Mota juridikoa</font> / Forme juridique : {{ dossierAgrement.formeJuridique }}<br />
                 {% set adresse = dossierAgrement.adressePrincipale | json_decode %}
-                &nbsp;&nbsp;Adresse : {{ adresse.text }}<br />
-		&nbsp;&nbsp;Tél.Fixe:{{ dossierAgrement.telephone }}<br />
-		&nbsp;&nbsp;E-mail:{{ dossierAgrement.emailPrincipal }}<br />
-		&nbsp;&nbsp;Site Internet:{{ dossierAgrement.siteWeb }}<br />
-                &nbsp;&nbsp;Dénomination sociale / Adresse du siège social:{{ dossierAgrement.libelle }}
+                &nbsp;&nbsp;<font color="green">Helbidea</font> / Adresse : {{ adresse.text }}<br />
+		&nbsp;&nbsp;<font color="green">Telefono finkoa</font> / Tél.Fixe : {{ dossierAgrement.telephone }}<br />
+		&nbsp;&nbsp;<font color="green">E-mail</font> / E-mail : {{ dossierAgrement.emailPrincipal }}<br />
+		&nbsp;&nbsp;<font color="green">Webgunea</font> / Site Internet : {{ dossierAgrement.siteWeb }}<br />
+                &nbsp;&nbsp;<font color="green">Izen soziala / Egoitza sozialaren helbidea</font> / Dénomination sociale / Adresse du siège social : {{ dossierAgrement.libelle }}
             <br />
             <br />
-	    LE/LA DIRIGEANTE<br />
-		&nbsp;&nbsp;Nom :{{ dossierAgrement.nomDirigeant }} &nbsp;&nbsp;Prénom:{{ dossierAgrement.prenomDirigeant }}<br />
-		&nbsp;&nbsp;Tél.:{{ dossierAgrement.telephoneDirigeant }}<br />
-		&nbsp;&nbsp;E-mail:{{ dossierAgrement.emailDirigeant }}<br />
+	    {% if typeInterne == 'ARCHIVAGE' %}
+	    	<br><font color="green">NOTA</font> / NOTES<br />
+		{{ dossierAgrement.note }}<br />
+	    	<br><font color="green">NOTA ADMINISTRATIBOA</font> / NOTE ADMINISTRATIF<br />
+		{{ dossierAgrement.notesAdministratif }}<br /><br />
+	    {% endif %}
+	    <font color="green">Enpresaburua/Zuzendaria</font> / LE/LA DIRIGEANTE<br />
+		&nbsp;&nbsp;<font color="green">Deitura</font> / Nom : {{ dossierAgrement.nomDirigeant }} &nbsp;&nbsp;Prénom : {{ dossierAgrement.prenomDirigeant }}<br />
+		&nbsp;&nbsp;<font color="green">Telefonoa</font> / Tél. : {{ dossierAgrement.telephoneDirigeant }}<br />
+		&nbsp;&nbsp;<font color="green">E-mail</font> / E-mail : {{ dossierAgrement.emailDirigeant }}<br />
             <br />
             <br />
-	    LES CONTACTS<br />
+	    <font color="green">KONTAKTUAK</font> / LES CONTACTS<br />
                 {% for key, contact in dossierAgrement.contacts %}
 			{% set interlocuteur = contact.interlocuteur %}
 			{% if interlocuteur == 1 %}
@@ -102,7 +119,7 @@
 		{% endfor %}
             <br />
             <br />
-	    L'ACTIVIT&Eacute;<br />
+	    <font color="green">JARDUERA</font> / L'ACTIVIT&Eacute;<br />
 		<ul>
                 {% for key, adresse in dossierAgrement.adresseActivites %}
 			<li>{{ adresse.nom }}<br />
@@ -115,23 +132,20 @@
 				&nbsp;&nbsp;{{ adresse.complementAdresse }}
 			{% endif %}
 			<br />
-			{% if adresse.horaires != "" %}
-				{{ adresse.horaires }}<br />
-			{% endif %}
 			{% if adresse.telephone != "" or adresse.email != "" %}
 				{{ adresse.telephone }} &nbsp;&nbsp; {{ adresse.email }}<br>
 			{% endif %}
 			<br />
 			{% if adresse.autresLieux != "" %}
-				Autres lieux:{{ adresse.autresLieux }} </br>
+				<font color="green">Beste guneak</font> / Autres lieux : {{ adresse.autresLieux }} </br>
 			{% endif %}
 			{% if adresse.instagram != "" or adresse.facebook != "" %}
 				{{ adresse.instagram }} &nbsp;&nbsp; {{ adresse.facebook }}<br>
 			{% endif %}
 			{% if adresse.guideVee != 0 %}
-				Guide vacances en Eusko<br>
+				<font color="green">Oporrak euskoz gidaliburua</font> / Guide vacances en Eusko<br>
 			{% endif %}
-	                Catégories annuaire de zone:
+	                <font color="green">Zonaldekako aurkitegi-sailkapenak</font> / Catégories annuaire de zone : 
 	                {% if adresse.categoriesAnnuaire.count() > 0 %}
 			    <ul>
 			    {% for key, adresseGal in adresse.categoriesAnnuaire %}
@@ -139,7 +153,7 @@
 			    {% endfor %}
 			    </ul>
 			{% endif %}
-	                Catégories Eskuz-Esku:
+	                <font color="green">Eskuz-Esku sailkapenak</font> / Catégories Eskuz-Esku : 
 	                {% if adresse.categoriesAnnuaireEskuz.count() > 0 %}
 			    <ul>
 			    {% for key, adresseEskuz in adresse.categoriesAnnuaireEskuz %}
@@ -153,7 +167,7 @@
 		</ul>
             <br />
 	    {% if dossierAgrement.reductionsAdhesion.count() > 0 %}
-	    Membre de: 
+	    <font color="green">-(a)ren kide </font> / Membre de : 
                 {% for key, reduction in dossierAgrement.reductionsAdhesion %}
 			{{ reduction.nom }} &nbsp;
 		{% endfor %}
@@ -161,46 +175,135 @@
             <br />
 	    {% if (dossierAgrement.autocollantPanneau + dossierAgrement.autocollantVitrine) > 0 %}
 		    {% if dossierAgrement.autocollantVitrine > 0 %}
-			{% set autocollantVitrine = 'vitrine ' ~ dossierAgrement.autocollantVitrine %}
+			{% set autocollantVitrine1 = 'erakusleihoa' %}
+			{% set autocollantVitrine2 = ' / vitrine ' ~ dossierAgrement.autocollantVitrine %}
+                    {% else %}
+			{% set autocollantVitrine1 = '' %}
+			{% set autocollantVitrine2 = '' %}
 		    {% endif %}
 		    {% if dossierAgrement.autocollantPanneau > 0 %}
-			{% set autocollantPanneau = 'panneau ' ~ dossierAgrement.autocollantPanneau %}
+			{% set autocollantPanneau1 = 'taula' %}
+			{% set autocollantPanneau2 = ' / panneau ' ~ dossierAgrement.autocollantPanneau %}
+                    {% else %}
+			{% set autocollantPanneau1 = '' %}
+			{% set autocollantPanneau2 = '' %}
 		    {% endif %}
-            Nombre d'autocollants: {{ autocollantVitrine }} / {{ autocollantPanneau }} "{{ dossierAgrement.typeAutocollant }}"<br />
+			
+                    <font color="green">Pegatina kopurua</font> / Nombre d'autocollants : <font color="green">{{ autocollantVitrine1 }}</font> {{ autocollantVitrine2 }} - <font color="green">{{ autocollantPanneau1 }}</font>{{ autocollantPanneau2 }} "{{ dossierAgrement.typeAutocollant }}"<br />
 	    {% endif %}
 	    {% if dossierAgrement.recevoirNewsletter > 0 %}
-                Recevoir la newsletter de l'eusko<br />
+                <font color="green">Eusko buletina jaso</font> / Recevoir la newsletter de l'eusko<br />
 	    {% endif %}
             <br />
-	    LES D&Eacute;FIS<br />
+	    <font color="green">DESAFIOAK</font> / LES D&Eacute;FIS<br />
 		<ul>
+		{% set premierProduit = 0 %}
+		{% set premierAutre = 0 %}
                 {% for key, defi in dossierAgrement.defis %}
 			{% set complement = '' %}
-                        {% set type = defi.type %}
-                        {% set status = defi.valeur %}
+			{% set libelle1 = '' %}
+			{% set dejaTraite = 0 %}
+                        {% set type2 = defi.type %}
+                        {% set status1 = defi.valeur %}
+                        {% set status2 = defi.valeur %}
+                        {% if defi.valeur == 'Déjà réalisé' %}
+                            {% set status1 = 'Egina' %}
+                            {% set status2 = ' / Déjà réalisé' %}
+                        {% elseif defi.valeur == 'à réaliser' %}
+                            {% set status1 = 'Egitekoa' %}
+                            {% set status2 = ' / à réaliser' %}
+                        {% elseif defi.valeur == 'En autonomie' %}
+                            {% set status1 = 'Autonomian' %}
+                            {% set status2 = ' / En autonomie' %}
+                        {% else %}
+                            {% set status1 = '' %}
+                        {% endif %}
                         {% set sautDeLigne = 0 %}
-			{% if defi.type == 'produit' %}
-                            {% set type = 'Produit local: ' ~ defi.valeur %}
+			{% if defi.type == 'promotionEuskara' %}
+                            <li><font color="green">Euskara desfioa</font> / Défi Euskara
+                            <ul>
+                            {% set libelle1 = 'Afitxaketa euskaraz' %}
+                            {% set libelle2 = ' / Affichage Euskara : ' %}
+                            <li><font color="green">{{ libelle1 }}</font>{{ libelle2 }}<i><font color="green">{{ status1 }}</font>{{ status2 }}</i></li> 
+                            {% set dejaTraite = 1 %}
+			{% elseif defi.type == 'accueilEuskara' %}
+                            {% set libelle1 = 'Harrera Euskaraz' %}
+                            {% set libelle2 = ' / Accueil Euskara : ' %}
+                            <li><font color="green">{{ libelle1 }}</font>{{ libelle2 }}<i><font color="green">{{ status1 }}</font>{{ status2 }}</i></li> 
+                            {% set dejaTraite = 1 %}
+                        {% endif %}
+			{% if libelle1 != '' %}
+                            {% set dejaTraite = 1 %}
+                        {% endif %}
+			{% if defi.type == 'accueilEuskara' %}
+	                    </ul>
+                            </li>
+			{% elseif defi.type == 'produit' %}
+                            {% if premierAutre == 1 %}
+			        {% set premierAutre = 0 %}
+                                </ul></li>
+                            {% endif %}
+                            {% if premierProduit == 0 %}
+			        {% set premierProduit = 1 %}
+                                <li><font color="green">Ekonomia birkokatzeko desafioa</font> / Défi relocalisation de l'économie
+                                <ul>
+                            {% endif %}
+                            {% set type1 = 'Bertako produktua' %}
+                            {% set type2 = ' / Produit local : ' ~ defi.valeur %}
                             {% set sautDeLigne = 0 %}
                             {% if defi.etat == 1 %}
-                                {% set status = 'Déjà réalisé' %}
+                                {% set status1 = 'Egina' %}
+                                {% set status2 = ' / Déjà réalisé' %}
                             {% else %}
-                                {% set status = 'à réaliser' %}
+                                {% set status1 = 'Egitekoa' %}
+                                {% set status2 = ' / à réaliser' %}
                             {% endif %}
 			{% elseif defi.type == 'professionnel' %}
+                            {% if premierAutre == 1 %}
+			        {% set premierAutre = 0 %}
+                                </ul></li>
+                            {% endif %}
+                            {% if premierProduit == 0 %}
+			        {% set premierProduit = 1 %}
+                                <li><font color="green">Ekonomia birkokatzeko desafioa</font> / Défi relocalisation de l'économie
+                                <ul>
+                            {% endif %}
                             {% set sautDeLigne = 1 %}
+                            {% set sautDeLigne = 0 %}
                             {% set pro = defi.valeur | json_decode %}
                             {% set adressePro = pro.adresse | json_decode %}
-			    {% set type = 'Pro: ' ~ pro.text ~ ' / ' ~ adressePro.text %}
+			    {% set type1 = 'Profesionala' %}
+			    {% set type2 = ' / Pro : ' ~ pro.text ~ ' / ' ~ adressePro.text %}
                             {% if defi.etat == 1 %}
-                                {% set status = 'Déjà réalisé' %}
+                                {% set status1 = 'Egina' %}
+                                {% set status2 = ' / Déjà réalisé' %}
                             {% else %}
-                                {% set status = 'à réaliser' %}
+                                {% set status1 = 'Egitekoa' %}
+                                {% set status2 = ' / à réaliser' %}
                             {% endif %}
 			    {% set complement = pro.note %}
+			{% elseif defi.type != 'produit' and defi.type != 'professionnel' and defi.type != 'promotionEuskara' and defi.type != 'reutiliser' %}
+			        {% set dejaTraite = 1 %}
+                                {% if premierAutre == 0 %}
+			            {% set premierAutre = 1 %}
+                                    <li><font color="green">Besteak</font> / Autres
+                                    <ul>
+                                {% endif %}
+                                {% if status1 == "Déjà adhérent" %}
+                                   {% set status2 =  status1 %}
+                                   {% set status1 =  "Jadanik kidea" %}
+                                {% elseif status1 == "Souhaite être mise en relation" %}
+                                   {% set status2 =  status1 %}
+                                   {% set status1 =  "Harremanetan ezarri nahi" %}
+                                {% elseif status1 == "Pas intéressé" %}
+                                   {% set status2 =  status1 %}
+                                   {% set status1 =  "Interesa gabekoa" %}
+                                {% endif %}
+                                
+			        <li><font color="green">{{ type1 }}</font>{{ type2 }} <i><font color="green">{{ status1 }}</font> {{ status2 }}</i></li>
                         {% endif %}
-			{% if defi.type != 'reutiliser' %}
-				<li>{{ type }}  
+			{% if ( defi.type != 'reutiliser' ) and ( dejaTraite == 0 ) %}
+				<li><font color="green">{{ type1 }}</font>{{ type2 }}  
 				{% if sautDeLigne == 1 %}
 				    <br />
 				{% endif %}
@@ -208,40 +311,47 @@
 				{% if sautDeLigne == 1 %}
 				    <br />
 				{% endif %}
-				<i>{{ status }}</i>
+			        <i><font color="green">{{ status1 }}</font>{{ status2 }}</i> 
 				</li>
                         {% endif %}
 		{% endfor %}
+                            {% if premierAutre == 1 %}
+			        {% set premierAutre = 0 %}
+                                </ul></li>
+                            {% endif %}
+                {% if premierProduit == 1 %}
+                    </ul></li>
+                {% endif %}
 		</ul>
             <br />
             <br />
-	    ADH&Eacute;SION<br />
+	    <font color="green">KIDETZA</font> / ADHESION<br />
             <ul>
-            <li>Type de cotisation: {{ dossierAgrement.typeCotisation }}</li>
-            <li>Cotisation  : {{ dossierAgrement.montant }} €</li>
-            <li>Frais de dossier  : {{ dossierAgrement.fraisDeDossier | round(2) }} €</li>
-            <li>Nombre de salari&eacute;s : {{ dossierAgrement.nbSalarie }}</li>
+            <li><font color="green">Kide-sari mota</font> / Type de cotisation : {{ dossierAgrement.typeCotisation }}</li>
+            <li><font color="green">Kide-saria</font> / Cotisation  : {{ dossierAgrement.montant }} €</li>
+            <li><font color="green">Kudeaketa gastuak</font> / Frais de dossier  : {{ dossierAgrement.fraisDeDossier | round(2) }} €</li>
+            <li><font color="green">Langile kopurua</font> / Nombre de salariés : {{ dossierAgrement.nbSalarie }}</li>
             </ul>
             <br />
-	    OPTIONS TECHNIQUES<br /> 
+	    <font color="green">AUKERA TEKNIKOAK</font> / OPTIONS TECHNIQUES<br /> 
             <ul>
 	    {% if dossierAgrement.compteNumeriqueBool > 0 %}
-                <li>Compte numérique professionnel {{ dossierAgrement.compteNumerique }}</li>
+                <li><font color="green">Profesionalen kontu digitala</font> / Compte numérique professionnel {{ dossierAgrement.compteNumerique }}</li>
 	    {% endif %}
 	    {% if dossierAgrement.terminalPaiementBool > 0 %}
-                <li>Nombre de terminaux de paiement: {{ dossierAgrement.terminalPaiement }}</li>
+                <li><font color="green">Ordaintze elektroniko terminal kopurua</font> / Nombre de terminaux de paiement : {{ dossierAgrement.terminalPaiement }}</li>
 	    {% endif %}
 	    {% if dossierAgrement.euskopayBool > 0 %}
-                <li>Installation Esukopay: nombre de QR codes {{ dossierAgrement.euskopay }}</li>
+                <li><font color="green">Euskopay instalatu: QR kode kopurua</font> / Installation Euskopay : nombre de QR codes {{ dossierAgrement.euskopay }}</li>
 	    {% endif %}
 	    {% if dossierAgrement.paiementViaEuskopay > 0 %}
-            	<li>Paiement possible par le PRO depuis l'application Esukopay</li>
+            	<li><font color="green">Profesionalak ordainketa Euskopay aplikaziorekin egin dezake</font> / Paiement possible par le PRO depuis l'application Euskopay</li>
 	    {% endif %}
             </ul>
 	        
             <br />
             <br />
-            Baionan, {{("now") |date('Y/m/d') }} an<br />
+            <font color="green">Baionan, {{("now") |date('Y/m/d') }} an</font><br />
             À Bayonne le {{("now") | date('d/m/Y') }}
             <br />
 
@@ -251,11 +361,13 @@
             </div>
             <br />
             <br />
-            Association non assujettie à la TVA       ---       N° SIRET Zkia : 790 029 599 00012       ---       Code APE Kodea :  9499Z
+            <font color="green">BEZaren menpekoa ez den elkartea</font> Association non assujettie à la TVA       <br />
+            N° SIRET <font color="green">Zkia</font> : 790 029 599 00012    ---    Code APE <font color="green">Kodea<font> : 9499Z
         </td>
     </tr>
 </table>
 
+            <font color="green">Onespen data</font> : {{ dossierAgrement.dateAgrement | date('Y/m/d') }}<br />
             Date d'agrément : {{ dossierAgrement.dateAgrement | date('d/m/Y') }}<br />
 
 <div class="divFooter center">

@@ -61,15 +61,15 @@
                 <br/>
                 <br/>
                 <h3>{{ "now" |date('Y') }}ko Dosieraren gastu ordainagiria<br/>
-                    REÇU FRAIS DE DOSSIER {{ "now" |date('Y') }}</h3>
+                    Reçu frais de dossier {{ "now" |date('Y') }}</h3>
             </div>
             <br />
             <br />
-            Date d'agrément : {{ dossierAgrement.dateAgrement | date('d/m/Y') }}<br />
-            Code prestataire agréé : {{ dossierAgrement.codePrestataire }}<br />
-            Nom : {{ dossierAgrement.denominationCommerciale }}<br />
+            Onespen data / Date d'agrément : {{ dossierAgrement.dateAgrement | date('d/m/Y') }}<br />
+            Kide zenbakia / Code prestataire agréé : {{ dossierAgrement.codePrestataire }}<br />
+            Izena / Nom : {{ dossierAgrement.denominationCommerciale }}<br />
             {% set adresse = dossierAgrement.adressePrincipale | json_decode %}
-            Adresse : {{adresse.text }}<br />
+            Helbidea / Adresse : {{adresse.text }}<br />
             <br />
             <br />
             <br />
@@ -93,9 +93,10 @@
             </div>
             <br />
             <br />
-            Association non assujettie à la TVA       ---       N° SIRET Zkia : 790 029 599 00012       ---       Code APE Kodea :  9499Z
-        </td>
-    </tr>
+    BEZaren menpekoa ez den elkartea / Association non assujettie à la TVA<br />
+    N° SIRET Zkia : 790 029 599 00012       ---       Code APE Kodea :  9499Z
+</td>
+</tr>
 </table>
 
 <div class="divFooter center">
