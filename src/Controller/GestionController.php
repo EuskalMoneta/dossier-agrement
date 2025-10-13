@@ -231,6 +231,14 @@ class GestionController extends AbstractController
                         </p>");
 
             $mailer->send($email);
+            $email = (new TemplatedEmail())
+                ->from('noreply@euskalmoneta.org')
+                ->to('support@euskalmoneta.org')
+                ->subject('Agrément eusko')
+                ->attach($pdfAttach, sprintf('recu-%s.pdf', date('d-m-Y')))
+                ->html("<p> Copie du reçu à archiver </p>");
+
+            $mailer->send($email);
 
         }
 
