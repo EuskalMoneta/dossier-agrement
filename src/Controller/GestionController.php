@@ -11,7 +11,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Knp\Snappy\Pdf;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Admin\Pool;
 use Sonata\AdminBundle\Datagrid\ProxyQueryInterface;
@@ -24,7 +23,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+
 
 class GestionController extends AbstractController
 {
@@ -45,7 +45,6 @@ class GestionController extends AbstractController
      * Zone de depot sur la partie front
      */
     #[Route('/send/ajax/file/{id}/{type}', name: 'app_send_ajax_file')]
-    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function sendFile(DossierAgrement $dossierAgrement, $type, Request $request, EntityManagerInterface $em): Response
     {
         $document = new Document();
