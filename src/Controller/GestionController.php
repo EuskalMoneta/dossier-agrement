@@ -233,7 +233,7 @@ class GestionController extends AbstractController
             $email = (new TemplatedEmail())
                 ->from('noreply@euskalmoneta.org')
                 ->to('support@euskalmoneta.org')
-                ->subject('Agrément eusko')
+                ->subject('Agrément eusko (copie reçu)')
                 ->attach($pdfAttach, sprintf('recu-%s.pdf', date('d-m-Y')))
                 ->html("<p> Copie du reçu à archiver </p>");
 
