@@ -76,8 +76,7 @@ class GestionController extends AbstractController
      *  Vérifier le dossier et qu'un tier n'est pas déjà dans le CRM
      */
     #[Route('/admin/dossier/check/{id}', name: 'app_admin_dossier_check')]
-    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function checkDossier(DossierAgrement $dossierAgrement,Pool $pool, DolibarrController $crm, Request $request): Response
+    public function checkDossier(DossierAgrement $dossierAgrement, Pool $pool, DolibarrController $crm, Request $request): Response
     {
         $pros =[];
         $method = $request->isMethod('POST');
@@ -95,13 +94,11 @@ class GestionController extends AbstractController
      *
      */
     #[Route('/admin/dossier/envoi/{id}/{idExterne}', name: 'app_admin_dossier_envoi')]
-    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
     public function envoiDossierCRM(DossierAgrement $dossierAgrement,
                                     Pool $pool,
                                     DolibarrController $crm,
                                     EntityManagerInterface $em,
-                                    Request $request,
-        $idExterne = '0'): Response
+                                    $idExterne = '0'): Response
     {
         if($idExterne == '0'){
             $idExterne = 0;
@@ -181,8 +178,7 @@ class GestionController extends AbstractController
      * Genere et envoie le dossier d'agrement en interne
      */
     #[Route('/admin/dossier/generer-dossier/{id}', name: 'app_admin_generer_dossier')]
-    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function genererDossier(MailerInterface $mailer, Pdf $pdf, DossierAgrement $dossierAgrement,Pool $pool, Request $request): Response
+    public function genererDossier(DossierAgrement $dossierAgrement, MailerInterface $mailer, Pdf $pdf): Response
     {
             $pdfAttachDossier = $pdf->getOutputFromHtml(
                 $this->renderView('admin/dossierAgrement.html.twig', ['dossierAgrement' => $dossierAgrement,'typeInterne' => 'ARCHIVAGE']),[]
@@ -201,8 +197,7 @@ class GestionController extends AbstractController
      * Envoi un email pour le prestataire, avec les autocollant et un reçu.
      */
     #[Route('/admin/dossier/email-prestataire/{id}', name: 'app_admin_email_prestataire')]
-    #[ParamConverter('dossierAgrement', class: DossierAgrement::class)]
-    public function emailPrestatire(MailerInterface $mailer, Pdf $pdf, DossierAgrement $dossierAgrement,Pool $pool, Request $request): Response
+    public function emailPrestatire(DossierAgrement $dossierAgrement, MailerInterface $mailer, Pdf $pdf, Pool $pool, Request $request): Response
     {
         $method = $request->isMethod('POST');
         if($method){
@@ -337,35 +332,10 @@ class GestionController extends AbstractController
         return true;
     }
 
-
-
-
-
-    /**
-     * Génère le brouillon de compte rendu au format odt
-     * Prends une sélection de dossier via sonata admin en entrée
-     * Retourne un fichier odt
-     *
-     * @param ProxyQueryInterface $query
-     * @param AdminInterface $admin
-     * @return Response
-     * @throws \PhpOffice\PhpWord\Exception\Exception
-     */
-    public function batchGenerationAction(ProxyQueryInterface $query, AdminInterface $admin): Response
+    public function generateOrdreDuJour($selectedModels): Response
     {
-        $admin->checkAccess('edit');
-        $admin->checkAccess('delete');
-
-        $modelManager = $admin->getModelManager();
-
-        $selectedModels = $query->execute();
-
-        // do the merge work here
-
         // Create a new Word document
         $phpWord = new PhpWord();
-
-        /* Note: any element you append to a document must reside inside of a Section. */
 
 
         $formatter = new \IntlDateFormatter('fr_FR', \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
@@ -450,11 +420,9 @@ class GestionController extends AbstractController
 
         $section->addTextBreak(1);
 
-
         try {
             /** @var DossierAgrement $dossier */
             foreach ($selectedModels as $dossier) {
-                //$modelManager->update($selectedModel);
 
                 $section->addText(
                     'Nom : '.$dossier->getLibelle() ,
@@ -632,6 +600,36 @@ class GestionController extends AbstractController
         );
 
         return $response;
+
+    }
+
+
+
+    /**
+     * Génère le brouillon de compte rendu au format odt
+     * Prends une sélection de dossier via sonata admin en entrée
+     * Retourne un fichier odt
+     *
+     * @param ProxyQueryInterface $query
+     * @param AdminInterface $admin
+     * @return Response
+     * @throws \PhpOffice\PhpWord\Exception\Exception
+     */
+    public function batchGenerationAction(ProxyQueryInterface $query, AdminInterface $admin): Response
+    {
+        $admin->checkAccess('edit');
+        $admin->checkAccess('delete');
+
+        $modelManager = $admin->getModelManager();
+
+        $selectedModels = $query->execute();
+
+        // generate CR
+        $response = $this->generateOrdreDuJour($selectedModels);
+
+        return $response;
+
+
 
     }
 }
