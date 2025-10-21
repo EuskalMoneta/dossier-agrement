@@ -425,7 +425,7 @@ class GestionController extends AbstractController
             foreach ($selectedModels as $dossier) {
 
                 $section->addText(
-                    'Nom : '.$dossier->getLibelle() ,
+                    'Nom : '.htmlspecialchars($dossier->getLibelle(), ENT_QUOTES | ENT_XML1, 'UTF-8') ,
                     $blodFontStyle,
                     $paragraphStyleBold);
                 $section->addText(
@@ -434,13 +434,13 @@ class GestionController extends AbstractController
                     $paragraphStyleName);
                 if($adresseActivite = $dossier->getAdresseActivites()->first()){
                     $section->addText(
-                        'Activité : '.$adresseActivite->getDescriptifActivite(),
+                        'Activité : '.htmlspecialchars($adresseActivite->getDescriptifActivite(), ENT_QUOTES | ENT_XML1, 'UTF-8'),
                         $paragraphFontStyle,
                         $paragraphStyleName);
                 }
 
                 $section->addText(
-                    'Adresse : '.json_decode($dossier->getAdressePrincipale())->text ,
+                    'Adresse : '.htmlspecialchars(json_decode($dossier->getAdressePrincipale())->text, ENT_QUOTES | ENT_XML1, 'UTF-8') ,
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addText(
@@ -467,7 +467,7 @@ class GestionController extends AbstractController
 
                     /** @var Defi $defi */
                     foreach ($produitsLocaux as $defi){
-                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem(htmlspecialchars($defi->getValeur(), ENT_QUOTES | ENT_XML1, 'UTF-8').' - '.$defi->getEtatReadable(),
                             0,
                             $paragraphFontStyle,
                             null,
@@ -490,7 +490,7 @@ class GestionController extends AbstractController
                         if(json_decode($defi->getValeur())->note !== ''){
                             $note = ' - '.json_decode($defi->getValeur())->note;
                         }
-                        $section->addListItem(json_decode($defi->getValeur())->text.$note.' - '.$defi->getEtatReadable(),
+                        $section->addListItem(htmlspecialchars(json_decode($defi->getValeur())->text, ENT_QUOTES | ENT_XML1, 'UTF-8').htmlspecialchars($note, ENT_QUOTES | ENT_XML1, 'UTF-8').' - '.$defi->getEtatReadable(),
                             0,
                             $paragraphFontStyle,
                             null,
@@ -508,7 +508,7 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($reutilisers as $defi){
-                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem(htmlspecialchars($defi->getValeur(), ENT_QUOTES | ENT_XML1, 'UTF-8').' - '.$defi->getEtatReadable(),
                             0,
                             $paragraphFontStyle,
                             null,
@@ -526,7 +526,7 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($promotion as $defi){
-                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem(htmlspecialchars($defi->getValeur(), ENT_QUOTES | ENT_XML1, 'UTF-8').' - '.$defi->getEtatReadable(),
                             0,
                             $paragraphFontStyle,
                             null,
@@ -544,7 +544,7 @@ class GestionController extends AbstractController
                         $paragraphStyleName);
                     /** @var Defi $defi */
                     foreach ($accueil as $defi){
-                        $section->addListItem($defi->getValeur().' - '.$defi->getEtatReadable(),
+                        $section->addListItem(htmlspecialchars($defi->getValeur(), ENT_QUOTES | ENT_XML1, 'UTF-8').' - '.$defi->getEtatReadable(),
                             0,
                             $paragraphFontStyle,
                             null,
@@ -555,7 +555,7 @@ class GestionController extends AbstractController
                 $section->addTextBreak();
 
                 $section->addText(
-                    'Note : '.$dossier->getNote(),
+                    'Note : '.htmlspecialchars($dossier->getNote(), ENT_QUOTES | ENT_XML1, 'UTF-8'),
                     $paragraphFontStyle,
                     $paragraphStyleName);
                 $section->addTextBreak();
