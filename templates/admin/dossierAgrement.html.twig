@@ -62,8 +62,8 @@
             <div class="">
                 <br/>
                 <br/>
-                <h3>{{ "now" |date('Y') }}ko Dosieraren gastu ordainagiria<br/>
-                    Dossier d'agrément {{ "now" |date('Y') }}
+                <h3>{{ dossierAgrement.dateAgrement |date('Y') }}ko Dosieraren gastu ordainagiria<br/>
+                    Dossier d'agrément {{ dossierAgrement.dateAgrement |date('Y') }}
 		    {% if typeInterne == 'ARCHIVAGE' %}
 		    	<br><font color="green">BARNE ARTXIBOA</font> / ARCHIVAGE INTERNE<br />
 		    {% endif %}
@@ -77,14 +77,16 @@
 	    {% elseif dossierAgrement.type == 'association' %}
 	        <font color="green">ELKARTEA</font> / L'ASSOCIATION<br />
 	    {% endif %}
-		&nbsp;&nbsp;<font color="green">Izen komertziala  (aurkitegiarako)</font> / Dénomination commerciale (pour annuaire) : {{ dossierAgrement.denominationCommerciale }}<br />
-		&nbsp;&nbsp;<font color="green">Mota juridikoa</font> / Forme juridique : {{ dossierAgrement.formeJuridique }}<br />
+		&nbsp;&nbsp;<font color="green">Izen komertziala  (aurkitegiarako)</font> / Dénomination commerciale (pour annuaire) : {{ dossierAgrement.libelle }}<br />
+                {% if dossierAgrement.formeJuridique != '' %}
+		    &nbsp;&nbsp;<font color="green">Mota juridikoa</font> / Forme juridique : {{ dossierAgrement.formeJuridique }}<br />
+	        {% endif %}
                 {% set adresse = dossierAgrement.adressePrincipale | json_decode %}
                 &nbsp;&nbsp;<font color="green">Helbidea</font> / Adresse : {{ adresse.text }}<br />
 		&nbsp;&nbsp;<font color="green">Telefono finkoa</font> / Tél.Fixe : {{ dossierAgrement.telephone }}<br />
 		&nbsp;&nbsp;<font color="green">E-mail</font> / E-mail : {{ dossierAgrement.emailPrincipal }}<br />
 		&nbsp;&nbsp;<font color="green">Webgunea</font> / Site Internet : {{ dossierAgrement.siteWeb }}<br />
-                &nbsp;&nbsp;<font color="green">Izen soziala / Egoitza sozialaren helbidea</font> / Dénomination sociale / Adresse du siège social : {{ dossierAgrement.libelle }}
+                &nbsp;&nbsp;<font color="green">Izen soziala </font> / Dénomination sociale : {{ dossierAgrement.denominationCommerciale }}
             <br />
             <br />
 	    {% if typeInterne == 'ARCHIVAGE' %}
@@ -191,9 +193,6 @@
 			
                     <font color="green">Pegatina kopurua</font> / Nombre d'autocollants : <font color="green">{{ autocollantVitrine1 }}</font> {{ autocollantVitrine2 }} - <font color="green">{{ autocollantPanneau1 }}</font>{{ autocollantPanneau2 }} "{{ dossierAgrement.typeAutocollant }}"<br />
 	    {% endif %}
-	    {% if dossierAgrement.recevoirNewsletter > 0 %}
-                <font color="green">Eusko buletina jaso</font> / Recevoir la newsletter de l'eusko<br />
-	    {% endif %}
             <br />
 	    <font color="green">DESAFIOAK</font> / LES D&Eacute;FIS<br />
 		<ul>
@@ -273,7 +272,7 @@
                             {% set pro = defi.valeur | json_decode %}
                             {% set adressePro = pro.adresse | json_decode %}
 			    {% set type1 = 'Profesionala' %}
-			    {% set type2 = ' / Pro : ' ~ pro.text ~ ' / ' ~ adressePro.text %}
+			    {% set type2 = ' / Pro : ' ~ pro.text ~ ' (' ~ adressePro.id ~ ') ' %} 
                             {% if defi.etat == 1 %}
                                 {% set status1 = 'Egina' %}
                                 {% set status2 = ' / Déjà réalisé' %}
@@ -314,6 +313,11 @@
 			        <i><font color="green">{{ status1 }}</font>{{ status2 }}</i> 
 				</li>
                         {% endif %}
+			{% if ( defi.type == 'reutiliser' ) %}
+				<li><font color="green"></font>Réutiliser à titre personnel
+			        &nbsp;<i>{{ defi.valeur }}</i> 
+				</li>
+                        {% endif %}
 		{% endfor %}
                             {% if premierAutre == 1 %}
 			        {% set premierAutre = 0 %}
@@ -327,14 +331,17 @@
             <br />
 	    <font color="green">KIDETZA</font> / ADHESION<br />
             <ul>
+            <li><font color="green">Langile kopurua</font> / Nombre de salariés : {{ dossierAgrement.nbSalarie }}</li>
             <li><font color="green">Kide-sari mota</font> / Type de cotisation : {{ dossierAgrement.typeCotisation }}</li>
             <li><font color="green">Kide-saria</font> / Cotisation  : {{ dossierAgrement.montant }} €</li>
             <li><font color="green">Kudeaketa gastuak</font> / Frais de dossier  : {{ dossierAgrement.fraisDeDossier | round(2) }} €</li>
-            <li><font color="green">Langile kopurua</font> / Nombre de salariés : {{ dossierAgrement.nbSalarie }}</li>
             </ul>
             <br />
 	    <font color="green">AUKERA TEKNIKOAK</font> / OPTIONS TECHNIQUES<br /> 
             <ul>
+	    {% if dossierAgrement.recevoirNewsletter > 0 %}
+                <li><font color="green">Eusko buletina jaso</font> / Recevoir la newsletter de l'eusko</li>
+	    {% endif %}
 	    {% if dossierAgrement.compteNumeriqueBool > 0 %}
                 <li><font color="green">Profesionalen kontu digitala</font> / Compte numérique professionnel {{ dossierAgrement.compteNumerique }}</li>
 	    {% endif %}
@@ -351,13 +358,17 @@
 	        
             <br />
             <br />
-            <font color="green">Baionan, {{("now") |date('Y/m/d') }} an</font><br />
-            À Bayonne le {{("now") | date('d/m/Y') }}
+            <font color="green">Baionan, {{(dossierAgrement.dateAgrement) |date('Y/m/d') }} an</font><br />
+            À Bayonne le {{(dossierAgrement.dateAgrement) | date('d/m/Y') }}
             <br />
 
 
             <div style="text-align: right">
-            <img src="{{ absolute_url(asset('images/signature.png')) }}" alt="" width="200"/>
+	    {% if dossierAgrement.dateAgrement | date('Y') > 2024 %}
+                <img src="{{ absolute_url(asset('images/signature.png')) }}" alt="" width="200"/>
+	    {% else %}
+                <img src="{{ absolute_url(asset('images/signatureXebax.png')) }}" alt="" width="200"/>
+	    {% endif %}
             </div>
             <br />
             <br />
