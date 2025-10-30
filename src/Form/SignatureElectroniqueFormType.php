@@ -25,7 +25,7 @@ class SignatureElectroniqueFormType extends AbstractType
                 'label' => 'Téléphone',
                 'constraints' => [
                     new Regex([
-                        'pattern' => '/^\+[0-9]{10,14}$/',
+                        'pattern' => '/^\+[0-9]{2} [0-9] [0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}$/',
                         'message' => 'Le numéro doit commencer par +33 ou un autre préfixe',
                     ])
                 ],
