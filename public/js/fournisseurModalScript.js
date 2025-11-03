@@ -193,11 +193,12 @@ $('#fournisseur-adresse').select2({
                     return {
                         text: item.properties.label,
                         /*text: item.properties.housenumber + ' ' + item.properties.street + ', ' + item.properties.city + ' (' + item.properties.postcode + ')',*/
-                        id: item.properties.city,
+                        id:  item.properties.id,
                         lng: item.geometry.coordinates[0],
                         lat: item.geometry.coordinates[1],
                         address: item.properties.housenumber + ' ' + item.properties.street,
-                        postcode: item.properties.postcode
+                        postcode: item.properties.postcode,
+                        city: item.properties.city,
                     }
                 })
             };

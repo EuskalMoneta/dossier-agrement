@@ -693,7 +693,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             [
                 'address' => $adresseActivite->getAdresseComplete(),
                 'zip' => $adresse->postcode,
-                'town' => $adresse->id,
+                'town' => $adresse->city,
                 'country_id' => 1,
                 "socid"=> $adresseActivite->getDossier()->getIdExterne(),
                 "email"=> $adresseActivite->getEmail(),
@@ -725,7 +725,7 @@ class DolibarrController extends AbstractController implements CRMInterface
             [
                 'address' => $dossierAgrement->getAdresseComplete(),
                 'zip' => $adresse->postcode,
-                'town' => $adresse->id,
+                'town' => $adresse->city,
                 'country_id' => 1,
                 'url' => $dossierAgrement->getSiteWeb(),
                 "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
@@ -763,7 +763,7 @@ class DolibarrController extends AbstractController implements CRMInterface
 
         if($adresse){
             $data['zip'] = $adresse->postcode;
-            $data['town'] = $adresse->id;
+            $data['town'] = $adresse->city;
         }
 
         //on rajoute le statut prospect uniquement si le tier a été rajouté via le dossier d'agrément.
@@ -826,7 +826,7 @@ class DolibarrController extends AbstractController implements CRMInterface
                 "email"=> $dossierAgrement->isCompteNumeriqueBool() ? $dossierAgrement->getCompteNumerique() : $dossierAgrement->getEmailPrincipal(),
                 'address' => $dossierAgrement->getAdresseComplete(),
                 'zip' => $adresse->postcode,
-                'town' => $adresse->id,
+                'town' => $adresse->city,
                 'country_id' => 1,
                 "phone"=> $dossierAgrement->getTelephone(),
                 "fk_soc"=> $dossierAgrement->getIdExterne(),
