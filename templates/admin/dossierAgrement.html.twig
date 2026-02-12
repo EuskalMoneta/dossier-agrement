@@ -82,7 +82,11 @@
 		    &nbsp;&nbsp;<font color="green">Mota juridikoa</font> / Forme juridique : {{ dossierAgrement.formeJuridique }}<br />
 	        {% endif %}
                 {% set adresse = dossierAgrement.adressePrincipale | json_decode %}
-                &nbsp;&nbsp;<font color="green">Helbidea</font> / Adresse : {{ adresse.text }}<br />
+                &nbsp;&nbsp;<font color="green">Helbidea</font> / Adresse : {{ adresse.text }}
+		{% if dossierAgrement.complementAdresse != "" %}
+                       ;&nbsp; {{ dossierAgrement.complementAdresse }}
+	        {% endif %}
+                <br />
 		&nbsp;&nbsp;<font color="green">Telefono finkoa</font> / Tél.Fixe : {{ dossierAgrement.telephone }}<br />
 		&nbsp;&nbsp;<font color="green">E-mail</font> / E-mail : {{ dossierAgrement.emailPrincipal }}<br />
 		&nbsp;&nbsp;<font color="green">Webgunea</font> / Site Internet : {{ dossierAgrement.siteWeb }}<br />
