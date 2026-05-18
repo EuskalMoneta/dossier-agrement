@@ -432,13 +432,27 @@ class GestionController extends AbstractController
                     'Type : '.$dossier->getType() ,
                     $paragraphFontStyle,
                     $paragraphStyleName);
-                if($adresseActivite = $dossier->getAdresseActivites()->first()){
-                    $section->addText(
-                        'Activité : '.htmlspecialchars($adresseActivite->getDescriptifActivite(), ENT_QUOTES | ENT_XML1, 'UTF-8'),
-                        $paragraphFontStyle,
-                        $paragraphStyleName);
+                foreach ($dossier->getAdresseActivites() as $adresseActivite) { 
+			$section->addText(
+			    'Nom commercial : '.htmlspecialchars($adresseActivite->getNom(), ENT_QUOTES | ENT_XML1, 'UTF-8') ,
+			    $blodFontStyle,
+			    $paragraphStyleName);
+                        if($adresseActivite->getInstagram() !== '')
+				$section->addText(
+				    'Insta : '.htmlspecialchars($adresseActivite->getInstagram(), ENT_QUOTES | ENT_XML1, 'UTF-8') ,
+				    $paragraphFontStyle,
+				    $paragraphStyleName);
+                        if($adresseActivite->getFacebook() !== '')
+				$section->addText(
+				    'Facebook : '.htmlspecialchars($adresseActivite->getFacebook(), ENT_QUOTES | ENT_XML1, 'UTF-8') ,
+				    $paragraphFontStyle,
+				    $paragraphStyleName);
+                        $section->addText(
+                            'Activité : '.htmlspecialchars($adresseActivite->getDescriptifActivite(), ENT_QUOTES | ENT_XML1, 'UTF-8'),
+                            $paragraphFontStyle,
+                            $paragraphStyleName);
                 }
-
+                $section->addTextBreak(1);
                 $section->addText(
                     'Adresse : '.htmlspecialchars(json_decode($dossier->getAdressePrincipale())->text, ENT_QUOTES | ENT_XML1, 'UTF-8') ,
                     $paragraphFontStyle,
