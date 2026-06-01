@@ -797,7 +797,7 @@ class DolibarrController extends AbstractController implements CRMInterface
         }
 
         $array_options = [
-            "options_recevoir_actus"=> $dossierAgrement->isRecevoirNewsletter(),
+            "options_recevoir_actus"=> $dossierAgrement->isRecevoirNewsletter() ? '1' : '0',
             "options_iban"=> $dossierAgrement->getIban(),
             "options_bic"=> $dossierAgrement->getBic(),
             "options_prelevement_auto_cotisation"=> '1',
